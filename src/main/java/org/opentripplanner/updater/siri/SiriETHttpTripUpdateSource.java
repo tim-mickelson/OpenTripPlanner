@@ -16,8 +16,8 @@ package org.opentripplanner.updater.siri;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.updater.JsonConfigurable;
-import org.opentripplanner.updater.SiriHelper;
 import org.opentripplanner.util.HttpUtils;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
@@ -85,7 +85,7 @@ public class SiriETHttpTripUpdateSource implements EstimatedTimetableSource, Jso
         long t1 = System.currentTimeMillis();
         try {
 
-            InputStream is = HttpUtils.postData(url, SiriHelper.createETServiceRequestAsXml(requestorRef), timeout);
+            InputStream is = HttpUtils.postData(url, SiriXml.toXml(RuterSiriHelper.createETServiceRequest(requestorRef)), timeout);
             if (is != null) {
                 // Decode message
                 LOG.info("Fetching ET-data took {} ms", (System.currentTimeMillis()-t1));
@@ -102,6 +102,9 @@ public class SiriETHttpTripUpdateSource implements EstimatedTimetableSource, Jso
 
                 //All subsequent requests will return changes since last request
                 fullDataset = false;
+
+                RuterSiriHelper.rewriteEtIds(siri.getServiceDelivery().getEstimatedTimetableDeliveries());
+
                 return siri;
 
             }
@@ -114,6 +117,7 @@ public class SiriETHttpTripUpdateSource implements EstimatedTimetableSource, Jso
         }
         return null;
     }
+
 
     @Override
     public boolean getFullDatasetValueOfLastUpdates() {

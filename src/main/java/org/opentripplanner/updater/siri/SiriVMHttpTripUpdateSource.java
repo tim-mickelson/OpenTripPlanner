@@ -84,6 +84,7 @@ public class SiriVMHttpTripUpdateSource implements VehicleMonitoringSource, Json
         fullDataset = false;
         try {
             InputStream is = HttpUtils.postData(url, SiriHelper.createVMServiceRequestAsXml(requestorRef), timeout);
+
             if (is != null) {
                 // Decode message
                 LOG.info("Fetching VM-data took {} ms", (System.currentTimeMillis()-t1));
@@ -97,6 +98,7 @@ public class SiriVMHttpTripUpdateSource implements VehicleMonitoringSource, Json
                 }
                 lastTimestamp = siri.getServiceDelivery().getResponseTimestamp();
 
+                RuterSiriHelper.rewriteVmIds(siri.getServiceDelivery().getVehicleMonitoringDeliveries());
                 return siri;
 
             }
