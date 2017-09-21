@@ -1,8 +1,9 @@
-package org.opentripplanner.gtfs;
+package org.opentripplanner.model;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.opentripplanner.model.BikeAccess;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Trip;
 

@@ -26,7 +26,7 @@ import org.opentripplanner.api.model.Place;
 import org.opentripplanner.api.model.RelativeDirection;
 import org.opentripplanner.api.model.WalkStep;
 import org.opentripplanner.common.geometry.PackedCoordinateSequence;
-import org.opentripplanner.gtfs.BikeAccess;
+import org.opentripplanner.model.BikeAccess;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.alertpatch.TimePeriod;

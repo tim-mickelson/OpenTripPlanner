@@ -1,6 +1,7 @@
 package org.opentripplanner.gtfs.mapping;
 
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
+import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 
 
