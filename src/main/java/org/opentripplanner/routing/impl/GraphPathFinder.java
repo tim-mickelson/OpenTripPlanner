@@ -268,10 +268,11 @@ public class GraphPathFinder {
                     if(options.arriveBy){
                         Collections.reverse(concatenatedPaths);
                     }
-                    GraphPath joinedPath = joinPaths(concatenatedPaths);
+                    GraphPath joinedPath = joinPaths(concatenatedPaths, false);
 
-                    if((!options.arriveBy && joinedPath.states.getFirst().getTimeInMillis() > options.dateTime * 1000) ||
-                            (options.arriveBy && joinedPath.states.getLast().getTimeInMillis() < options.dateTime * 1000)){
+                    if( (joinedPath != null) &&
+                        ((!options.arriveBy && joinedPath.states.getFirst().getTimeInMillis() > options.dateTime * 1000) ||
+                         (options.arriveBy && joinedPath.states.getLast().getTimeInMillis() < options.dateTime * 1000))) {
                         joinedPaths.add(joinedPath);
                         if(newPaths.size() > 1){
                             for (AgencyAndId tripId : joinedPath.getTrips()) {
@@ -460,12 +461,13 @@ public class GraphPathFinder {
                 if (request.arriveBy) {
                     Collections.reverse(paths);
                 }
-                GraphPath joinedPath = joinPaths(paths);
-                time = (request.arriveBy
-                    ? joinedPath.getEndTime() - 60
-                    : joinedPath.getStartTime() + 60);
-                completePaths.add(joinedPath);
-
+                GraphPath joinedPath = joinPaths(paths, true);
+                if (joinedPath != null) {
+                    time = (request.arriveBy
+                            ? joinedPath.getEndTime() - 60
+                            : joinedPath.getStartTime() + 60);
+                    completePaths.add(joinedPath);
+                }
             }
             request.setRoutingContext(router.graph);
             request.rctx.debugOutput = debugOutput;
@@ -475,7 +477,7 @@ public class GraphPathFinder {
         }
     }
 
-    private static GraphPath joinPaths(List<GraphPath> paths) {
+    private static GraphPath joinPaths(List<GraphPath> paths, boolean addSwitching) {
         State lastState = paths.get(0).states.getLast();
         GraphPath newPath = new GraphPath(lastState, false);
         Vertex lastVertex = lastState.getVertex();
@@ -485,14 +487,20 @@ public class GraphPathFinder {
 
         for (GraphPath path : paths.subList(1, paths.size())) {
             lastState = newPath.states.getLast();
-            // add a leg-switching state
-            LegSwitchingEdge legSwitchingEdge = new LegSwitchingEdge(lastVertex, lastVertex);
-            lastState = legSwitchingEdge.traverse(lastState);
-            newPath.edges.add(legSwitchingEdge);
-            newPath.states.add(lastState);
+            if (addSwitching == true) {
+                // add a leg-switching state
+                LegSwitchingEdge legSwitchingEdge = new LegSwitchingEdge(lastVertex, lastVertex);
+                lastState = legSwitchingEdge.traverse(lastState);
+                if (lastState == null)
+                    return null;
+                newPath.edges.add(legSwitchingEdge);
+                newPath.states.add(lastState);
+            }
             // add the next subpath
             for (Edge e : path.edges) {
                 lastState = e.traverse(lastState);
+                if (lastState == null)
+                    return null;
                 newPath.edges.add(e);
                 newPath.states.add(lastState);
             }

@@ -13,8 +13,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>. */
 
 package org.opentripplanner.graph_builder.module.osm;
 
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+
+import org.opentripplanner.common.model.P2;
 import org.opentripplanner.routing.edgetype.StreetTraversalPermission;
+import org.opentripplanner.routing.services.notes.NoteMatcher;
 import org.opentripplanner.routing.services.notes.StreetNotesService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This factory class provides a default collection of {@link WayProperties} that determine how OSM streets can be
@@ -43,6 +51,12 @@ import org.opentripplanner.routing.services.notes.StreetNotesService;
  */
 public class DefaultWayPropertySetSource implements WayPropertySetSource {
 
+    private static Logger LOG = LoggerFactory.getLogger(DefaultWayPropertySetSource.class);
+
+    private Locale locale = Locale.getDefault();
+
+    ResourceBundle resources;
+
     /* Populate properties on existing WayPropertySet */
     public void populateProperties(WayPropertySet props) {
         /* no bicycle tags */
@@ -59,6 +73,7 @@ public class DefaultWayPropertySetSource implements WayPropertySetSource {
         props.setProperties("highway=steps", StreetTraversalPermission.PEDESTRIAN);
         props.setProperties("highway=crossing", StreetTraversalPermission.PEDESTRIAN);
         props.setProperties("highway=platform", StreetTraversalPermission.PEDESTRIAN);
+        props.setProperties("highway=footway", StreetTraversalPermission.PEDESTRIAN);
         props.setProperties("public_transport=platform", StreetTraversalPermission.PEDESTRIAN);
         props.setProperties("railway=platform", StreetTraversalPermission.PEDESTRIAN);
         props.setProperties("footway=sidewalk;highway=footway",
@@ -558,6 +573,50 @@ public class DefaultWayPropertySetSource implements WayPropertySetSource {
         props.setSlopeOverride(new OSMSpecifier("bridge=*"), true);
         props.setSlopeOverride(new OSMSpecifier("embankment=*"), true);
         props.setSlopeOverride(new OSMSpecifier("tunnel=*"), true);
+    }
 
+    private void createNames(WayPropertySet propset, String spec, String patternKey) {
+        String pattern = patternKey;
+        CreativeNamer namer = new CreativeNamer(pattern);
+        propset.addCreativeNamer(new OSMSpecifier(spec), namer);
+    }
+
+    private void createNotes(WayPropertySet propset, String spec, String patternKey, NoteMatcher matcher) {
+        String pattern = patternKey;
+        //TODO: notes aren't localized
+        NoteProperties properties = new NoteProperties(pattern, matcher);
+        propset.addNote(new OSMSpecifier(spec), properties);
+    }
+
+    private void setProperties(WayPropertySet propset, String spec,
+            StreetTraversalPermission permission) {
+        setProperties(propset, spec, permission, 1.0, 1.0);
+    }
+
+    /**
+     * Note that the safeties here will be adjusted such that the safest street has a safety value of 1, with all others scaled proportionately.
+     */
+    private void setProperties(WayPropertySet propset, String spec,
+            StreetTraversalPermission permission, double safety, double safetyBack) {
+        setProperties(propset, spec, permission, safety, safetyBack, false);
+    }
+
+    private void setProperties(WayPropertySet propset, String spec,
+            StreetTraversalPermission permission, double safety, double safetyBack, boolean mixin) {
+        WayProperties properties = new WayProperties();
+        properties.setPermission(permission);
+        properties.setSafetyFeatures(new P2<Double>(safety, safetyBack));
+        propset.addProperties(new OSMSpecifier(spec), properties, mixin);
+    }
+
+    private void setCarSpeed(WayPropertySet propset, String spec, float speed) {
+        SpeedPicker picker = new SpeedPicker();
+        picker.specifier = new OSMSpecifier(spec);
+        picker.speed = speed;
+        propset.addSpeedPicker(picker);
+    }
+
+    public void setLocale(Locale locale) {
+        this.locale = locale;
     }
 }
