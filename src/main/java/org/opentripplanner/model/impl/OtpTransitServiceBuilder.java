@@ -9,6 +9,8 @@ import org.opentripplanner.model.FareRule;
 import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Frequency;
+import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.NoticeAssignment;
 import org.opentripplanner.model.OtpTransitService;
 import org.opentripplanner.model.Pathway;
 import org.opentripplanner.model.Route;
@@ -50,6 +52,10 @@ public class OtpTransitServiceBuilder {
     private final List<FeedInfo> feedInfos = new ArrayList<>();
 
     private final List<Frequency> frequencies = new ArrayList<>();
+
+    private final EntityById<FeedScopedId, Notice> noticesById = new EntityById<>();
+
+    private final EntityById<FeedScopedId, NoticeAssignment> noticeAssignmentsById = new EntityById<>();
 
     private final List<Pathway> pathways = new ArrayList<>();
 
@@ -102,6 +108,14 @@ public class OtpTransitServiceBuilder {
 
     public List<Frequency> getFrequencies() {
         return frequencies;
+    }
+
+    public EntityById<FeedScopedId, Notice> getNoticesById() {
+        return noticesById;
+    }
+
+    public EntityById<FeedScopedId, NoticeAssignment> getNoticeAssignmentsById() {
+        return noticeAssignmentsById;
     }
 
     public List<Pathway> getPathways() {

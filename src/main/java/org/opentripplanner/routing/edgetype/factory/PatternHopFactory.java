@@ -35,6 +35,8 @@ import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Transfer;
 import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.NoticeAssignment;
 import org.opentripplanner.routing.core.StopTransfer;
 import org.opentripplanner.routing.core.TransferTable;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -232,7 +234,21 @@ public class PatternHopFactory {
         for (TripPattern tableTripPattern : tripPatterns) {
             tableTripPattern.scheduledTimetable.finish();
         }
-        
+
+        for (Notice notice : transitService.getNotices()) {
+            graph.noticeMap.put(notice.getId(), notice);
+        }
+
+        for (NoticeAssignment noticeAssignment : transitService.getNoticeAssignments()) {
+            Notice notice = graph.noticeMap.get(noticeAssignment.getNoticeId());
+            if (graph.noticeAssignmentMap.containsKey(noticeAssignment.getElementId())) {
+                graph.noticeAssignmentMap.get(noticeAssignment.getElementId()).add(notice);
+            } else {
+                graph.noticeAssignmentMap
+                        .put(noticeAssignment.getElementId(), Arrays.asList(notice));
+            }
+        }
+
         clearCachedData(); // eh?
         graph.putService(FareService.class, fareServiceFactory.makeFareService());
         graph.putService(OnBoardDepartService.class, new OnBoardDepartServiceImpl());
@@ -806,11 +822,8 @@ public class PatternHopFactory {
             i++;
         }
 
-        /*
-         * If we don't have distances here, we can't calculate them ourselves because we can't
-         * assume the units will match
-         */
-
+        // If we don't have distances here, we can't calculate them ourselves because we can't
+        // assume the units will match
         if (!hasAllDistances) {
             distances = null;
         }

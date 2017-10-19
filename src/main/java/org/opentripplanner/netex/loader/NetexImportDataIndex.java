@@ -14,6 +14,8 @@ import org.rutebanken.netex.model.GroupOfLines;
 import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.Line;
 import org.rutebanken.netex.model.Network;
+import org.rutebanken.netex.model.Notice;
+import org.rutebanken.netex.model.NoticeAssignment;
 import org.rutebanken.netex.model.OperatingPeriod;
 import org.rutebanken.netex.model.Quay;
 import org.rutebanken.netex.model.Route;
@@ -63,6 +65,8 @@ public class NetexImportDataIndex {
     public final HierarchicalMapById<Line> lineById;
     public final HierarchicalMapById<Network> networkById;
     public final HierarchicalMap<String, Network> networkByLineId;
+    public final HierarchicalMapById<Notice> noticeById;
+    public final HierarchicalMapById<NoticeAssignment> noticeAssignmentById;
     public final HierarchicalMapById<OperatingPeriod> operatingPeriodById;
     public final HierarchicalMultimapById<Quay> quayById;
     public final HierarchicalMap<String, String> quayIdByStopPointRef;
@@ -88,6 +92,8 @@ public class NetexImportDataIndex {
         this.lineById = new HierarchicalMapById<>();
         this.networkById = new HierarchicalMapById<>();
         this.networkByLineId = new HierarchicalMap<>();
+        this.noticeById = new HierarchicalMapById<>();
+        this.noticeAssignmentById = new HierarchicalMapById<>();
         this.operatingPeriodById = new HierarchicalMapById<>();
         this.quayById = new HierarchicalMultimapById<>();
         this.quayIdByStopPointRef = new HierarchicalMap<>();
@@ -115,6 +121,8 @@ public class NetexImportDataIndex {
         this.lineById = new HierarchicalMapById<>(parent.lineById);
         this.networkById = new HierarchicalMapById<>(parent.networkById);
         this.networkByLineId = new HierarchicalMap<>(parent.networkByLineId);
+        this.noticeById = new HierarchicalMapById<>(parent.noticeById);
+        this.noticeAssignmentById = new HierarchicalMapById<>(parent.noticeAssignmentById);
         this.operatingPeriodById = new HierarchicalMapById<>(parent.operatingPeriodById);
         this.quayById = new HierarchicalMultimapById<>(parent.quayById);
         this.quayIdByStopPointRef = new HierarchicalMap<>(parent.quayIdByStopPointRef);

@@ -23,6 +23,8 @@ import org.rutebanken.netex.model.Line;
 import org.rutebanken.netex.model.LinesInFrame_RelStructure;
 import org.rutebanken.netex.model.LinkSequence_VersionStructure;
 import org.rutebanken.netex.model.Network;
+import org.rutebanken.netex.model.Notice;
+import org.rutebanken.netex.model.NoticeAssignment;
 import org.rutebanken.netex.model.OperatingPeriod;
 import org.rutebanken.netex.model.OperatingPeriod_VersionStructure;
 import org.rutebanken.netex.model.PassengerStopAssignment;
@@ -336,6 +338,14 @@ public class NetexLoader {
                     index().destinationDisplayById.add(destinationDisplay);
                 }
             }
+
+            // notices
+            if (sf.getNotices() != null) {
+                for (Notice notice : sf.getNotices().getNotice()) {
+                    index().noticeById.add(notice);
+                }
+            }
+
         }
     }
 
@@ -347,6 +357,7 @@ public class NetexLoader {
             JourneysInFrame_RelStructure vehicleJourneys = timetableFrame.getVehicleJourneys();
             List<Journey_VersionStructure> datedServiceJourneyOrDeadRunOrServiceJourney = vehicleJourneys
                     .getDatedServiceJourneyOrDeadRunOrServiceJourney();
+
             for (Journey_VersionStructure jStructure : datedServiceJourneyOrDeadRunOrServiceJourney) {
                 if (jStructure instanceof ServiceJourney) {
                     ServiceJourney sj = (ServiceJourney) jStructure;
@@ -374,6 +385,18 @@ public class NetexLoader {
                     }
                 }
             }
+
+            if (timetableFrame.getNoticeAssignments() != null) {
+                for (JAXBElement<? extends DataManagedObjectStructure> noticeAssignmentElement : timetableFrame.getNoticeAssignments()
+                        .getNoticeAssignment_()) {
+                    NoticeAssignment noticeAssignment = (NoticeAssignment) noticeAssignmentElement.getValue();
+
+                    if (noticeAssignment.getNoticeRef() != null && noticeAssignment.getNoticedObjectRef() != null) {
+                        index().noticeAssignmentById.add(noticeAssignment);
+                    }
+                }
+            }
+
         }
     }
 
