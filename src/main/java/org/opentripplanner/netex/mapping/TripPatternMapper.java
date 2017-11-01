@@ -183,6 +183,7 @@ class TripPatternMapper {
             HierarchicalMapById<DestinationDisplay> destinationDisplayById
     ) {
         StopTime stopTime = new StopTime();
+
         stopTime.setTrip(trip);
         stopTime.setStopSequence(stopSequence);
         stopTime.setStop(stop);

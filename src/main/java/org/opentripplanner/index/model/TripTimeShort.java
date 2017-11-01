@@ -16,6 +16,7 @@ public class TripTimeShort {
 
     public static final int UNDEFINED = -1;
     public FeedScopedId stopId;
+    public FeedScopedId stopTimeId;
     public int stopIndex;
     public int stopCount;
     public int scheduledArrival = UNDEFINED ;
@@ -36,7 +37,8 @@ public class TripTimeShort {
      * This is stop-specific, so the index i is a stop index, not a hop index.
      */
     public TripTimeShort(TripTimes tt, int i, Stop stop) {
-        stopId = stop.getId();
+        stopId             = stop.getId();
+        stopTimeId         = tt.getStopTimeIdByIndex(i);
         stopIndex          = i;
         stopCount          = tt.getNumStops();
         scheduledArrival   = tt.getScheduledArrivalTime(i);

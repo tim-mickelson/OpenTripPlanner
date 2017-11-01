@@ -7,6 +7,7 @@ import java.util.Collection;
 
 import org.opentripplanner.common.MavenVersion;
 import org.opentripplanner.model.BikeAccess;
+import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.core.RoutingRequest;
@@ -85,6 +86,11 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
     int[] departureTimes;
 
     /**
+     * Keep track of stop time ids to enable notices to point to a specific stop time.
+     */
+    FeedScopedId[] stopTimeIds;
+
+    /**
      * These are the GTFS stop sequence numbers, which show the order in which the vehicle visits
      * the stops. Despite the face that the StopPattern or TripPattern enclosing this TripTimes
      * provides an ordered list of Stops, the original stop sequence numbers may still be needed for
@@ -146,6 +152,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         this.headsigns = object.headsigns;
         this.scheduledDepartureTimes = object.scheduledDepartureTimes;
         this.scheduledArrivalTimes = object.scheduledArrivalTimes;
+        this.stopTimeIds = object.stopTimeIds;
         this.stopSequences = object.stopSequences;
         this.timepoints = object.timepoints;
     }
@@ -219,6 +226,10 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
     public int getDepartureTime(final int stop) {
         if (departureTimes == null) return getScheduledDepartureTime(stop);
         else return departureTimes[stop]; // updated times are not time shifted.
+    }
+
+    public FeedScopedId getStopTimeIdByIndex(int i) {
+        return stopTimeIds[i];
     }
 
     /** @return the amount of time in seconds that the vehicle waits at the stop. */

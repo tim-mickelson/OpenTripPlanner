@@ -431,6 +431,18 @@ public class IndexGraphQLSchema {
               	.type(Scalars.GraphQLString)
               	.dataFetcher(environment -> ((TripTimeShort) environment.getSource()).headsign)
               	.build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                    .name("notices")
+                    .type(new GraphQLList(noticeType))
+                    .argument(GraphQLArgument.newArgument()
+                            .name("gtfsId")
+                            .type(Scalars.GraphQLString)
+                            .build())
+                    .dataFetcher(environment -> {
+                        TripTimeShort tripTimeShort = (TripTimeShort) environment.getSource();
+                        return index.getNoticesForElement(tripTimeShort.stopTimeId);
+                    })
+                    .build())
             .build();
 
         noticeType = GraphQLObjectType.newObject()
@@ -832,6 +844,14 @@ public class IndexGraphQLSchema {
                 }
                 return null;
             }))
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                    .name("notices")
+                    .type(new GraphQLList(noticeType))
+                    .dataFetcher(environment -> {
+                        Trip trip = (Trip) environment.getSource();
+                        return index.getNoticeMap().values();
+                    })
+                    .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
                 .name("agencies")
                 .description("Get all agencies for the specified graph")
