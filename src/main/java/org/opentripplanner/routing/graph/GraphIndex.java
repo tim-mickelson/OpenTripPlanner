@@ -84,9 +84,8 @@ public class GraphIndex {
     public final Multimap<String, TripPattern> patternsForFeedId = ArrayListMultimap.create();
     public final Multimap<Route, TripPattern> patternsForRoute = ArrayListMultimap.create();
     public final Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
-    public final Multimap<String, Stop> stopsForParentStation = ArrayListMultimap.create();
     final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<>();
-    private final Map<FeedScopedId, Notice> noticeForId = Maps.newHashMap();
+    public final Map<FeedScopedId, Notice> noticeForId = Maps.newHashMap();
     private final Map<FeedScopedId, List<Notice>> noticeAssignmentForId = Maps.newHashMap();
 
     /* Should eventually be replaced with new serviceId indexes. */
@@ -133,7 +132,6 @@ public class GraphIndex {
                 Stop stop = transitStop.getStop();
                 stopForId.put(stop.getId(), stop);
                 stopVertexForStop.put(stop, transitStop);
-                stopsForParentStation.put(stop.getParentStation(), stop);
             }
         }
         for (TransitStop stopVertex : stopVertexForStop.values()) {

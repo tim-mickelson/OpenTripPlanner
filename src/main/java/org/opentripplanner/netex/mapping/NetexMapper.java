@@ -1,5 +1,6 @@
 package org.opentripplanner.netex.mapping;
 
+import org.opentripplanner.model.NoticeAssignment;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
@@ -76,9 +77,11 @@ public class NetexMapper {
                 org.rutebanken.netex.model.NoticeAssignment noticeAssignment :
                 netexIndex.noticeAssignmentById.localValues()
         ) {
-            org.opentripplanner.model.NoticeAssignment otpNoticeAssignment = noticeAssignmentMapper
-                    .mapNoticeAssignment(noticeAssignment);
-            transitBuilder.getNoticeAssignmentsById().add(otpNoticeAssignment);
+            Collection<NoticeAssignment> otpNoticeAssignments = noticeAssignmentMapper
+                    .mapNoticeAssignment(noticeAssignment, netexIndex);
+            for (org.opentripplanner.model.NoticeAssignment otpNoticeAssignment : otpNoticeAssignments) {
+                transitBuilder.getNoticeAssignmentsById().add(otpNoticeAssignment);
+            }
         }
     }
 }

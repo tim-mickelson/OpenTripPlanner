@@ -62,6 +62,7 @@ public class NetexImportDataIndex {
     public final HierarchicalMapById<GroupOfLines> groupOfLinesById;
     public final HierarchicalMap<String, GroupOfLines> groupOfLinesByLineId;
     public final HierarchicalMapById<JourneyPattern> journeyPatternsById;
+    public final HierarchicalMapById<JourneyPattern> journeyPatternsByStopPointId;
     public final HierarchicalMapById<Line> lineById;
     public final HierarchicalMapById<Network> networkById;
     public final HierarchicalMap<String, Network> networkByLineId;
@@ -89,6 +90,7 @@ public class NetexImportDataIndex {
         this.groupOfLinesById = new HierarchicalMapById<>();
         this.groupOfLinesByLineId = new HierarchicalMap<>();
         this.journeyPatternsById = new HierarchicalMapById<>();
+        this.journeyPatternsByStopPointId = new HierarchicalMapById<>();
         this.lineById = new HierarchicalMapById<>();
         this.networkById = new HierarchicalMapById<>();
         this.networkByLineId = new HierarchicalMap<>();
@@ -118,6 +120,7 @@ public class NetexImportDataIndex {
         this.groupOfLinesById = new HierarchicalMapById<>(parent.groupOfLinesById);
         this.groupOfLinesByLineId = new HierarchicalMap<>(parent.groupOfLinesByLineId);
         this.journeyPatternsById = new HierarchicalMapById<>(parent.journeyPatternsById);
+        this.journeyPatternsByStopPointId = new HierarchicalMapById<>(parent.journeyPatternsByStopPointId);
         this.lineById = new HierarchicalMapById<>(parent.lineById);
         this.networkById = new HierarchicalMapById<>(parent.networkById);
         this.networkByLineId = new HierarchicalMap<>(parent.networkByLineId);
