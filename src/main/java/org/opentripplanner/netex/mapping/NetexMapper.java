@@ -2,6 +2,7 @@ package org.opentripplanner.netex.mapping;
 
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.Transfer;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
@@ -21,6 +22,7 @@ import static org.opentripplanner.netex.mapping.StopMapper.mapParentAndChildStop
 public class NetexMapper {
 
     private final RouteMapper routeMapper = new RouteMapper();
+    private final TransferMapper transferMapper = new TransferMapper();
     private final TripPatternMapper tripPatternMapper = new TripPatternMapper();
     private final OtpTransitServiceBuilder transitBuilder;
     private final String agencyId;
@@ -60,6 +62,15 @@ public class NetexMapper {
             transitBuilder.getCalendarDates().addAll(
                     mapToCalendarDates(dayTypeRefs, netexIndex)
             );
+        }
+
+        for (org.rutebanken.netex.model.ServiceJourneyInterchange it : netexIndex.interchanges.localValues()) {
+            if (it != null) {
+                Transfer transfer = transferMapper.mapTransfer(it, transitBuilder, netexIndex);
+                if (transfer != null) {
+                    transitBuilder.getTransfers().add(transfer);
+                }
+            }
         }
     }
 }

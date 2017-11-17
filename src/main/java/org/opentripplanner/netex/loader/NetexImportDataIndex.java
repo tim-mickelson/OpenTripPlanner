@@ -18,9 +18,12 @@ import org.rutebanken.netex.model.OperatingPeriod;
 import org.rutebanken.netex.model.Quay;
 import org.rutebanken.netex.model.Route;
 import org.rutebanken.netex.model.ServiceJourney;
+import org.rutebanken.netex.model.ServiceJourneyInterchange;
 import org.rutebanken.netex.model.StopPlace;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -59,6 +62,7 @@ public class NetexImportDataIndex {
     public final HierarchicalMapById<DestinationDisplay> destinationDisplayById;
     public final HierarchicalMapById<GroupOfLines> groupOfLinesById;
     public final HierarchicalMap<String, GroupOfLines> groupOfLinesByLineId;
+    public final HierarchicalMapById<ServiceJourneyInterchange> interchanges;
     public final HierarchicalMapById<JourneyPattern> journeyPatternsById;
     public final HierarchicalMapById<Line> lineById;
     public final HierarchicalMapById<Network> networkById;
@@ -84,6 +88,7 @@ public class NetexImportDataIndex {
         this.destinationDisplayById = new HierarchicalMapById<>();
         this.groupOfLinesById = new HierarchicalMapById<>();
         this.groupOfLinesByLineId = new HierarchicalMap<>();
+        this.interchanges = new HierarchicalMapById<>();
         this.journeyPatternsById = new HierarchicalMapById<>();
         this.lineById = new HierarchicalMapById<>();
         this.networkById = new HierarchicalMapById<>();
@@ -111,6 +116,7 @@ public class NetexImportDataIndex {
         this.destinationDisplayById = new HierarchicalMapById<>(parent.destinationDisplayById);
         this.groupOfLinesById = new HierarchicalMapById<>(parent.groupOfLinesById);
         this.groupOfLinesByLineId = new HierarchicalMap<>(parent.groupOfLinesByLineId);
+        this.interchanges = new HierarchicalMapById<>(parent.interchanges);
         this.journeyPatternsById = new HierarchicalMapById<>(parent.journeyPatternsById);
         this.lineById = new HierarchicalMapById<>(parent.lineById);
         this.networkById = new HierarchicalMapById<>(parent.networkById);
