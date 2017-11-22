@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This the goal direction heuristic used for transit searches.
@@ -197,7 +198,7 @@ public class InterleavedBidirectionalHeuristic implements RemainingWeightHeurist
                 finished = true;
                 break;
             }
-            int uWeight = (int) transitQueue.peek_min_key();
+            final int uWeight = (int) transitQueue.peek_min_key();
             Vertex u = transitQueue.extract_min();
             // The weight of the queue head is uniformly increasing.
             // This is the highest weight ever seen for a closed vertex.
@@ -214,25 +215,31 @@ public class InterleavedBidirectionalHeuristic implements RemainingWeightHeurist
             }
             // This search is proceeding backward relative to the main search.
             // When the main search is arriveBy the heuristic search looks at OUTgoing edges.
-            for (Edge e : routingRequest.arriveBy ? u.getOutgoing() : u.getIncoming()) {
-                // Do not enter streets in this phase, which should only touch transit.
-                if (e instanceof StreetTransitLink) {
-                    continue;
-                }
-                Vertex v = routingRequest.arriveBy ? e.getToVertex() : e.getFromVertex();
-                double edgeWeight = e.weightLowerBound(routingRequest);
-                // INF heuristic value indicates unreachable (e.g. non-running transit service)
-                // this saves time by not reverse-exploring those routes and avoids maxFound of INF.
-                if (Double.isInfinite(edgeWeight)) {
-                    continue;
-                }
-                double vWeight = uWeight + edgeWeight;
-                double vWeightOld = postBoardingWeights.get(v);
-                if (vWeight < vWeightOld) {
-                    // Should only happen when vWeightOld is infinite because it is not yet closed.
-                    transitQueue.insert(v, vWeight);
-                }
-            }
+
+            (routingRequest.arriveBy ? u.getOutgoing() : u.getIncoming())
+                    .parallelStream()
+                    .filter(edge -> !(edge instanceof StreetTransitLink))
+                    .map(edge -> Pair.of(edge.weightLowerBound(routingRequest), routingRequest.arriveBy ? edge.getToVertex() : edge.getFromVertex()))
+                    .filter(weightVertex -> !Double.isInfinite(weightVertex.first))
+                    .map(weightVertex -> Pair.of(uWeight + weightVertex.first, weightVertex.second))
+                    .filter(vWeightVertex -> vWeightVertex.first < postBoardingWeights.get(vWeightVertex.second))
+                    .collect(Collectors.toList())
+                    .forEach(vWeightVertex -> transitQueue.insert(vWeightVertex.second, vWeightVertex.first));
+
+        }
+    }
+
+    private static class Pair<S,T> {
+        public final S first;
+        public final T second;
+
+        private Pair(S first, T second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        static <S, T> Pair<S, T> of(S first, T second) {
+            return new Pair<>(first, second);
         }
     }
 
