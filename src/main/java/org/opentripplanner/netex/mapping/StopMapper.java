@@ -1,6 +1,7 @@
 package org.opentripplanner.netex.mapping;
 
 import com.google.common.collect.Iterables;
+import org.opentripplanner.graph_builder.model.NetexDao;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitDaoBuilder;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class StopMapper {
     private static final Logger LOG = LoggerFactory.getLogger(StopMapper.class);
 
-    public Collection<Stop> mapParentAndChildStops(Collection<StopPlace> stopPlaceAllVersions, OtpTransitDaoBuilder transitBuilder){
+    public Collection<Stop> mapParentAndChildStops(Collection<StopPlace> stopPlaceAllVersions, OtpTransitDaoBuilder transitBuilder, NetexDao netexDao){
         ArrayList<Stop> stops = new ArrayList<>();
 
         Stop multiModalStop = null;
@@ -28,7 +29,7 @@ public class StopMapper {
 
         // Sort by versions, latest first
         stopPlaceAllVersions = stopPlaceAllVersions.stream()
-                .sorted((o1, o2) -> Integer.compare(Integer.parseInt(o2.getVersion()), Integer.parseInt(o1.getVersion())))
+                .sorted((o2, o1) -> Integer.compare(Integer.parseInt(o2.getVersion()), Integer.parseInt(o1.getVersion())))
                 .collect(Collectors.toList());
 
         StopPlace stopPlaceLatest = Iterables.getLast(stopPlaceAllVersions);
@@ -89,6 +90,11 @@ public class StopMapper {
                         stopQuay.setParentStation(stop.getId().getId());
                         if (multiModalStop != null) {
                             stopQuay.setMultiModalStation(multiModalStop.getId().getId());
+                        }
+
+                        if (netexDao.getQuayById().get(stopQuay.getId().toString()).stream()
+                                .anyMatch(q -> Integer.parseInt(q.getVersion()) > Integer.parseInt(quay.getVersion()))) {
+                            continue;
                         }
 
                         if (!quaysSeen.contains(quay.getId())) {
