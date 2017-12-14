@@ -133,7 +133,7 @@ public class GraphIndex {
         }
 
         Collection<Edge> edges = graph.getEdges();
-        /* We will keep a separate set of all vertices in case some have the same label. 
+        /* We will keep a separate set of all vertices in case some have the same label.
          * Maybe we should just guarantee unique labels. */
         Set<Vertex> vertices = Sets.newHashSet();
         for (Edge edge : edges) {
@@ -152,7 +152,14 @@ public class GraphIndex {
                 Stop stop = transitStop.getStop();
                 stopForId.put(stop.getId(), stop);
                 stopVertexForStop.put(stop, transitStop);
-                stopsForParentStation.put(stop.getParentStation(), stop);
+                if (stop.getParentStation() != null) {
+                    stopsForParentStation.put(stop.getParentStation(), stop);
+                }
+
+                // Temporary solution until multimodal stations are fully part of the stop hierarchy
+                if (stop.getMultiModalStation() != null) {
+                    stopsForParentStation.put(stop.getMultiModalStation(), stop);
+                }
             }
         }
         for (TransitStop stopVertex : stopVertexForStop.values()) {
@@ -585,7 +592,7 @@ public class GraphIndex {
             clusterByProximity();
         }
     }
-  
+
     private void clusterByProximity() {	
     	int psIdx = 0; // unique index for next parent stop
 	    LOG.info("Clustering stops by geographic proximity and name...");
@@ -636,10 +643,10 @@ public class GraphIndex {
 
 	        }
     	    cluster.children.add(stop);
-    	    stopClusterForStop.put(stop, cluster);    
+    	    stopClusterForStop.put(stop, cluster);
     	}
     }
-    
+
     public Response getGraphQLResponse(String query, Map<String, Object> variables, String operationName) {
         ExecutionResult executionResult = graphQL.execute(query, operationName, null, variables);
         Response.ResponseBuilder res = Response.status(Response.Status.OK);
