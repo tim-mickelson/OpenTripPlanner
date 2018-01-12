@@ -61,7 +61,7 @@ public class NetexModule implements GraphBuilderModule {
                 }
 
                 if (netexBundle.parkAndRideFromTransitData) {
-                    hf.createParkAndRide(graph);
+                    //hf.createParkAndRide(graph);
                 }
             }
         } catch (Exception e) {

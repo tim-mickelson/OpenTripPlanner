@@ -414,7 +414,6 @@ public class TransmodelIndexGraphQLSchema {
 
         createPlanType(index);
 
-
         GraphQLInputObjectType preferredInputType = GraphQLInputObjectType.newInputObject()
                                                             .name("InputPreferred")
                                                             .description("Preferences for trip search.")
@@ -2291,8 +2290,6 @@ public class TransmodelIndexGraphQLSchema {
                                                                    .build())
                                                     .build();
 
-
-
         final GraphQLObjectType pathGuidanceType = GraphQLObjectType.newObject()
                 .name("PathGuidance")
                 .description("A series of turn by turn instructions used for walking, biking and driving.")
@@ -2357,10 +2354,10 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(environment -> ((WalkStep) environment.getSource()).lon)
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
-                        .name("toString")
-                        .description("String representation of the step.")
+                        .name("legStepText")
+                        .description("Direction information as readable text.")
                         .type(Scalars.GraphQLString)
-                        .dataFetcher(environment -> ((WalkStep) environment.getSource()).toString())
+                        .dataFetcher(environment -> ((WalkStep) environment.getSource()).getLegStepText(Locale.ENGLISH))
                         .build())
                 .build();
 

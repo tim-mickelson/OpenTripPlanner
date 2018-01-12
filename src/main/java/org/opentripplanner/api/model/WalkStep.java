@@ -31,6 +31,7 @@ import org.opentripplanner.routing.graph.Edge;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Lists;
+import org.opentripplanner.util.LocalizedString;
 
 /**
  * Represents one instruction in walking directions. Three examples from New York City:
@@ -250,7 +251,34 @@ public class WalkStep {
         return elevation;
     }
 
-    public String getLegStepText() {
+    public String getLegStepText(Locale locale) {
+        String text = "";
+        if(this.relativeDirection == RelativeDirection.CIRCLE_COUNTERCLOCKWISE || this.relativeDirection == RelativeDirection.CIRCLE_CLOCKWISE) {
+            if (this.relativeDirection == RelativeDirection.CIRCLE_COUNTERCLOCKWISE) {
+                text +=  new LocalizedString("clockwiseDirection", new String[]{this.exit,this.streetName}).toString(locale);
+            } else {
+                text +=  new LocalizedString("counterClockwiseDirection", new String[]{this.exit,this.streetName}).toString(locale);
+            }
+        }
+        else {
+            if(this.relativeDirection == RelativeDirection.DEPART) {
+                text += new LocalizedString("relativeDirectionDepart", new String[]{this.streetName, this.absoluteDirection.toString()}).toString(locale);
+            }
+            else {
+                String relativeDirectionText = (new LocalizedString(this.relativeDirection.toString(), new String[]{})).toString(locale);
+                String absoluteDirectionText = (new LocalizedString(this.absoluteDirection.toString(), new String[]{})).toString(locale);
+                if (this.stayOn) {
+                    text += new LocalizedString("relativeDirectionContinue", new String[]{relativeDirectionText, absoluteDirectionText}).toString(locale);
+                }
+                else {
+                    text += new LocalizedString("relativeDirectionOnto", new String[]{relativeDirectionText, absoluteDirectionText}).toString(locale);
+                }
+            }
+        }
+        return text;
+    }
+
+    public String getLegStepTextOld() {
         String text = "";
         if(this.relativeDirection == RelativeDirection.CIRCLE_COUNTERCLOCKWISE || this.relativeDirection == RelativeDirection.CIRCLE_CLOCKWISE) {
             if (this.relativeDirection == RelativeDirection.CIRCLE_COUNTERCLOCKWISE) {
