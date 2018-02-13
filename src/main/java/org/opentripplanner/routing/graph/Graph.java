@@ -230,7 +230,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     public transient StreetSpeedSnapshotSource streetSpeedSource;
     
     /** How should we cluster stops? */
-    public String stopClusterMode = "proximity";
+    public String stopClusterMode = "parentStation";
 
     /** The difference in meters between the WGS84 ellipsoid height and geoid height at the graph's center */
     public Double ellipsoidToGeoidDifference = 0.0;
