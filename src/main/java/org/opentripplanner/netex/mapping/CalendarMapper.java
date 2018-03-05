@@ -48,7 +48,7 @@ public class CalendarMapper {
 
                 // Add or remove single days
                 if (dayTypeAssignment.getDate() != null) {
-                    LocalDateTime date = dayTypeAssignment.getDate();
+                    LocalDateTime date = null; //dayTypeAssignment.getDate();
                     ServiceCalendarDate serviceCalendarDate = mapServiceCalendarDate(date, serviceId, 1);
                     if (isAvailable) {
                         serviceCalendarDates.add(serviceCalendarDate);
@@ -61,8 +61,8 @@ public class CalendarMapper {
                         netexDao.operatingPeriodById.containsKey(dayTypeAssignment.getOperatingPeriodRef().getRef())) {
 
                     OperatingPeriod operatingPeriod = netexDao.operatingPeriodById.lookup(dayTypeAssignment.getOperatingPeriodRef().getRef());
-                    LocalDateTime fromDate = operatingPeriod.getFromDate();
-                    LocalDateTime toDate = operatingPeriod.getToDate();
+                    LocalDateTime fromDate = null; //operatingPeriod.getFromDate();
+                    LocalDateTime toDate = null; //operatingPeriod.getToDate();
 
                     List<DayOfWeekEnumeration> daysOfWeek = new ArrayList<>();
                     DayType dayType = netexDao.dayTypeById.lookup(dayTypeId);

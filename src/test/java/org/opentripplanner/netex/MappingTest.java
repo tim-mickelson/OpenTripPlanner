@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
+@Ignore
 public class MappingTest {
     static final String gtfsFile = "src/test/resources/netex_mapping_test/gtfs_minimal_fileset/gtfs_minimal.zip";
     static final File netexFile = new File("src/test/resources/netex_mapping_test/netex_minimal_fileset/netex_minimal.zip");

@@ -862,7 +862,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>netex-java-model</artifactId>
-            <version>1.0.8-SNAPSHOT</version>
+            <version>1.0.7</version>
         </dependency>
 
         <!-- r5 is needed only so that we can delegate Analyst work to it -->

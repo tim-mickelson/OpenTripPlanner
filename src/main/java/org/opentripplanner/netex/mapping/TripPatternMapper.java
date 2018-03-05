@@ -170,13 +170,13 @@ public class TripPatternMapper {
         stopTime.setStopSequence(stopSequence);
         stopTime.setStop(quay);
 
-        stopTime.setArrivalTime(
-                calculateOtpTime(passingTime.getArrivalTime(), passingTime.getArrivalDayOffset(),
-                        passingTime.getDepartureTime(), passingTime.getDepartureDayOffset()));
-
-        stopTime.setDepartureTime(calculateOtpTime(passingTime.getDepartureTime(),
-                passingTime.getDepartureDayOffset(), passingTime.getArrivalTime(),
-                passingTime.getArrivalDayOffset()));
+//        stopTime.setArrivalTime(
+//                calculateOtpTime(passingTime.getArrivalTime(), passingTime.getArrivalDayOffset(),
+//                        passingTime.getDepartureTime(), passingTime.getDepartureDayOffset()));
+//
+//        stopTime.setDepartureTime(calculateOtpTime(passingTime.getDepartureTime(),
+//                passingTime.getDepartureDayOffset(), passingTime.getArrivalTime(),
+//                passingTime.getArrivalDayOffset()));
 
         if (stopPoint != null) {
             stopTime.setDropOffType(isFalse(stopPoint.isForAlighting()) ? 1 : 0);
