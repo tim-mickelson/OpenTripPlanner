@@ -11,6 +11,7 @@ import org.rutebanken.netex.model.GroupOfStopPlaces;
 import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.Line;
 import org.rutebanken.netex.model.Notice;
+import org.rutebanken.netex.model.ServiceLink;
 import org.rutebanken.netex.model.StopPlace;
 import org.rutebanken.netex.model.TariffZone;
 
@@ -37,6 +38,8 @@ public class NetexMapper {
     private final OtpTransitBuilder transitBuilder;
 
     private final OperatorMapper operatorMapper = new OperatorMapper();
+
+    private final ServiceLinkMapper serviceLinkMapper = new ServiceLinkMapper();
 
     private final TariffZoneMapper tariffZoneMapper = new TariffZoneMapper();
 
@@ -129,6 +132,10 @@ public class NetexMapper {
             Collection<NoticeAssignment> otpNoticeAssignments = noticeAssignmentMapper.mapNoticeAssignment(noticeAssignment, netexDao);
             for (NoticeAssignment otpNoticeAssignment : otpNoticeAssignments){
             transitBuilder.getNoticeAssignmentsById().add( otpNoticeAssignment);}
+        }
+
+        for (ServiceLink serviceLink : netexDao.serviceLinkById.values()) {
+            transitBuilder.getShapePoints().addAll(serviceLinkMapper.mapServiceLink(serviceLink));
         }
     }
 }
