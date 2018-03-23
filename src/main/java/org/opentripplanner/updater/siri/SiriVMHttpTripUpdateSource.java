@@ -96,6 +96,7 @@ public class SiriVMHttpTripUpdateSource implements VehicleMonitoringSource, Json
                 }
                 lastTimestamp = siri.getServiceDelivery().getResponseTimestamp();
 
+                RuterSiriHelper.rewriteVmIds(siri.getServiceDelivery().getVehicleMonitoringDeliveries());
                 return siri;
 
             }
