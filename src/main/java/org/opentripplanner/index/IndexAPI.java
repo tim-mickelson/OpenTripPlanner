@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.transit.realtime.GtfsRealtime;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import org.opentripplanner.model.Agency;
@@ -48,6 +49,9 @@ import org.opentripplanner.routing.services.StreetVertexIndexService;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.opentripplanner.standalone.OTPServer;
 import org.opentripplanner.standalone.Router;
+import org.opentripplanner.updater.GraphUpdaterManager;
+import org.opentripplanner.updater.stoptime.TimetableSnapshotSource;
+import org.opentripplanner.updater.stoptime.TripUpdateGraphWriterRunnable;
 import org.opentripplanner.util.PolylineEncoder;
 import org.opentripplanner.util.model.EncodedPolylineBean;
 import org.slf4j.Logger;
@@ -71,6 +75,8 @@ import javax.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -687,6 +693,96 @@ public class IndexAPI {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Status.OK).entity(responses).build();
+    }
+
+    @GET
+    @Path("/addTrip")
+    public Response addTrip() {
+        // GIVEN
+
+        TimetableSnapshotSource updater = new TimetableSnapshotSource(index.graph);
+
+        // Get service date of today because old dates will be purged after applying updates
+        final ServiceDate serviceDate = new ServiceDate(Calendar.getInstance());
+
+        final String addedTripId = "added_trip";
+
+        GtfsRealtime.TripUpdate tripUpdate;
+        {
+            final GtfsRealtime.TripDescriptor.Builder tripDescriptorBuilder = GtfsRealtime.TripDescriptor.newBuilder();
+
+            tripDescriptorBuilder.setTripId(addedTripId);
+            tripDescriptorBuilder.setScheduleRelationship(GtfsRealtime.TripDescriptor.ScheduleRelationship.ADDED);
+            tripDescriptorBuilder.setStartDate(serviceDate.getAsString());
+
+            final Calendar calendar = serviceDate.getAsCalendar(index.graph.getTimeZone());
+            final long midnightSecondsSinceEpoch = calendar.getTimeInMillis() / 1000;
+
+            final GtfsRealtime.TripUpdate.Builder tripUpdateBuilder = GtfsRealtime.TripUpdate.newBuilder();
+
+            tripUpdateBuilder.setTrip(tripDescriptorBuilder);
+
+            { // Stop A
+                final GtfsRealtime.TripUpdate.StopTimeUpdate.Builder stopTimeUpdateBuilder = tripUpdateBuilder.addStopTimeUpdateBuilder();
+                stopTimeUpdateBuilder.setScheduleRelationship(GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.SCHEDULED);
+                stopTimeUpdateBuilder.setStopId("FLT:Quay:NSR_Quay_560");
+
+                { // Arrival
+                    final GtfsRealtime.TripUpdate.StopTimeEvent.Builder arrivalBuilder = stopTimeUpdateBuilder.getArrivalBuilder();
+                    arrivalBuilder.setTime(midnightSecondsSinceEpoch + (8 * 3600) + (30 * 60));
+                    arrivalBuilder.setDelay(0);
+                }
+
+                { // Departure
+                    final GtfsRealtime.TripUpdate.StopTimeEvent.Builder departureBuilder = stopTimeUpdateBuilder.getDepartureBuilder();
+                    departureBuilder.setTime(midnightSecondsSinceEpoch + (8 * 3600) + (30 * 60));
+                    departureBuilder.setDelay(0);
+                }
+            }
+
+            { // Stop C
+                final GtfsRealtime.TripUpdate.StopTimeUpdate.Builder stopTimeUpdateBuilder = tripUpdateBuilder.addStopTimeUpdateBuilder();
+                stopTimeUpdateBuilder.setScheduleRelationship(GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.SCHEDULED);
+                stopTimeUpdateBuilder.setStopId("FLT:Quay:NSR_Quay_451");
+
+                { // Arrival
+                    final GtfsRealtime.TripUpdate.StopTimeEvent.Builder arrivalBuilder = stopTimeUpdateBuilder.getArrivalBuilder();
+                    arrivalBuilder.setTime(midnightSecondsSinceEpoch + (8 * 3600) + (40 * 60));
+                    arrivalBuilder.setDelay(0);
+                }
+
+                { // Departure
+                    final GtfsRealtime.TripUpdate.StopTimeEvent.Builder departureBuilder = stopTimeUpdateBuilder.getDepartureBuilder();
+                    departureBuilder.setTime(midnightSecondsSinceEpoch + (8 * 3600) + (45 * 60));
+                    departureBuilder.setDelay(0);
+                }
+            }
+
+            { // Stop E
+                final GtfsRealtime.TripUpdate.StopTimeUpdate.Builder stopTimeUpdateBuilder = tripUpdateBuilder.addStopTimeUpdateBuilder();
+                stopTimeUpdateBuilder.setScheduleRelationship(GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.SCHEDULED);
+                stopTimeUpdateBuilder.setStopId("FLT:Quay:NSR_Quay_1151");
+
+                { // Arrival
+                    final GtfsRealtime.TripUpdate.StopTimeEvent.Builder arrivalBuilder = stopTimeUpdateBuilder.getArrivalBuilder();
+                    arrivalBuilder.setTime(midnightSecondsSinceEpoch + (8 * 3600) + (55 * 60));
+                    arrivalBuilder.setDelay(0);
+                }
+
+                { // Departure
+                    final GtfsRealtime.TripUpdate.StopTimeEvent.Builder departureBuilder = stopTimeUpdateBuilder.getDepartureBuilder();
+                    departureBuilder.setTime(midnightSecondsSinceEpoch + (8 * 3600) + (55 * 60));
+                    departureBuilder.setDelay(0);
+                }
+            }
+
+            tripUpdate = tripUpdateBuilder.build();
+        }
+
+        // WHEN
+        updater.applyTripUpdates(index.graph, false, Arrays.asList(tripUpdate), index.graph.getFeedIds().stream().findFirst().get());
+
+        return Response.status(Status.OK).build();
     }
 
     /** Represents a transfer from a stop */

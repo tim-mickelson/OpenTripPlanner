@@ -138,6 +138,9 @@ public abstract class GraphUpdaterConfigurator {
                 else if (type.equals("siri-lite-vm-updater")) {
                     updater = new SiriLiteVMUpdater();
                 }
+                else if (type.equals("graph-writer-runnable-test")) {
+                    updater = new SiriLiteVMUpdater();
+                }
             }
 
             // Configure and activate the new updater.
