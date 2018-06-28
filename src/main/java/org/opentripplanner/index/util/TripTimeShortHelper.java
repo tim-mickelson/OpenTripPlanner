@@ -27,19 +27,24 @@ public class TripTimeShortHelper {
     }
 
     public List<TripTimeShort> getTripTimesShort(Trip trip, ServiceDate serviceDate) {
+        return getTripTimesShort(trip, serviceDate, true);
+    }
+    public List<TripTimeShort> getTripTimesShort(Trip trip, ServiceDate serviceDate, boolean includeRealtimeData) {
         final ServiceDay serviceDay = new ServiceDay(index.graph, serviceDate,
                                                             index.graph.getCalendarService(), trip.getRoute().getAgency().getId());
-        TimetableSnapshotSource timetableSnapshotSource = index.graph.timetableSnapshotSource;
         Timetable timetable = null;
-        if (timetableSnapshotSource != null) {
-            TimetableSnapshot timetableSnapshot = timetableSnapshotSource.getTimetableSnapshot();
-            if (timetableSnapshot != null) {
-                // Check if realtime-data is available for trip
-                TripPattern pattern = timetableSnapshot.getLastAddedTripPattern(timetableSnapshotSource.getFeedId(), trip.getId().getId(), serviceDate);
-                if (pattern == null) {
-                    pattern = index.patternForTrip.get(trip);
+        if (includeRealtimeData) {
+            TimetableSnapshotSource timetableSnapshotSource = index.graph.timetableSnapshotSource;
+            if (timetableSnapshotSource != null) {
+                TimetableSnapshot timetableSnapshot = timetableSnapshotSource.getTimetableSnapshot();
+                if (timetableSnapshot != null) {
+                    // Check if realtime-data is available for trip
+                    TripPattern pattern = timetableSnapshot.getLastAddedTripPattern(timetableSnapshotSource.getFeedId(), trip.getId().getId(), serviceDate);
+                    if (pattern == null) {
+                        pattern = index.patternForTrip.get(trip);
+                    }
+                    timetable = timetableSnapshot.resolve(pattern, serviceDate);
                 }
-                timetable = timetableSnapshot.resolve(pattern, serviceDate);
             }
         }
         if (timetable == null) {
@@ -59,7 +64,7 @@ public class TripTimeShortHelper {
         }
         ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
 
-        List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate);
+        List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate, leg.realTime);
         long startTimeSeconds = (leg.startTime.toInstant().toEpochMilli() - serviceDate.getAsDate().getTime()) / 1000;
 
         if (leg.realTime) {
@@ -78,7 +83,7 @@ public class TripTimeShortHelper {
         }
         ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
 
-        List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate);
+        List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate, leg.realTime);
         long endTimeSeconds = (leg.endTime.toInstant().toEpochMilli() - serviceDate.getAsDate().getTime()) / 1000;
 
         if (leg.realTime) {
@@ -97,7 +102,7 @@ public class TripTimeShortHelper {
         }
         Trip trip = index.tripForId.get(leg.tripId);
         ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
-        return getTripTimesShort(trip, serviceDate);
+        return getTripTimesShort(trip, serviceDate, leg.realTime);
     }
 
     /**
@@ -111,7 +116,7 @@ public class TripTimeShortHelper {
         }
         ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
 
-        List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate);
+        List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate, leg.realTime);
         List<TripTimeShort> filteredTripTimes = new ArrayList<>();
 
         long startTimeSeconds = (leg.startTime.toInstant().toEpochMilli() - serviceDate.getAsDate().getTime()) / 1000;
