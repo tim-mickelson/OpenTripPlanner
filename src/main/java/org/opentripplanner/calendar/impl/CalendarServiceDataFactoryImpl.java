@@ -5,22 +5,29 @@ import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedId;
 import org.opentripplanner.model.ServiceCalendar;
 import org.opentripplanner.model.ServiceCalendarDate;
+import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.LocalizedServiceId;
 import org.opentripplanner.model.calendar.ServiceDate;
-import org.opentripplanner.model.OtpTransitService;
 import org.opentripplanner.model.CalendarService;
+import org.opentripplanner.model.impl.MultipleCalendarsForServiceIdException;
+import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * We perform initial date calculations in the timezone of the host jvm, which
@@ -35,18 +42,24 @@ public class CalendarServiceDataFactoryImpl {
 
     private static final Logger LOG = LoggerFactory.getLogger(CalendarServiceDataFactoryImpl.class);
 
-    private final OtpTransitService transitService;
+    private final List<Agency> agencies;
+    private final Map<FeedId, List<ServiceCalendarDate>> calendarDatesByServiceId;
+    private final Map<FeedId, List<ServiceCalendar>> calendarsByServiceId;
+    private final Map<FeedId, List<String>> tripAgencyIdsByServiceId;
+    private final Set<FeedId> serviceIds;
 
-    public static CalendarService createCalendarService(OtpTransitService transitService) {
-        return new CalendarServiceImpl(createCalendarServiceData(transitService));
+    public static CalendarService createCalendarService(OtpTransitBuilder transitDaoBuilder) {
+        return new CalendarServiceImpl(createCalendarServiceData(transitDaoBuilder));
     }
 
-    public static CalendarServiceData createCalendarServiceData(OtpTransitService transitService) {
-        return new CalendarServiceDataFactoryImpl(transitService).createData();
+    public static CalendarServiceData createCalendarServiceData(OtpTransitBuilder transitDaoBuilder) {
+        return new CalendarServiceDataFactoryImpl(transitDaoBuilder).createData();
     }
 
-    public static CalendarServiceData createCalendarSrvDataWithoutDatesForLocalizedSrvId(OtpTransitService transitService) {
-        return (new CalendarServiceDataFactoryImpl(transitService) {
+    public static CalendarServiceData createCalendarSrvDataWithoutDatesForLocalizedSrvId(
+            OtpTransitBuilder transitDaoBuilder
+    ) {
+        return (new CalendarServiceDataFactoryImpl(transitDaoBuilder) {
             @Override void addDatesForLocalizedServiceId(
                     FeedId serviceId, List<ServiceDate> serviceDates, CalendarServiceData data
             ) {
@@ -55,8 +68,17 @@ public class CalendarServiceDataFactoryImpl {
         }).createData();
     }
 
-    private CalendarServiceDataFactoryImpl(OtpTransitService transitService) {
-        this.transitService = transitService;
+    private CalendarServiceDataFactoryImpl(OtpTransitBuilder transitBuilder) {
+        agencies = transitBuilder.getAgencies();
+        calendarDatesByServiceId = transitBuilder.getCalendarDates()
+                .stream()
+                .collect(groupingBy(ServiceCalendarDate::getServiceId));
+        calendarsByServiceId = transitBuilder.getCalendars()
+                .stream()
+                .collect(groupingBy(ServiceCalendar::getServiceId));
+        serviceIds = merge(calendarDatesByServiceId.keySet(), calendarsByServiceId.keySet());
+
+        tripAgencyIdsByServiceId = createTripAgencyIdByServiceIdMap(transitBuilder.getTrips().values());
     }
 
     CalendarServiceData createData() {
@@ -64,8 +86,6 @@ public class CalendarServiceDataFactoryImpl {
         CalendarServiceData data = new CalendarServiceData();
 
         setTimeZonesForAgencies(data);
-
-        List<FeedId> serviceIds = transitService.getAllServiceIds();
 
         int index = 0;
 
@@ -95,8 +115,15 @@ public class CalendarServiceDataFactoryImpl {
     }
 
     void addDatesForLocalizedServiceId (
-            FeedId serviceId, List<ServiceDate> serviceDates, CalendarServiceData data) {
-        List<String> tripAgencyIds = transitService.getTripAgencyIdsReferencingServiceId(serviceId);
+            FeedId serviceId, List<ServiceDate> serviceDates, CalendarServiceData data
+    ) {
+        List<String> tripAgencyIds = tripAgencyIdsByServiceId.get(serviceId);
+
+        if(tripAgencyIds == null) {
+            LOG.warn("There is no trip with service id '{}'. No index for Localized service dates can be created.", serviceId);
+            return;
+        }
+
         Set<TimeZone> timeZones = new HashSet<>();
         for (String tripAgencyId : tripAgencyIds) {
             TimeZone timeZone = data.getTimeZoneForAgencyId(tripAgencyId);
@@ -117,19 +144,34 @@ public class CalendarServiceDataFactoryImpl {
     private Set<ServiceDate> getServiceDatesForServiceId(FeedId serviceId,
             TimeZone serviceIdTimeZone) {
         Set<ServiceDate> activeDates = new HashSet<>();
-        ServiceCalendar c = transitService.getCalendarForServiceId(serviceId);
+        ServiceCalendar c = findCalendarForServiceId(serviceId);
 
         if (c != null) {
             addDatesFromCalendar(c, serviceIdTimeZone, activeDates);
         }
-        for (ServiceCalendarDate cd : transitService.getCalendarDatesForServiceId(serviceId)) {
-            addAndRemoveDatesFromCalendarDate(cd, activeDates);
+        List<ServiceCalendarDate> dates = calendarDatesByServiceId.get(serviceId);
+        if(dates != null) {
+            for (ServiceCalendarDate cd : dates) {
+                addAndRemoveDatesFromCalendarDate(cd, activeDates);
+            }
         }
         return activeDates;
     }
 
+    private ServiceCalendar findCalendarForServiceId(FeedId serviceId) {
+        List<ServiceCalendar> calendars = calendarsByServiceId.get(serviceId);
+
+        if(calendars == null || calendars.isEmpty()) {
+            return null;
+        }
+        if(calendars.size() == 1) {
+            return calendars.get(0);
+        }
+        throw new MultipleCalendarsForServiceIdException(serviceId);
+    }
+
     private void setTimeZonesForAgencies(CalendarServiceData data) {
-        for (Agency agency : transitService.getAllAgencies()) {
+        for (Agency agency : agencies) {
             TimeZone timeZone = TimeZone.getTimeZone(agency.getTimezone());
             if (timeZone.getID().equals("GMT") && !agency.getTimezone().toUpperCase()
                     .equals("GMT")) {
@@ -218,5 +260,37 @@ public class CalendarServiceDataFactoryImpl {
         Calendar c = serviceDate.getAsCalendar(timeZone);
         c.add(Calendar.HOUR_OF_DAY, 12);
         return c.getTime();
+    }
+
+    private static Map<FeedId, List<String>> createTripAgencyIdByServiceIdMap(Collection<Trip> trips) {
+        Map<FeedId, Set<String>> agencyIdsByServiceIds = new HashMap<>();
+
+        for (Trip t : trips) {
+            // In GFTS providing an agency is optional, but we add an empty set
+            // anyway to make sure all trips are represented in the map.
+            Collection<String> agencyIds = agencyIdsByServiceIds
+                    .computeIfAbsent(t.getServiceId(), key -> new HashSet<>());
+
+            if(t.getRoute().getAgency() != null) {
+                agencyIds.add(t.getRoute().getAgency().getId());
+            }
+        }
+
+        Map<FeedId, List<String>> map = new HashMap<>();
+
+        for (Map.Entry<FeedId, Set<String>> entry : agencyIdsByServiceIds.entrySet()) {
+            FeedId tripServiceId = entry.getKey();
+            List<String> agencyIds = new ArrayList<>(entry.getValue());
+            Collections.sort(agencyIds);
+            map.put(tripServiceId, agencyIds);
+        }
+        return map;
+    }
+
+    static <T> Set<T> merge(Collection<T> set1, Collection<T> set2) {
+        Set<T> newSet = new HashSet<>();
+        newSet.addAll(set1);
+        newSet.addAll(set2);
+        return newSet;
     }
 }

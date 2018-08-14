@@ -1,5 +1,7 @@
 package org.opentripplanner.model;
 
+import org.opentripplanner.routing.edgetype.TripPattern;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -10,38 +12,24 @@ public interface OtpTransitService {
 
     Collection<Agency> getAllAgencies();
 
-    Collection<ServiceCalendar> getAllCalendars();
-
-    ServiceCalendar getCalendarForServiceId(FeedId serviceId);
-
-    Collection<ServiceCalendarDate> getAllCalendarDates();
-
-    List<ServiceCalendarDate> getCalendarDatesForServiceId(FeedId serviceId);
-
-    /** @return all ids for both Calendars and CalendarDates merged into on list without duplicates */
-    List<FeedId> getAllServiceIds();
-
     Collection<FareAttribute> getAllFareAttributes();
 
     Collection<FareRule> getAllFareRules();
 
     Collection<FeedInfo> getAllFeedInfos();
 
-    Collection<Frequency> getAllFrequencies();
-
     Collection<Pathway> getAllPathways();
 
-    Collection<Route> getAllRoutes();
+    /** @return all ids for both Calendars and CalendarDates merged into on list without duplicates */
+    Collection<FeedId> getAllServiceIds();
 
-    Collection<ShapePoint> getAllShapePoints();
-
-    List<ShapePoint> getShapePointsForShapeId(FeedId shapeId);
-
-    Collection<Stop> getAllStops();
+    Collection<ShapePoint> getShapePointsForShapeId(FeedId shapeId);
 
     Stop getStopForId(FeedId id);
 
-    Collection<StopTime> getAllStopTimes();
+    List<Stop> getStopsForStation(Stop station);
+
+    Collection<Stop> getAllStops();
 
     /**
      * @return the list of {@link StopTime} objects associated with the trip,
@@ -51,9 +39,7 @@ public interface OtpTransitService {
 
     Collection<Transfer> getAllTransfers();
 
+    Collection<TripPattern> getTripPatterns();
+
     Collection<Trip> getAllTrips();
-
-    List<String> getTripAgencyIdsReferencingServiceId(FeedId serviceId);
-
-    List<Stop> getStopsForStation(Stop station);
 }
