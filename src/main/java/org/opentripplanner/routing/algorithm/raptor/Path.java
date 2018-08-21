@@ -2,7 +2,7 @@ package org.opentripplanner.routing.algorithm.raptor;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerImpl;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripPattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,7 +153,7 @@ public class Path {
      * @param pathIndex
      * @return
      */
-    public TripPattern getPattern(TransitLayer transitLayer, int pathIndex) {
+    public TripPattern getPattern(TransitLayerImpl transitLayer, int pathIndex) {
         return transitLayer.getTripPatterns()[this.patterns[pathIndex]];
     }
 

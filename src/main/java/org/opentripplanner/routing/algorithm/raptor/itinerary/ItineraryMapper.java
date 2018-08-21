@@ -1,7 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.itinerary;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import gnu.trove.map.TIntIntMap;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.Leg;
 import org.opentripplanner.api.model.Place;
@@ -9,7 +8,7 @@ import org.opentripplanner.model.FeedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.Path;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerImpl;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
@@ -27,15 +26,15 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class ItineraryMapper {
-    private final TransitLayer transitLayer;
+    private final TransitLayerImpl transitLayer;
 
     private final Graph graph;
 
-    public ItineraryMapper(TransitLayer transitLayer, Graph graph) {
+    public ItineraryMapper(TransitLayerImpl transitLayer, Graph graph) {
         this.transitLayer = transitLayer; this.graph = graph;
     }
 
-    public Itinerary createItinerary(RoutingRequest request, Path path, TIntIntMap accessTimesToStops, TIntIntMap egressTimesToStops) {
+    public Itinerary createItinerary(RoutingRequest request, Path path) {
         Itinerary itinerary = new Itinerary();
         if (path == null) {
             return null;

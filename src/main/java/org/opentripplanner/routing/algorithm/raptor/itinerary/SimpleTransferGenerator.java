@@ -1,15 +1,15 @@
 package org.opentripplanner.routing.algorithm.raptor.itinerary;
 
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerImpl;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.vertextype.PatternStopVertex;
 
 public class SimpleTransferGenerator {
     private final Graph graph;
-    private final TransitLayer transitLayer;
+    private final TransitLayerImpl transitLayer;
 
-    public SimpleTransferGenerator(Graph graph, TransitLayer transitLayer) {
+    public SimpleTransferGenerator(Graph graph, TransitLayerImpl transitLayer) {
         this.graph = graph;
         this.transitLayer = transitLayer;
     }

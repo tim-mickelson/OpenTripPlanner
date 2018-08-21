@@ -27,11 +27,14 @@ public class TransitLayerMapper {
     private static final Logger LOG = LoggerFactory.getLogger(TransitLayerMapper.class);
 
     private Graph graph;
-    private TransitLayer transitLayer;
+    private TransitLayerImpl transitLayer;
 
-    public TransitLayer map(Graph graph) {
+    private static final int RESERVED_STOPS = 2;
+    private static final double WALK_SPEED = 5; // km/h
+
+    public TransitLayerImpl map(Graph graph) {
         this.graph = graph;
-        this.transitLayer = new TransitLayer();
+        this.transitLayer = new TransitLayerImpl();
         LOG.info("Creating stop maps...");
         createStopMaps();
         LOG.info("Mapping services...");
@@ -48,7 +51,7 @@ public class TransitLayerMapper {
         ArrayList<Stop> stops = new ArrayList<>(graph.index.stopForId.values());
         transitLayer.stopsByIndex = new Stop[stops.size()];
         transitLayer.indexByStop = new HashMap<>();
-        for (int i = 0; i < stops.size(); i++) {
+        for (int i = RESERVED_STOPS; i < stops.size() + RESERVED_STOPS; i++) {
             Stop currentStop = stops.get(i);
             transitLayer.stopsByIndex[i] = currentStop;
             transitLayer.indexByStop.put(currentStop, i);
@@ -75,6 +78,7 @@ public class TransitLayerMapper {
     private void mapTripPatterns() {
         List<org.opentripplanner.routing.edgetype.TripPattern> originalTripPatterns = new ArrayList<>(graph.index.patternForId.values());
         transitLayer.tripPatternByIndex = new org.opentripplanner.routing.edgetype.TripPattern[originalTripPatterns.size()];
+        transitLayer.tripByIndex = new ArrayList[originalTripPatterns.size()];
         transitLayer.patterns = new TripPattern[originalTripPatterns.size()];
         transitLayer.patternsByStop = new TIntList[transitLayer.stopsByIndex.length];
         for (int i = 0; i < transitLayer.patternsByStop.length; i++) {
@@ -83,6 +87,7 @@ public class TransitLayerMapper {
         for (int patternIndex = 0; patternIndex < originalTripPatterns.size(); patternIndex++) {
             org.opentripplanner.routing.edgetype.TripPattern tripPattern = originalTripPatterns.get(patternIndex);
             transitLayer.tripPatternByIndex[patternIndex] = tripPattern;
+            transitLayer.tripByIndex[patternIndex] = new ArrayList<>();
             TripPattern newTripPattern = new TripPattern();
             int[] stopPattern = new int[tripPattern.stopPattern.size];
             for (int i = 0; i < tripPattern.stopPattern.size; i++) {
@@ -92,6 +97,7 @@ public class TransitLayerMapper {
             }
             newTripPattern.stopPattern = stopPattern;
             for (TripTimes tripTimes : tripPattern.scheduledTimetable.tripTimes) {
+                transitLayer.tripByIndex[patternIndex].add(tripTimes.trip);
                 TripSchedule tripSchedule = new TripSchedule();
                 tripSchedule.arrivals = new int[stopPattern.length];
                 tripSchedule.departures = new int[stopPattern.length];
@@ -109,15 +115,15 @@ public class TransitLayerMapper {
 
     /** Copy pre-calculated transfers from the original graph */
     private void mapTransfers() {
-        transitLayer.transferDistances = new TIntArrayList[transitLayer.stopsByIndex.length];
+        transitLayer.transfers = new TIntArrayList[transitLayer.stopsByIndex.length];
         for (int i = 0; i < transitLayer.stopsByIndex.length; i++) {
-            transitLayer.transferDistances[i] = new TIntArrayList();
+            transitLayer.transfers[i] = new TIntArrayList();
             for (Edge edge : graph.index.stopVertexForStop.get(transitLayer.stopsByIndex[i]).getOutgoing()) {
                 if (edge instanceof SimpleTransfer) {
                     int index = transitLayer.indexByStop.get(((TransitStop)edge.getToVertex()).getStop());
                     double distance = edge.getDistance();
-                    transitLayer.transferDistances[i].add(index);
-                    transitLayer.transferDistances[i].add((int)(distance * 1000));
+                    transitLayer.transfers[i].add(index);
+                    transitLayer.transfers[i].add((distanceToTime(distance)));
                 }
             }
         }
@@ -125,5 +131,9 @@ public class TransitLayerMapper {
 
     private LocalDate localDateFromServiceDate(ServiceDate serviceDate) {
         return LocalDate.of(serviceDate.getYear(), serviceDate.getMonth(), serviceDate.getDay());
+    }
+
+    private int distanceToTime(double distanceInMeters) {
+        return (int)(Math.ceil(distanceInMeters * 60) / (WALK_SPEED * 1000));
     }
 }

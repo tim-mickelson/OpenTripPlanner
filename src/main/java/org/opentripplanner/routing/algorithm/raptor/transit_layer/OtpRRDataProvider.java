@@ -34,7 +34,7 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
     /** Allowed transit modes */
     private final TraverseModeSet transitModes;
 
-    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, TraverseModeSet transitModes) {
+    public OtpRRDataProvider(TransitLayerImpl transitLayer, LocalDate date, TraverseModeSet transitModes) {
         this.transitLayer = transitLayer;
         this.servicesActive  = transitLayer.getActiveServicesForDate(date);
         this.transitModes = transitModes;
