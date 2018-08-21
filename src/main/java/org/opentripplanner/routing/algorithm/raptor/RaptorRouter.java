@@ -55,12 +55,12 @@ public class RaptorRouter {
 
         // Add access transfers to transit layer from reserved stop index 0
         for (int stopId : accessTimeToStops.keys()) {
-            transitLayer.addTransfer(0, stopId, accessTimeToStops.get(stopId));
+            transitLayer.addTransfer(0, stopId, accessTimeToStops.get(stopId), null); // TODO: Create simpleTransfer
         }
 
         // Add egress transfers to transit layer to reserved stop index 1
         for (int stopId : egressTimesFromStops.keys()) {
-            transitLayer.addTransfer(stopId, 0, accessTimeToStops.get(stopId));
+            transitLayer.addTransfer(stopId, 0, accessTimeToStops.get(stopId), null); // TODO: Create simpleTransfer
         }
 
         TIntIntMap accessTimeToReservedStop = new TIntIntHashMap();
@@ -122,7 +122,7 @@ public class RaptorRouter {
 
         ItineraryMapper itineraryMapper = new ItineraryMapper(transitLayer, graph);
 
-        Itinerary itinerary = itineraryMapper.createItinerary(request, paths.paretoSet().iterator().next().path, accessTimeToStops, egressTimesFromStops);
+        Itinerary itinerary = itineraryMapper.createItinerary(request, paths.paretoSet().iterator().next().path);
 
         List<Itinerary> itineraries = new ArrayList<>();
         itineraries.add(itinerary);

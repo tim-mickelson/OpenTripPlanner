@@ -116,6 +116,7 @@ public class TransitLayerMapper {
     /** Copy pre-calculated transfers from the original graph */
     private void mapTransfers() {
         transitLayer.transfers = new TIntArrayList[transitLayer.stopsByIndex.length];
+        transitLayer.simpleTransferMap = new HashMap<>();
         for (int i = 0; i < transitLayer.stopsByIndex.length; i++) {
             transitLayer.transfers[i] = new TIntArrayList();
             for (Edge edge : graph.index.stopVertexForStop.get(transitLayer.stopsByIndex[i]).getOutgoing()) {
