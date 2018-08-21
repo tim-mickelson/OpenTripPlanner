@@ -8,6 +8,7 @@ import org.opentripplanner.model.FeedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.Path;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerImpl;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
@@ -104,16 +105,16 @@ public class ItineraryMapper {
 
             // Transfer leg if present
             if (transferFromIndex != transferToIndex) {
-                SimpleTransfer simpleTransfer = transitLayer.getSimpleTransfer(transferFromIndex, transferToIndex);
+                Transfer transfer = transitLayer.getTransfer(transferFromIndex, transferToIndex);
                 Leg transferLeg = new Leg();
                 transferLeg.startTime = createCalendar(request.getDateTime(), path.alightTimes[i - 1]);
                 transferLeg.endTime = createCalendar(request.getDateTime(), path.alightTimes[i - 1] + path.transferTimes[i]);
                 transferLeg.mode = "WALK";
                 transferLeg.from = new Place(transferFromStop.getLat(), transferFromStop.getLon(), transferFromStop.getName());
                 transferLeg.to = new Place(transferToStop.getLat(), transferToStop.getLon(), transferToStop.getName());
-                transferLeg.legGeometry = PolylineEncoder.createEncodings(simpleTransfer.getGeometry());
+                transferLeg.legGeometry = PolylineEncoder.createEncodings(transfer.coordinates);
 
-                transferLeg.distance = distanceMMToMeters ((int)simpleTransfer.getDistance());
+                transferLeg.distance = distanceMMToMeters (transfer.getDistance());
 
                 itinerary.addLeg(transferLeg);
             }

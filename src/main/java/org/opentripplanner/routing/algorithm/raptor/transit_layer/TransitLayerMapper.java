@@ -6,6 +6,7 @@ import org.opentripplanner.model.FeedId;
 import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.routing.algorithm.raptor.util.OrderedIndexPair;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
@@ -13,6 +14,7 @@ import org.opentripplanner.routing.trippattern.TripTimes;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.java2d.pipe.SpanShapeRenderer;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -116,7 +118,7 @@ public class TransitLayerMapper {
     /** Copy pre-calculated transfers from the original graph */
     private void mapTransfers() {
         transitLayer.transfers = new TIntArrayList[transitLayer.stopsByIndex.length];
-        transitLayer.simpleTransferMap = new HashMap<>();
+        transitLayer.transferMap = new HashMap<>();
         for (int i = 0; i < transitLayer.stopsByIndex.length; i++) {
             transitLayer.transfers[i] = new TIntArrayList();
             for (Edge edge : graph.index.stopVertexForStop.get(transitLayer.stopsByIndex[i]).getOutgoing()) {
@@ -125,6 +127,9 @@ public class TransitLayerMapper {
                     double distance = edge.getDistance();
                     transitLayer.transfers[i].add(index);
                     transitLayer.transfers[i].add((distanceToTime(distance)));
+                    Transfer transfer = new Transfer();
+                    transfer.coordinates = edge.getGeometry().getCoordinates();
+                    transitLayer.transferMap.put(new OrderedIndexPair(i, index), new Transfer());
                 }
             }
         }

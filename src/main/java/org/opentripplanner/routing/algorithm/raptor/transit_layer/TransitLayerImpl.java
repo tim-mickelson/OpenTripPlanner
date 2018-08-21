@@ -4,7 +4,6 @@ import gnu.trove.list.TIntList;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.algorithm.raptor.util.OrderedIndexPair;
-import org.opentripplanner.routing.edgetype.SimpleTransfer;
 
 import java.time.LocalDate;
 import java.util.BitSet;
@@ -25,7 +24,7 @@ public class TransitLayerImpl implements TransitLayer {
     public Map<Stop, Integer> indexByStop;
     public org.opentripplanner.routing.edgetype.TripPattern[] tripPatternByIndex;
     public List<Trip>[] tripByIndex;
-    public Map<OrderedIndexPair, SimpleTransfer> simpleTransferMap;
+    public Map<OrderedIndexPair, Transfer> transferMap;
 
     public BitSet getActiveServicesForDate(LocalDate date) {
         BitSet acticeServices = new BitSet();
@@ -51,10 +50,10 @@ public class TransitLayerImpl implements TransitLayer {
 
     public int getStopCount() { return stopsByIndex.length; }
 
-    public void addTransfer(int fromStopId, int toStopId, int timeInSeconds, SimpleTransfer simpleTransfer) {
+    public void addTransfer(int fromStopId, int toStopId, int timeInSeconds, Transfer transfer) {
         transfers[fromStopId].add(toStopId);
         transfers[fromStopId].add(timeInSeconds);
-        simpleTransferMap.put(new OrderedIndexPair(fromStopId, toStopId), simpleTransfer);
+        transferMap.put(new OrderedIndexPair(fromStopId, toStopId), transfer);
     }
 
     public int getIndexByStop(Stop stop) {
@@ -69,7 +68,7 @@ public class TransitLayerImpl implements TransitLayer {
         return tripPatternByIndex[tripPatternsIndex];
     }
 
-    public SimpleTransfer getSimpleTransfer(int fromIndex, int toIndex) {
-        return simpleTransferMap.get(new OrderedIndexPair(fromIndex, toIndex));
+    public Transfer getTransfer(int fromIndex, int toIndex) {
+        return transferMap.get(new OrderedIndexPair(fromIndex, toIndex));
     }
 }

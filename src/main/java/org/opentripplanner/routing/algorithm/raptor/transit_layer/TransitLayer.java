@@ -15,7 +15,7 @@ public interface TransitLayer {
     TIntList getPatternsForStop(int stop);
     TripPattern[] getTripPatterns();
     int getStopCount();
-    void addTransfer(int fromStopId, int toStopId, int timeInSeconds, SimpleTransfer simpleTransfer);
+    void addTransfer(int fromStopId, int toStopId, int timeInSeconds, Transfer transfer);
     org.opentripplanner.routing.edgetype.TripPattern getTripPatternByIndex(int tripPatternsIndex);
-    SimpleTransfer getSimpleTransfer(int fromIndex, int toIndex);
+    Transfer getTransfer(int fromIndex, int toIndex);
 }

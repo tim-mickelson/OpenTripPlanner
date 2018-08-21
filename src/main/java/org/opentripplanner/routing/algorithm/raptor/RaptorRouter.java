@@ -47,20 +47,20 @@ public class RaptorRouter {
          */
 
         TObjectDoubleMap<Vertex> accessTimesToStopVertices =
-            AccessEgressRouter.streetSearch(request, false, Integer.MAX_VALUE);
+            AccessEgressRouter.streetSearch(request, false, Integer.MAX_VALUE).timesToStops;
         TObjectDoubleMap<Vertex> egressTimeToStopVertices =
-            AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
+            AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE).timesToStops;
         TIntIntMap accessTimeToStops = AccessEgressMapper.map(accessTimesToStopVertices, transitLayer);
         TIntIntMap egressTimesFromStops = AccessEgressMapper.map(egressTimeToStopVertices, transitLayer);
 
         // Add access transfers to transit layer from reserved stop index 0
         for (int stopId : accessTimeToStops.keys()) {
-            transitLayer.addTransfer(0, stopId, accessTimeToStops.get(stopId), null); // TODO: Create simpleTransfer
+            transitLayer.addTransfer(0, stopId, accessTimeToStops.get(stopId), null); // TODO: Create transfer
         }
 
         // Add egress transfers to transit layer to reserved stop index 1
         for (int stopId : egressTimesFromStops.keys()) {
-            transitLayer.addTransfer(stopId, 0, accessTimeToStops.get(stopId), null); // TODO: Create simpleTransfer
+            transitLayer.addTransfer(stopId, 0, accessTimeToStops.get(stopId), null); // TODO: Create transfer
         }
 
         TIntIntMap accessTimeToReservedStop = new TIntIntHashMap();
