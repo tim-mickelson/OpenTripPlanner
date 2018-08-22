@@ -4,6 +4,7 @@ import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import javafx.util.Pair;
 import org.opentripplanner.api.model.Itinerary;
+import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressMapper;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
@@ -36,12 +37,12 @@ public class RaptorRouter {
     private final Graph graph;
     private static final int MAX_DURATION_SECONDS = 8 * 60;
 
-    public RaptorRouter(OtpRRDataProvider otpRRDataProvider, Graph graph) {
-        this.otpRRDataProvider = otpRRDataProvider;
+    public RaptorRouter(RoutingRequest request, Graph graph) {
+        this.otpRRDataProvider = new OtpRRDataProvider(graph.transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes);
         this.graph = graph;
     }
 
-    private List<Itinerary> route(RoutingRequest request) {
+    public TripPlan route(RoutingRequest request) {
         TransitLayer transitLayer = otpRRDataProvider.getTransitLayer();
 
         /**
@@ -66,12 +67,9 @@ public class RaptorRouter {
          * Prepare transit search
          */
 
-        LocalDate searchDate = Instant.ofEpochMilli(request.dateTime).atZone(ZoneId.systemDefault()).toLocalDate();
         int departureTime = Instant.ofEpochMilli(request.dateTime).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
-        RaptorWorkerTransitDataProvider transitData = new OtpRRDataProvider(
-                transitLayer, searchDate, request.modes
-        );
+        RaptorWorkerTransitDataProvider transitData = this.otpRRDataProvider;
 
         McRaptorStateImpl stateImpl = new McRaptorStateImpl(
                 transitLayer.getStopCount(),
@@ -121,6 +119,10 @@ public class RaptorRouter {
         List<Itinerary> itineraries = new ArrayList<>();
         itineraries.add(itinerary);
 
-        return itineraries;
+        TripPlan tripPlan = new TripPlan();
+
+        tripPlan.itinerary = itineraries;
+
+        return tripPlan;
     }
 }

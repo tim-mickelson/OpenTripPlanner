@@ -76,11 +76,11 @@ public class TransitLayerImpl implements TransitLayer {
 
     public void addAccessEgressTransfers(Map<Vertex, Transfer> transferMap, boolean mapAccess) {
         for (Map.Entry entry : transferMap.entrySet()) {
-            Vertex stop = (TransitStop) entry.getKey();
+            Vertex stop = (TransitStop)entry.getKey();
             int stopIndex = this.getIndexByStop(((TransitStop) stop).getStop());
             Transfer transfer = (Transfer)entry.getValue();
             if (mapAccess) {
-                addTransfer(0, stopIndex, transfer.distance, transfer);
+                addTransfer(0, stopIndex, transfer.duration, transfer);
             } else {
                 addTransfer(stopIndex, 1, transfer.duration, transfer);
             }

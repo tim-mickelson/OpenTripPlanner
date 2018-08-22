@@ -718,6 +718,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         this.index = new GraphIndex(this);
 
         /** Create transit layer for Raptor routing */
+        LOG.info("Creating transit layer for Raptor routing.");
         TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
         this.transitLayer = transitLayerMapper.map(this);
     }

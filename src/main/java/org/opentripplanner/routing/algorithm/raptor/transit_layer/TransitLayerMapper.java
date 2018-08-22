@@ -7,6 +7,7 @@ import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.algorithm.raptor.util.OrderedIndexPair;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -51,12 +53,12 @@ public class TransitLayerMapper {
     /** Create maps between stop indices used by Raptor and stop objects in original graph */
     private void createStopMaps() {
         ArrayList<Stop> stops = new ArrayList<>(graph.index.stopForId.values());
-        transitLayer.stopsByIndex = new Stop[stops.size()];
+        transitLayer.stopsByIndex = new Stop[stops.size() + RESERVED_STOPS];
         transitLayer.indexByStop = new HashMap<>();
-        for (int i = RESERVED_STOPS; i < stops.size() + RESERVED_STOPS; i++) {
+        for (int i = 0; i < stops.size(); i++) {
             Stop currentStop = stops.get(i);
-            transitLayer.stopsByIndex[i] = currentStop;
-            transitLayer.indexByStop.put(currentStop, i);
+            transitLayer.stopsByIndex[i + RESERVED_STOPS] = currentStop;
+            transitLayer.indexByStop.put(currentStop, i + RESERVED_STOPS);
         }
     }
 
@@ -91,6 +93,8 @@ public class TransitLayerMapper {
             transitLayer.tripPatternByIndex[patternIndex] = tripPattern;
             transitLayer.tripByIndex[patternIndex] = new ArrayList<>();
             TripPattern newTripPattern = new TripPattern();
+            newTripPattern.transitModesSet = tripPattern.mode;
+            newTripPattern.containsServices = new BitSet();
             int[] stopPattern = new int[tripPattern.stopPattern.size];
             for (int i = 0; i < tripPattern.stopPattern.size; i++) {
                 int stopIndex = transitLayer.indexByStop.get(tripPattern.getStop(i));
@@ -108,6 +112,7 @@ public class TransitLayerMapper {
                     tripSchedule.departures[i] = tripTimes.getDepartureTime(i);
                 }
                 tripSchedule.serviceCode = tripTimes.serviceCode;
+                newTripPattern.containsServices.set(tripTimes.serviceCode);
                 newTripPattern.tripSchedules.add(tripSchedule);
             }
             newTripPattern.hasSchedules = !newTripPattern.tripSchedules.isEmpty();
@@ -121,6 +126,7 @@ public class TransitLayerMapper {
         transitLayer.transferMap = new HashMap<>();
         for (int i = 0; i < transitLayer.stopsByIndex.length; i++) {
             transitLayer.transfers[i] = new TIntArrayList();
+            if (i < RESERVED_STOPS) continue;
             for (Edge edge : graph.index.stopVertexForStop.get(transitLayer.stopsByIndex[i]).getOutgoing()) {
                 if (edge instanceof SimpleTransfer) {
                     int index = transitLayer.indexByStop.get(((TransitStop)edge.getToVertex()).getStop());

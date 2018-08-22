@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class AccessEgressRouter {
     private static Logger LOG = LoggerFactory.getLogger(InterleavedBidirectionalHeuristic.class);
@@ -44,7 +45,7 @@ public class AccessEgressRouter {
         pq.insert(initState, 0);
         while ( ! pq.empty()) {
             if (abortTime < Long.MAX_VALUE  && System.currentTimeMillis() > abortTime) {
-                return null;
+                //return null;
             }
             State s = pq.extract_min();
             Vertex v = s.getVertex();
@@ -54,6 +55,7 @@ public class AccessEgressRouter {
             // At this point the vertex is closed (pulled off heap).
             // This is the lowest cost we will ever see for this vertex. We can record the cost to reach it.
             if (v instanceof TransitStop) {
+                result.put(v, createTransfer(s));
                 // We don't want to continue into the transit network yet, but when searching around the target
                 // place vertices on the transit queue so we can explore the transit network backward later.
                 if (fromTarget) {
@@ -73,12 +75,6 @@ public class AccessEgressRouter {
                     }
                 }
                 if (!initialStop) continue;
-            }
-            // We don't test whether we're on an instanceof StreetVertex here because some other vertex types
-            // (park and ride or bike rental related) that should also be explored and marked as usable.
-            // Record the cost to reach this vertex.
-            if (!result.containsKey(v) && !(v instanceof TransitStop)) {
-                result.put(v, createTransfer(s));
             }
             for (Edge e : rr.arriveBy ? v.getIncoming() : v.getOutgoing()) {
                 if (v instanceof TransitStop && !(e instanceof StreetTransitLink)) {
