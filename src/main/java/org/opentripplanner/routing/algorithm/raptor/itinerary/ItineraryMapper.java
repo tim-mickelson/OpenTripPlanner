@@ -42,13 +42,13 @@ public class ItineraryMapper {
         itinerary.transfers = path.patterns.length - 1;
 
         for (int i = 0; i < path.patterns.length; i++) {
-            // Transit leg if present
-
+            // Get stops for transit leg
             int boardStopIndex = path.boardStops[i];
             int alightStopIndex = path.alightStops[i];
             Stop boardStop = transitLayer.getStopByIndex(boardStopIndex);
             Stop alightStop = transitLayer.getStopByIndex(alightStopIndex);
 
+            // Create transit leg if present
             if (boardStopIndex != alightStopIndex) {
                 Leg transitLeg = new Leg();
 
@@ -95,13 +95,13 @@ public class ItineraryMapper {
                 itinerary.addLeg(transitLeg);
             }
 
-            // Transfer leg if present
+            // Get stops for transfer leg
             int transferFromIndex = path.alightStops[i - 1];
             int transferToIndex = path.boardStops[i + 1];
             Stop transferFromStop = transitLayer.getStopByIndex(transferFromIndex);
             Stop transferToStop = transitLayer.getStopByIndex(transferToIndex);
 
-
+            // Create transfer leg if present
             if (transferFromIndex != transferToIndex) {
                 Transfer transfer = transitLayer.getTransfer(transferFromIndex, transferToIndex);
                 Leg transferLeg = new Leg();
