@@ -14,10 +14,10 @@ import org.opentripplanner.routing.trippattern.TripTimes;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -128,7 +128,7 @@ public class TransitLayerMapper {
                     transitLayer.transfers[i].add(index);
                     transitLayer.transfers[i].add((distanceToTime(distance)));
                     Transfer transfer = new Transfer();
-                    transfer.coordinates = edge.getGeometry().getCoordinates();
+                    transfer.coordinates = Arrays.asList(edge.getGeometry().getCoordinates());
                     transitLayer.transferMap.put(new OrderedIndexPair(i, index), new Transfer());
                 }
             }

@@ -4,6 +4,8 @@ import gnu.trove.list.TIntList;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.algorithm.raptor.util.OrderedIndexPair;
+import org.opentripplanner.routing.graph.Vertex;
+import org.opentripplanner.routing.vertextype.TransitStop;
 
 import java.time.LocalDate;
 import java.util.BitSet;
@@ -70,5 +72,18 @@ public class TransitLayerImpl implements TransitLayer {
 
     public Transfer getTransfer(int fromIndex, int toIndex) {
         return transferMap.get(new OrderedIndexPair(fromIndex, toIndex));
+    }
+
+    public void addAccessEgressTransfers(Map<Vertex, Transfer> transferMap, boolean mapAccess) {
+        for (Map.Entry entry : transferMap.entrySet()) {
+            Vertex stop = (TransitStop) entry.getKey();
+            int stopIndex = this.getIndexByStop(((TransitStop) stop).getStop());
+            Transfer transfer = (Transfer)entry.getValue();
+            if (mapAccess) {
+                addTransfer(0, stopIndex, transfer.distance, transfer);
+            } else {
+                addTransfer(stopIndex, 1, transfer.duration, transfer);
+            }
+        }
     }
 }

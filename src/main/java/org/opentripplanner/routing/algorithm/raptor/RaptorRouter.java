@@ -1,14 +1,15 @@
 package org.opentripplanner.routing.algorithm.raptor;
 
 import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.TObjectDoubleMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import javafx.util.Pair;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressMapper;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.RaptorWorkerTransitDataProvider;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.util.ParetoSet;
 import org.opentripplanner.routing.core.RoutingRequest;
@@ -22,6 +23,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Does a complete transit search, including access and egress legs.
@@ -46,23 +48,15 @@ public class RaptorRouter {
          * Prepare access/egress transfers
          */
 
-        TObjectDoubleMap<Vertex> accessTimesToStopVertices =
-            AccessEgressRouter.streetSearch(request, false, Integer.MAX_VALUE).timesToStops;
-        TObjectDoubleMap<Vertex> egressTimeToStopVertices =
-            AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE).timesToStops;
-        TIntIntMap accessTimeToStops = AccessEgressMapper.map(accessTimesToStopVertices, transitLayer);
-        TIntIntMap egressTimesFromStops = AccessEgressMapper.map(egressTimeToStopVertices, transitLayer);
+        Map<Vertex, Transfer> accessTransfers =
+            AccessEgressRouter.streetSearch(request, false, Integer.MAX_VALUE);
+        Map<Vertex, Transfer> egressTransfers =
+            AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
-        // Add access transfers to transit layer from reserved stop index 0
-        for (int stopId : accessTimeToStops.keys()) {
-            transitLayer.addTransfer(0, stopId, accessTimeToStops.get(stopId), null); // TODO: Create transfer
-        }
+        transitLayer.addAccessEgressTransfers(accessTransfers, true);
+        transitLayer.addAccessEgressTransfers(egressTransfers, false);
 
-        // Add egress transfers to transit layer to reserved stop index 1
-        for (int stopId : egressTimesFromStops.keys()) {
-            transitLayer.addTransfer(stopId, 0, accessTimeToStops.get(stopId), null); // TODO: Create transfer
-        }
-
+        // Temporary
         TIntIntMap accessTimeToReservedStop = new TIntIntHashMap();
         accessTimeToReservedStop.put(0, 0);
         TIntIntMap egressTimeFromReservedStop = new TIntIntHashMap();
