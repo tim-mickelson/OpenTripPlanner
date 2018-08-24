@@ -53,6 +53,7 @@ public class TransitLayerImpl implements TransitLayer {
     public int getStopCount() { return stopsByIndex.length; }
 
     public void addTransfer(int fromStopId, int toStopId, int timeInSeconds, Transfer transfer) {
+        System.out.println("From stop: " + fromStopId + " To stop: " + toStopId + " Time: " + timeInSeconds);
         transfers[fromStopId].add(toStopId);
         transfers[fromStopId].add(timeInSeconds);
         transferMap.put(new OrderedIndexPair(fromStopId, toStopId), transfer);

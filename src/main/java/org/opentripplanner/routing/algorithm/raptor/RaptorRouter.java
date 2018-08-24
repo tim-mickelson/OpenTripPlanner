@@ -35,7 +35,7 @@ public class RaptorRouter {
 
     private final OtpRRDataProvider otpRRDataProvider;
     private final Graph graph;
-    private static final int MAX_DURATION_SECONDS = 8 * 60;
+    private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
 
     public RaptorRouter(RoutingRequest request, Graph graph) {
         this.otpRRDataProvider = new OtpRRDataProvider(graph.transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes);
@@ -82,8 +82,8 @@ public class RaptorRouter {
                 transitData,
                 stateImpl.newWorkerState(),
                 new PathBuilder(stateImpl),
-                departureTime,
-                departureTime + MAX_DURATION_SECONDS,
+                0,
+                60,
                 (float)request.walkSpeed,
                 1000,
                 accessTimeToReservedStop,

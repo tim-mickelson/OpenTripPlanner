@@ -28,7 +28,7 @@ public final class McRaptorStateImpl {
     /**
      * To debug a particular journey set DEBUG to true and add all visited stops in the debugStops list.
      */
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final List<Integer> debugStops = Arrays.asList(5757, 32489, 17270, 21469, 22102);
 
     private final StopStateFlyWeight state;
@@ -90,7 +90,7 @@ public final class McRaptorStateImpl {
     void findLastRoundWithTransitTimeSet(int stop) {
         round = roundMax;
 
-        while (round > 0 && !stop(stop).isTransitTimeSet()) {
+        while (round > 0 && !stop(stop).arrivedByTransfer()) {
             debugListedStops("skip no transit", round, stop);
             --round;
         }
@@ -145,6 +145,9 @@ public final class McRaptorStateImpl {
             @Override public void gotoNextRound () {
                 bestOveral.gotoNextRound();
                 bestTransit.gotoNextRound();
+                if(round == 0) {
+                    bestTransit.setTime(0,bestTransit.timeLastRound(0));
+                }
                 ++round;
                 roundMax = Math.max(roundMax, round);
             }
@@ -186,6 +189,7 @@ public final class McRaptorStateImpl {
                 final int stateIndex = findOrCreateStopIndex(stop);
                 state.setInitalTime(stateIndex, time);
                 bestOveral.setTime(stop, time);
+                bestTransit.setTime(stop, time);
                 debugListedStops("init", round, stop);
             }
 

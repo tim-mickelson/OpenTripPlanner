@@ -16,6 +16,8 @@ public class AccessEgressMapper {
         for (Map.Entry entry : transferMap.entrySet()) {
             Vertex stop = (TransitStop) entry.getKey();
             timeToStopInSeconds.put(transitLayer.getIndexByStop(((TransitStop) stop).getStop()), ((Transfer)entry.getValue()).duration);
+
+            System.out.println(((Transfer)entry.getValue()).duration);
         }
 
         return timeToStopInSeconds;

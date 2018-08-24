@@ -27,9 +27,6 @@ public class PathBuilder {
      * Scan over a raptor state and extract the path leading up to that state.
      */
     public Path extractPathForStop(int stop) {
-        if(!state.isStopReachedByTransit(stop)) {
-            return null;
-        }
         // trace the path back from this RaptorState
         patterns.clear();
         boardStops.clear();
@@ -54,6 +51,19 @@ public class PathBuilder {
 
         while (state.round() > 0) {
             StopState it = state.stop(stop);
+            state.debugStop("by", state.round(), stop);
+
+            // handle transfers
+            if (it.arrivedByTransfer()) {
+                transferTimes.add(it.time());
+                stop = it.transferFromStop();
+                state.debugStop("transfer", state.round(), stop);
+            }
+            else {
+                transferTimes.add(-1);
+            }
+
+            it = state.stop(stop);
 
             patterns.add(it.previousPattern());
             trips.add(it.previousTrip());
@@ -69,19 +79,6 @@ public class PathBuilder {
 
             // go to previous state before handling transfers as transfers are done at the end of a round
             state.gotoPreviousRound();
-            it = state.stop(stop);
-            state.debugStop("by", state.round(), stop);
-
-
-            // handle transfers
-            if (it.arrivedByTransfer()) {
-                transferTimes.add(it.time());
-                stop = it.transferFromStop();
-                state.debugStop("transfer", state.round(), stop);
-            }
-            else {
-                transferTimes.add(-1);
-            }
         }
 
         // we traversed up the tree but the user wants to see paths down the tree

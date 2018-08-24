@@ -99,6 +99,7 @@ public class AccessEgressRouter {
 
     private static Transfer createTransfer(State state) {
         Transfer transfer = new Transfer();
+        transfer.duration = (int)state.getWeight();
         List<Coordinate> points = new ArrayList<>();
         do {
             points.add(state.getVertex().getCoordinate());
