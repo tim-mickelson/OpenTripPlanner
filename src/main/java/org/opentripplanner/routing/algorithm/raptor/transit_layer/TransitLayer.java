@@ -20,4 +20,5 @@ public interface TransitLayer {
     org.opentripplanner.routing.edgetype.TripPattern getTripPatternByIndex(int tripPatternsIndex);
     Transfer getTransfer(int fromIndex, int toIndex);
     void addAccessEgressTransfers(Map<Vertex, Transfer> transferMap, boolean mapAccess);
+    void setAccessEgressStops(Stop accessStop, Stop egressStop);
 }

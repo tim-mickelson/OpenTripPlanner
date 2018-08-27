@@ -7,6 +7,7 @@ import org.opentripplanner.api.model.Place;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.Path;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.RaptorWorkerTransitDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
@@ -25,12 +26,15 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class ItineraryMapper {
+    private final RaptorWorkerTransitDataProvider raptorWorkerTransitDataProvider;
     private final TransitLayer transitLayer;
 
     private final Graph graph;
 
-    public ItineraryMapper(TransitLayer transitLayer, Graph graph) {
-        this.transitLayer = transitLayer; this.graph = graph;
+    public ItineraryMapper(RaptorWorkerTransitDataProvider raptorWorkerTransitDataProvider, TransitLayer transitLayer, Graph graph) {
+        this.raptorWorkerTransitDataProvider = raptorWorkerTransitDataProvider;
+        this.transitLayer = transitLayer;
+        this.graph = graph;
     }
 
     public Itinerary createItinerary(RoutingRequest request, Path path) {
@@ -38,6 +42,13 @@ public class ItineraryMapper {
         if (path == null) {
             return null;
         }
+
+        int walkSpeedMillimetersPerSecond = (int)(request.walkSpeed * 1000);
+        int startTimeSeconds = path.boardTimes[1] - transitLayer.getTransfer(0, path.boardStops[1]).distance / walkSpeedMillimetersPerSecond;
+        itinerary.startTime = createCalendar(request.getDateTime(), startTimeSeconds);
+        itinerary.endTime = createCalendar(request.getDateTime(), path.transferTimes[path.transferTimes.length - 1]);
+        itinerary.duration = (long)path.transferTimes[path.transferTimes.length - 1] - startTimeSeconds;
+        int walkingTime = 0;
 
         itinerary.transfers = path.patterns.length - 1;
 
@@ -49,11 +60,13 @@ public class ItineraryMapper {
             Stop alightStop = transitLayer.getStopByIndex(alightStopIndex);
 
             // Create transit leg if present
-            if (boardStopIndex != alightStopIndex) {
+            if (boardStopIndex != -1) {
                 Leg transitLeg = new Leg();
 
-                TripSchedule tripSchedule = transitLayer.getTripPatterns()[path.patterns[i]].tripSchedules.get(path.trips[i]);
-                TripPattern tripPattern = transitLayer.getTripPatternByIndex(path.patterns[i]);
+                int patternIndex = raptorWorkerTransitDataProvider.getScheduledIndexForOriginalPatternIndex()[path.patterns[i]];
+
+                TripSchedule tripSchedule = transitLayer.getTripPatterns()[patternIndex].tripSchedules.get(path.trips[i]);
+                TripPattern tripPattern = transitLayer.getTripPatternByIndex(patternIndex);
                 Route route = tripPattern.route;
 
                 itinerary.transitTime += path.alightTimes[i] - path.boardTimes[i];
@@ -92,12 +105,13 @@ public class ItineraryMapper {
                 transitLeg.legGeometry = PolylineEncoder.createEncodings(transitLegCoordinates);
                 transitLeg.startTime = createCalendar(request.getDateTime(), path.boardTimes[i]);
                 transitLeg.endTime = createCalendar(request.getDateTime(), path.alightTimes[i]);
+                walkingTime += path.boardTimes[i] - path.alightTimes[i];
                 itinerary.addLeg(transitLeg);
             }
 
             // Get stops for transfer leg
-            int transferFromIndex = path.alightStops[i - 1];
-            int transferToIndex = path.boardStops[i + 1];
+            int transferFromIndex = path.alightStops[i];
+            int transferToIndex = i < path.boardStops.length - 1 ? path.boardStops[i + 1] : 1;
             Stop transferFromStop = transitLayer.getStopByIndex(transferFromIndex);
             Stop transferToStop = transitLayer.getStopByIndex(transferToIndex);
 
@@ -105,8 +119,8 @@ public class ItineraryMapper {
             if (transferFromIndex != transferToIndex) {
                 Transfer transfer = transitLayer.getTransfer(transferFromIndex, transferToIndex);
                 Leg transferLeg = new Leg();
-                transferLeg.startTime = createCalendar(request.getDateTime(), path.alightTimes[i - 1]);
-                transferLeg.endTime = createCalendar(request.getDateTime(), path.alightTimes[i - 1] + path.transferTimes[i]);
+                transferLeg.startTime = i == 0 ? itinerary.startTime : createCalendar(request.getDateTime(), path.alightTimes[i]);
+                transferLeg.endTime = createCalendar(request.getDateTime(), path.transferTimes[i]);
                 transferLeg.mode = "WALK";
                 transferLeg.from = new Place(transferFromStop.getLat(), transferFromStop.getLon(), transferFromStop.getName());
                 transferLeg.to = new Place(transferToStop.getLat(), transferToStop.getLon(), transferToStop.getName());
@@ -117,6 +131,9 @@ public class ItineraryMapper {
                 itinerary.addLeg(transferLeg);
             }
         }
+
+        itinerary.walkTime = walkingTime;
+        itinerary.walkDistance = walkingTime / request.walkSpeed;
 
         return itinerary;
     }

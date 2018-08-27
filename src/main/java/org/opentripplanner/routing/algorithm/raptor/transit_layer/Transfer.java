@@ -6,6 +6,5 @@ import java.util.List;
 
 public class Transfer {
     public List<Coordinate> coordinates;
-    public int duration;
     public int distance;
 }

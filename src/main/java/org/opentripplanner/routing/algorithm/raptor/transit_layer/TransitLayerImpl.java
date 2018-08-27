@@ -64,7 +64,7 @@ public class TransitLayerImpl implements TransitLayer {
     }
 
     public Stop getStopByIndex(int stopIndex) {
-        return stopsByIndex[stopIndex];
+        return stopIndex != -1 ? stopsByIndex[stopIndex] : null;
     }
 
     public org.opentripplanner.routing.edgetype.TripPattern getTripPatternByIndex(int tripPatternsIndex) {
@@ -81,10 +81,15 @@ public class TransitLayerImpl implements TransitLayer {
             int stopIndex = this.getIndexByStop(((TransitStop) stop).getStop());
             Transfer transfer = (Transfer)entry.getValue();
             if (mapAccess) {
-                addTransfer(0, stopIndex, transfer.duration, transfer);
+                addTransfer(0, stopIndex, transfer.distance, transfer);
             } else {
-                addTransfer(stopIndex, 1, transfer.duration, transfer);
+                addTransfer(stopIndex, 1, transfer.distance, transfer);
             }
         }
+    }
+
+    public void setAccessEgressStops(Stop accessStop, Stop egressStop) {
+        stopsByIndex[0] = accessStop;
+        stopsByIndex[1] = egressStop;
     }
 }

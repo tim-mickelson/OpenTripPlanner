@@ -132,10 +132,11 @@ public class TransitLayerMapper {
                     int index = transitLayer.indexByStop.get(((TransitStop)edge.getToVertex()).getStop());
                     double distance = edge.getDistance();
                     transitLayer.transfers[i].add(index);
-                    transitLayer.transfers[i].add((distanceToTime(distance)));
+                    transitLayer.transfers[i].add((int)distance * 1000);
                     Transfer transfer = new Transfer();
+                    transfer.distance = (int)distance * 1000;
                     transfer.coordinates = Arrays.asList(edge.getGeometry().getCoordinates());
-                    transitLayer.transferMap.put(new OrderedIndexPair(i, index), new Transfer());
+                    transitLayer.transferMap.put(new OrderedIndexPair(i, index), transfer);
                 }
             }
         }

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ public class AccessEgressRouter {
     private static Logger LOG = LoggerFactory.getLogger(InterleavedBidirectionalHeuristic.class);
 
     public static Map<Vertex, Transfer> streetSearch (RoutingRequest rr, boolean fromTarget, long abortTime) {
+        rr.maxWalkDistance = 5000;
         Map<Vertex, Transfer> result = new HashMap<>();
         BinHeap<Vertex> transitQueue = new BinHeap<>();
         double maxWeightSeen = 0;
@@ -99,10 +101,14 @@ public class AccessEgressRouter {
 
     private static Transfer createTransfer(State state) {
         Transfer transfer = new Transfer();
-        transfer.duration = (int)state.getWeight();
+        transfer.distance = (int)state.getWalkDistance() * 1000;
         List<Coordinate> points = new ArrayList<>();
         do {
-            points.add(state.getVertex().getCoordinate());
+            if (state.backEdge != null && state.backEdge.getGeometry() != null) {
+                List<Coordinate> edgeCoordinates = Arrays.asList(state.backEdge.getGeometry().getCoordinates());
+                //Collections.reverse(edgeCoordinates);
+                points.addAll(edgeCoordinates);
+            }
             state = state.getBackState();
         } while (state != null);
         Collections.reverse(points);

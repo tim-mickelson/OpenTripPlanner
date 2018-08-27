@@ -5,6 +5,7 @@ import gnu.trove.map.hash.TIntIntHashMap;
 import javafx.util.Pair;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
+import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressMapper;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
@@ -12,6 +13,7 @@ import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvi
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.RaptorWorkerTransitDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerMapper;
 import org.opentripplanner.routing.algorithm.raptor.util.ParetoSet;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.graph.Graph;
@@ -23,6 +25,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +41,10 @@ public class RaptorRouter {
     private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
 
     public RaptorRouter(RoutingRequest request, Graph graph) {
+        // Map transitLayer again to remove temporary transfers
+        TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
+        graph.transitLayer = transitLayerMapper.map(graph);
+
         this.otpRRDataProvider = new OtpRRDataProvider(graph.transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes);
         this.graph = graph;
     }
@@ -54,6 +61,18 @@ public class RaptorRouter {
         Map<Vertex, Transfer> egressTransfers =
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
+        Stop accessStop = new Stop();
+        accessStop.setName("Access stop");
+        accessStop.setLat(request.from.lat);
+        accessStop.setLon(request.from.lng);
+
+        Stop egressStop = new Stop();
+        egressStop.setName("Egress stop");
+        egressStop.setLat(request.from.lat);
+        egressStop.setLon(request.from.lng);
+
+        transitLayer.setAccessEgressStops(accessStop, egressStop);
+
         transitLayer.addAccessEgressTransfers(accessTransfers, true);
         transitLayer.addAccessEgressTransfers(egressTransfers, false);
 
@@ -67,7 +86,7 @@ public class RaptorRouter {
          * Prepare transit search
          */
 
-        int departureTime = Instant.ofEpochMilli(request.dateTime).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
+        int departureTime = Instant.ofEpochMilli(request.dateTime*1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
         RaptorWorkerTransitDataProvider transitData = this.otpRRDataProvider;
 
@@ -82,8 +101,8 @@ public class RaptorRouter {
                 transitData,
                 stateImpl.newWorkerState(),
                 new PathBuilder(stateImpl),
-                0,
-                60,
+                departureTime,
+                departureTime + 60,
                 (float)request.walkSpeed,
                 1000,
                 accessTimeToReservedStop,
@@ -104,7 +123,9 @@ public class RaptorRouter {
 
         for (Path[] pathArray : worker.pathsPerIteration) {
             for (Path path : pathArray ) {
-                paths.add(new PathParetoSortableWrapper(path, 1000));
+                if (path != null) {
+                    paths.add(new PathParetoSortableWrapper(path, 1000));
+                }
             }
         }
 
@@ -112,15 +133,17 @@ public class RaptorRouter {
          * Create itineraries
          */
 
-        ItineraryMapper itineraryMapper = new ItineraryMapper(transitLayer, graph);
-
-        Itinerary itinerary = itineraryMapper.createItinerary(request, paths.paretoSet().iterator().next().path);
-
+        ItineraryMapper itineraryMapper = new ItineraryMapper(otpRRDataProvider, transitLayer, graph);
         List<Itinerary> itineraries = new ArrayList<>();
-        itineraries.add(itinerary);
+
+        Iterator<PathParetoSortableWrapper> iterator = paths.paretoSet().iterator();
+        while (iterator.hasNext()) {
+            Path path = iterator.next().path;
+            Itinerary itinerary = itineraryMapper.createItinerary(request, path);
+            itineraries.add(itinerary);
+        }
 
         TripPlan tripPlan = new TripPlan();
-
         tripPlan.itinerary = itineraries;
 
         return tripPlan;
