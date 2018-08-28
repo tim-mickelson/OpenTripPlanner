@@ -53,10 +53,10 @@ public final class McRaptorStateImpl {
     private final int[][] stateStopIndex;
 
     /** The best times to reach each stop, whether via a transfer or via transit directly. */
-    private final BestTimes bestOveral;
+    public final BestTimes bestOveral;
 
     /** Index to the best times for reaching stops via transit rather than via a transfer from another stop */
-    private final BestTimes bestTransit;
+    public final BestTimes bestTransit;
 
 
     /** create a RaptorState for a network with a particular number of stops, and a given maximum duration */
@@ -201,6 +201,10 @@ public final class McRaptorStateImpl {
                     return;
                 }
 
+                if (stop == 24859) {
+                    System.out.println(stop + " " + alightTime);
+                }
+
                 if (bestTransit.updateNewBestTime(stop, alightTime)) {
 
                     final int stateIndex = findOrCreateStopIndex(stop);
@@ -219,6 +223,10 @@ public final class McRaptorStateImpl {
              * Set the time at a transit stop iff it is optimal. This sets both the bestTime and the nonTransferTime
              */
             @Override public void transferToStop(int stop, int time, int fromStop, int transferTime) {
+
+                if (stop == 24859) {
+                    System.out.println(stop + " " + time);
+                }
 
                 if (time > maxTimeLimit) {
                     return;

@@ -57,7 +57,7 @@ public class AccessEgressRouter {
             // At this point the vertex is closed (pulled off heap).
             // This is the lowest cost we will ever see for this vertex. We can record the cost to reach it.
             if (v instanceof TransitStop) {
-                result.put(v, createTransfer(s));
+                result.put(v, createTransfer(s, fromTarget));
                 // We don't want to continue into the transit network yet, but when searching around the target
                 // place vertices on the transit queue so we can explore the transit network backward later.
                 if (fromTarget) {
@@ -99,14 +99,16 @@ public class AccessEgressRouter {
         return result;
     }
 
-    private static Transfer createTransfer(State state) {
+    private static Transfer createTransfer(State state, boolean fromTarget) {
         Transfer transfer = new Transfer();
         transfer.distance = (int)state.getWalkDistance() * 1000;
         List<Coordinate> points = new ArrayList<>();
         do {
             if (state.backEdge != null && state.backEdge.getGeometry() != null) {
                 List<Coordinate> edgeCoordinates = Arrays.asList(state.backEdge.getGeometry().getCoordinates());
-                //Collections.reverse(edgeCoordinates);
+                if (!fromTarget) {
+                    Collections.reverse(edgeCoordinates);
+                }
                 points.addAll(edgeCoordinates);
             }
             state = state.getBackState();

@@ -45,6 +45,11 @@ final class BestTimes {
     }
 
     final void setTime(final int stop, final int time) {
+        if (stop == 24859) {
+            System.out.println("test");
+        }
+
+
         times[stop] = time;
         reachedCurrentRound.set(stop);
     }

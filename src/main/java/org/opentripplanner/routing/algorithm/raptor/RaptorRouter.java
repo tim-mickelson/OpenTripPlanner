@@ -92,7 +92,7 @@ public class RaptorRouter {
 
         McRaptorStateImpl stateImpl = new McRaptorStateImpl(
                 transitLayer.getStopCount(),
-                request.maxTransfers + 1,
+                request.maxTransfers + 5,
                 MAX_DURATION_SECONDS,
                 departureTime //
         );
