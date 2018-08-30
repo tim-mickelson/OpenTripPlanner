@@ -27,16 +27,23 @@ public interface RangeRaptorWorkerState {
 
     void gotoNextRound();
 
+    int getMaxNumberOfRounds();
+
     void transitToStop(int stop, int alightTime, int pattern, int trip, int boardStop, int boardTime);
 
     void transferToStop(int toStop, int arrivalTime, int fromStop, int transferTimeInSeconds);
 
+
+    /* TODO TGR - Need to change */
     int bestTransitTime(int stop);
 
-    boolean isStopReachedInLastRound(int stop);
+    /* TODO TGR - Need to change */
+    boolean isStopReachedInPreviousRound(int stop);
 
-    int getPatternIndexForPreviousRound(int stop);
+    /* TODO TGR - Need to change */
+    boolean isStopReached(int stop);
 
+    /* TODO TGR - Need to change */
     int bestTimePreviousRound(int stop);
 
     BitSetIterator stopsTouchedByTransitCurrentRoundIterator();

@@ -2,6 +2,7 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import org.opentripplanner.routing.algorithm.raptor.util.BitSetIterator;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
 import org.slf4j.Logger;
@@ -40,13 +41,13 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
         this.transitModes = transitModes;
     }
 
-    public TransitLayer getTransitLayer() {
-        return this.transitLayer;
-    }
-
     @Override
     public int[] getScheduledIndexForOriginalPatternIndex() {
         return scheduledIndexForOriginalPatternIndex;
+    }
+
+    public TransitLayer getTransitLayer() {
+        return this.transitLayer;
     }
 
     @Override
@@ -98,8 +99,27 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
         }
     }
 
-    @Override public PatternIterator patternIterator(BitSet patternsTouched) {
-        return new InternalPatternIterator(patternsTouched);
+    @Override public PatternIterator patternIterator(BitSetIterator patternsTouched) {
+        return new InternalPatternIterator(getPatternsTouchedForStops(patternsTouched));
+    }
+
+    private BitSet getPatternsTouchedForStops(BitSetIterator stops) {
+        BitSet patternsTouched = new BitSet();
+
+        for (int stop = stops.next(); stop >= 0; stop = stops.next()) {
+
+            getPatternsForStop(stop).forEach(originalPattern -> {
+                int filteredPattern = scheduledIndexForOriginalPatternIndex[originalPattern];
+
+                if (filteredPattern < 0) {
+                    return true; // this pattern does not exist in the local subset of patterns, continue iteration
+                }
+
+                patternsTouched.set(filteredPattern);
+                return true; // continue iteration
+            });
+        }
+        return patternsTouched;
     }
 
     class InternalPatternIterator implements PatternIterator, Pattern {
@@ -144,11 +164,6 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
         }
 
         @Override
-        public Iterable<TripSchedule> getTripSchedules() {
-            return pattern.tripSchedules;
-        }
-
-        @Override
         public int getTripSchedulesIndex(TripSchedule schedule) {
             return pattern.tripSchedules.indexOf(schedule);
         }
@@ -156,6 +171,11 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
         @Override
         public TripSchedule getTripSchedule(int index) {
             return pattern.tripSchedules.get(index);
+        }
+
+        @Override
+        public int getTripScheduleSize() {
+            return pattern.tripSchedules.size();
         }
     }
 

@@ -1,8 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import gnu.trove.list.TIntList;
-
-import java.util.BitSet;
+import org.opentripplanner.routing.algorithm.raptor.util.BitSetIterator;
 
 
 /**
@@ -29,6 +28,8 @@ public interface RaptorWorkerTransitDataProvider {
      */
     void init();
 
+    int[] getScheduledIndexForOriginalPatternIndex();
+
     /**
      * @return a map of distances from the given input stop to all other stops.
      */
@@ -47,11 +48,7 @@ public interface RaptorWorkerTransitDataProvider {
     boolean skipCalendarService(int serviceCode);
 
     // TODO TGR - add JavaDoc
-    int[] getScheduledIndexForOriginalPatternIndex();
-
-    // TODO TGR - add JavaDoc
-    PatternIterator patternIterator(BitSet patternsTouched);
-
+    PatternIterator patternIterator(BitSetIterator stops);
 
     // TODO TGR - add JavaDoc
     interface PatternIterator {
@@ -74,12 +71,12 @@ public interface RaptorWorkerTransitDataProvider {
         int currentPatternStopsSize();
 
         // TODO TGR - add JavaDoc
-        Iterable<TripSchedule> getTripSchedules();
-
-        // TODO TGR - add JavaDoc
         int getTripSchedulesIndex(TripSchedule schedule);
 
         // TODO TGR - add JavaDoc
         TripSchedule getTripSchedule(int index);
+
+        // TODO TGR - add JavaDoc
+        int getTripScheduleSize();
     }
 }

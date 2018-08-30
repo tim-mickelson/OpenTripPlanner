@@ -54,6 +54,10 @@ final class BestTimes {
         reachedCurrentRound.set(stop);
     }
 
+    final void setTouched(final int stop) {
+        reachedCurrentRound.set(stop);
+    }
+
     /**
      * @return true iff new best time is updated
      */

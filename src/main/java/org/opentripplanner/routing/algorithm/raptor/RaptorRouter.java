@@ -2,12 +2,10 @@ package org.opentripplanner.routing.algorithm.raptor;
 
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
-import javafx.util.Pair;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
-import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressMapper;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.RaptorWorkerTransitDataProvider;
@@ -22,9 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -90,17 +88,20 @@ public class RaptorRouter {
 
         RaptorWorkerTransitDataProvider transitData = this.otpRRDataProvider;
 
-        McRaptorStateImpl stateImpl = new McRaptorStateImpl(
-                transitLayer.getStopCount(),
+        StopStateCollection stopStatesIntArray = new StopStatesIntArray(10, transitLayer.getStopCount());
+
+        RangeRaptorWorkerState stateImpl = new RangeRaptorWorkerStateImpl(
                 request.maxTransfers + 5,
+                transitLayer.getStopCount(),
+                departureTime,
                 MAX_DURATION_SECONDS,
-                departureTime //
+                new StopStatesIntArray(10, transitLayer.getStopCount())
         );
 
         RangeRaptorWorker worker = new RangeRaptorWorker(
                 transitData,
-                stateImpl.newWorkerState(),
-                new PathBuilder(stateImpl),
+                stateImpl,
+                new PathBuilderCursorBased(stopStatesIntArray.newCursor()),
                 departureTime,
                 departureTime + 60,
                 (float)request.walkSpeed,
@@ -113,7 +114,7 @@ public class RaptorRouter {
          * Route transit
          */
 
-        worker.route();
+        Collection<Path> workerPaths = worker.route();
 
         /**
          * Extract paths
@@ -121,13 +122,11 @@ public class RaptorRouter {
 
         ParetoSet<PathParetoSortableWrapper> paths = new ParetoSet<>(PathParetoSortableWrapper.paretoDominanceFunctions());
 
-        for (Path[] pathArray : worker.pathsPerIteration) {
-            for (Path path : pathArray ) {
+            for (Path path : workerPaths ) {
                 if (path != null) {
                     paths.add(new PathParetoSortableWrapper(path, 1000));
                 }
             }
-        }
 
         /**
          * Create itineraries

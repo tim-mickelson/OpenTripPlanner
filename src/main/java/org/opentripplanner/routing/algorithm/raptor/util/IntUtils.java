@@ -11,4 +11,8 @@ public final class IntUtils {
         Arrays.fill(array, initalValue);
         return array;
     }
+
+    public static String intToString(int value, int notSetValue) {
+        return value == notSetValue ? "" : Integer.toString(value);
+    }
 }
