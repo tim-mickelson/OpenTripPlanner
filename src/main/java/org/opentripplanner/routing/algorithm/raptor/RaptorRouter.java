@@ -104,7 +104,7 @@ public class RaptorRouter {
                 departureTime,
                 departureTime + 60,
                 (float)request.walkSpeed,
-                1000,
+                23,
                 accessTimeToReservedStop,
                 egressTimeFromReservedStop.keys()
         );

@@ -80,6 +80,10 @@ public class TransitLayerImpl implements TransitLayer {
             Vertex stop = (TransitStop)entry.getKey();
             int stopIndex = this.getIndexByStop(((TransitStop) stop).getStop());
             Transfer transfer = (Transfer)entry.getValue();
+            if (transfer.distance > 2000000) {
+                continue;
+            }
+
             if (mapAccess) {
                 addTransfer(0, stopIndex, transfer.distance, transfer);
             } else {
