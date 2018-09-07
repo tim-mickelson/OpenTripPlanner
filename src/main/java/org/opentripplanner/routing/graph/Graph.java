@@ -98,7 +98,7 @@ public class Graph implements Serializable {
     private GraphBundle bundle;
 
     /* vertex index by name is reconstructed from edges */
-    private transient Map<String, Vertex> vertices;
+    public transient Map<String, Vertex> vertices;
 
     private transient CalendarService calendarService;
 
