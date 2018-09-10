@@ -23,6 +23,7 @@ import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.opentripplanner.ConstantsForTests;
+import org.opentripplanner.common.TurnRestriction;
 import org.opentripplanner.common.diff.DiffPrinter;
 import org.opentripplanner.common.diff.Difference;
 import org.opentripplanner.common.diff.GenericDiffConfig;
@@ -40,6 +41,7 @@ import org.opentripplanner.routing.algorithm.AStar;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
+import org.opentripplanner.routing.services.notes.StaticStreetNotesSource;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.standalone.GraphBuilderParameters;
@@ -66,6 +68,7 @@ public class ProtoStuffTest extends TestCase {
     private GenericDiffConfig genericDiffConfig = GenericDiffConfig.builder()
             .ignoreFields(Sets.newHashSet("graphBuilderAnnotations", "streetNotesService"))
             .identifiers(Sets.newHashSet("id", "index"))
+            .useEqualsBuilder(Sets.newHashSet(TurnRestriction.class, StaticStreetNotesSource.class))
             .build();
     private DiffPrinter diffPrinter = new DiffPrinter();
 

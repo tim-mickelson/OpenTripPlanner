@@ -19,6 +19,8 @@ public class GenericDiffConfig {
 
     protected Set<Class> onlyDoEqualsCheck = Sets.newHashSet();
 
+    protected Set<Class> useEqualsBuilder = Sets.newHashSet();
+
     public static GenericDiffConfigBuilder builder() {
         return new GenericDiffConfigBuilder();
     }
@@ -52,6 +54,11 @@ public class GenericDiffConfig {
          */
         public GenericDiffConfigBuilder ignoreFields(Set<String> ignoreFields) {
             genericDiffConfig.ignoreFields = ignoreFields;
+            return this;
+        }
+
+        public GenericDiffConfigBuilder useEqualsBuilder(Set<Class> classes) {
+            genericDiffConfig.useEqualsBuilder = classes;
             return this;
         }
 

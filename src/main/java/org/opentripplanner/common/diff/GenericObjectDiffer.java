@@ -1,6 +1,7 @@
 package org.opentripplanner.common.diff;
 
 import javassist.util.proxy.MethodHandler;
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +91,13 @@ public class GenericObjectDiffer {
                     if (!oldValue.equals(newValue)) {
                         differences.add(new Difference(childProperty, oldValue, newValue));
                     }
-                } else {
+                } else if (genericDiffConfig.useEqualsBuilder.stream().anyMatch(type -> type.isAssignableFrom(oldValue.getClass()))) {
+                    if(!EqualsBuilder.reflectionEquals(oldValue, newValue)) {
+                        logger.debug("Using Equalsbuilder for {}.{}", clazz, field.getName());
+                        differences.add(new Difference(childProperty, oldValue, newValue));
+                    }
+                }
+                else {
                     differences.addAll(compareObjects(property + '.' + field.getName(), oldValue, newValue, genericDiffConfig));
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
