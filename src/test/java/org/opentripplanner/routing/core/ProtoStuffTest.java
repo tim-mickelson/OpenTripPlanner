@@ -22,6 +22,7 @@ import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.opentripplanner.ConstantsForTests;
+import org.opentripplanner.common.diff.DiffPrinter;
 import org.opentripplanner.common.diff.Difference;
 import org.opentripplanner.common.diff.GenericDiffConfig;
 import org.opentripplanner.common.diff.GenericObjectDiffer;
@@ -64,6 +65,7 @@ public class ProtoStuffTest extends TestCase {
 
     private GenericObjectDiffer genericObjectDiffer = new GenericObjectDiffer();
     private GenericDiffConfig genericDiffConfig = GenericDiffConfig.builder().build();
+    private DiffPrinter diffPrinter = new DiffPrinter();
 
 
     @Override
@@ -135,7 +137,7 @@ public class ProtoStuffTest extends TestCase {
     }
 
     @Test
-    public void testProtoStuffWithEdge() throws IOException, JAXBException, XMLStreamException, SAXException {
+    public void testProtoStuffWithEdge() throws IOException, JAXBException, XMLStreamException, SAXException, IllegalAccessException {
 
         // Seems like I have to use GraphIOUtil instead of ProtostuffIOUtil to avoid stack overflow exception with SIRI
 
@@ -216,7 +218,11 @@ public class ProtoStuffTest extends TestCase {
 
         testKissAndRide(edgeInfoFromProtostuff.graph);
 
-        System.out.println("hei");
+
+        System.out.println("Comparing graph object after deserializing it from protostuff");
+
+        List<Difference> differences = genericObjectDiffer.compareObjects(graph, edgeInfoFromProtostuff.graph, genericDiffConfig);
+        System.out.println(diffPrinter.diffListToString(differences));
     }
 
     public void testKissAndRide(Graph graphToUse) {
