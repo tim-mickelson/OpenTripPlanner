@@ -22,7 +22,6 @@ import io.protostuff.runtime.RuntimeSchema;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.common.TurnRestriction;
 import org.opentripplanner.common.diff.DiffPrinter;
 import org.opentripplanner.common.diff.Difference;
@@ -66,7 +65,7 @@ public class ProtoStuffTest extends TestCase {
 
     private GenericObjectDiffer genericObjectDiffer = new GenericObjectDiffer();
     private GenericDiffConfig genericDiffConfig = GenericDiffConfig.builder()
-            .ignoreFields(Sets.newHashSet("graphBuilderAnnotations", "streetNotesService"))
+            .ignoreFields(Sets.newHashSet("graphBuilderAnnotations", "streetNotesService", "vertexById", "vertices", "turnRestrictions"))
             .identifiers(Sets.newHashSet("id", "index"))
             .useEqualsBuilder(Sets.newHashSet(TurnRestriction.class, StaticStreetNotesSource.class))
             .build();
