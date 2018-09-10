@@ -37,14 +37,12 @@ import org.opentripplanner.graph_builder.services.DefaultStreetEdgeFactory;
 import org.opentripplanner.openstreetmap.impl.AnyFileBasedOpenStreetMapProviderImpl;
 import org.opentripplanner.openstreetmap.services.OpenStreetMapProvider;
 import org.opentripplanner.routing.algorithm.AStar;
-import org.opentripplanner.routing.edgetype.StreetEdge;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.standalone.GraphBuilderParameters;
-import org.opentripplanner.util.TestUtils;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
@@ -137,7 +135,6 @@ public class ProtoStuffTest extends TestCase {
         assertEquals(graph.getEdges().size(), graphFromProtobuf.getEdges().size());
 
 
-
     }
 
     @Test
@@ -151,7 +148,6 @@ public class ProtoStuffTest extends TestCase {
         long schemaStarted = System.currentTimeMillis();
         Schema<EdgeInfo> schema = RuntimeSchema.getSchema(EdgeInfo.class);
         System.out.println("Schema created in " + (System.currentTimeMillis() - schemaStarted) + " ms");
-
 
 
         LinkedBuffer buffer = LinkedBuffer.allocate(512);
@@ -190,24 +186,22 @@ public class ProtoStuffTest extends TestCase {
         System.out.println(edgeInfoFromProtostuff.edges.size());
 
 
-
         for (Edge e : edgeInfoFromProtostuff.edges) {
 
-            if(e.fromv.incoming == null) {
+            if (e.fromv.incoming == null) {
                 e.fromv.incoming = new Edge[0];
             }
-            if(e.fromv.outgoing == null) {
+            if (e.fromv.outgoing == null) {
                 e.fromv.outgoing = new Edge[0];
             }
 
-            if(e.tov.incoming == null) {
+            if (e.tov.incoming == null) {
                 e.tov.incoming = new Edge[0];
             }
 
-            if(e.tov.outgoing  == null) {
+            if (e.tov.outgoing == null) {
                 e.tov.outgoing = new Edge[0];
             }
-
 
 
             e.fromv.addOutgoing(e);
@@ -232,8 +226,7 @@ public class ProtoStuffTest extends TestCase {
 
     public void testKissAndRide(Graph graphToUse) {
         RoutingRequest options = new RoutingRequest();
-        options.dateTime = TestUtils.dateInSeconds("Europe/Oslo"
-                , 2017, 10, 15, 7, 0, 0);
+        options.dateTime = System.currentTimeMillis();
         options.from = new GenericLocation(59.9113032, 10.7489964);
         options.to = new GenericLocation(59.90808, 10.607298);
         options.setNumItineraries(1);
@@ -260,7 +253,6 @@ public class ProtoStuffTest extends TestCase {
         }
         assertTrue(carLegSeen && transitLegSeen);
     }
-
 
 
     public static class EdgeInfo {
