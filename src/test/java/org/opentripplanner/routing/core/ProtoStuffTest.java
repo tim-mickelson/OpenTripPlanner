@@ -101,46 +101,6 @@ public class ProtoStuffTest extends TestCase {
     }
 
     @Test
-    public void testProtoStuff() throws IOException, JAXBException, XMLStreamException, SAXException {
-
-        // Seems like I have to use GraphIOUtil instead of ProtostuffIOUtil to avoid stack overflow exception with SIRI
-
-        System.setProperty("protostuff.runtime.collection_schema_on_repeated_fields", "true");
-        System.setProperty("protostuff.runtime.morph_non_final_pojos", "true");
-
-        long schemaStarted = System.currentTimeMillis();
-        Schema<Graph> schema = RuntimeSchema.getSchema(Graph.class);
-        System.out.println("Schema created in " + (System.currentTimeMillis() - schemaStarted) + " ms");
-
-        long bufferStarted = System.currentTimeMillis();
-
-        LinkedBuffer buffer = LinkedBuffer.allocate(512);
-
-        byte[] protostuff = GraphIOUtil.toByteArray(graph, schema, buffer);
-
-        buffer.clear();
-
-        System.out.println("Written to protostuff bya in  " + (System.currentTimeMillis() - bufferStarted) + " ms");
-
-        System.out.println("The byte array length is " + protostuff.length);
-        long beforeWrite = System.currentTimeMillis();
-        IOUtils.copy(new ByteArrayInputStream(protostuff), new FileOutputStream("protostuff.file"));
-        System.out.println("Wrote protostuff file to disk in " + (System.currentTimeMillis() - beforeWrite) + " ms");
-
-        long serializeBack = System.currentTimeMillis();
-
-        Graph graphFromProtobuf = schema.newMessage();
-        GraphIOUtil.mergeFrom(protostuff, graphFromProtobuf, schema);
-
-        System.out.println("Deserialized from protobuf in  " + (System.currentTimeMillis() - serializeBack) + " ms");
-
-
-        assertEquals(graph.getEdges().size(), graphFromProtobuf.getEdges().size());
-
-
-    }
-
-    @Test
     public void testProtoStuffWithEdge() throws IOException, JAXBException, XMLStreamException, SAXException, IllegalAccessException {
 
         // Seems like I have to use GraphIOUtil instead of ProtostuffIOUtil to avoid stack overflow exception with SIRI
