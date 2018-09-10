@@ -216,13 +216,14 @@ public class ProtoStuffTest extends TestCase {
 
         edgeInfoFromProtostuff.graph.index(new DefaultStreetVertexIndexFactory());
 
-        testKissAndRide(edgeInfoFromProtostuff.graph);
-
 
         System.out.println("Comparing graph object after deserializing it from protostuff");
 
         List<Difference> differences = genericObjectDiffer.compareObjects(graph, edgeInfoFromProtostuff.graph, genericDiffConfig);
         System.out.println(diffPrinter.diffListToString(differences));
+
+        testKissAndRide(edgeInfoFromProtostuff.graph);
+
     }
 
     public void testKissAndRide(Graph graphToUse) {
