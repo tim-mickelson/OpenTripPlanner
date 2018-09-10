@@ -22,6 +22,9 @@ import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.opentripplanner.ConstantsForTests;
+import org.opentripplanner.common.diff.Difference;
+import org.opentripplanner.common.diff.GenericDiffConfig;
+import org.opentripplanner.common.diff.GenericObjectDiffer;
 import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.graph_builder.GraphBuilder;
 import org.opentripplanner.graph_builder.model.GtfsBundle;
@@ -59,6 +62,10 @@ public class ProtoStuffTest extends TestCase {
 
     private static Graph graph;
 
+    private GenericObjectDiffer genericObjectDiffer = new GenericObjectDiffer();
+    private GenericDiffConfig genericDiffConfig = GenericDiffConfig.builder().build();
+
+
     @Override
     public void setUp() {
         GraphBuilder graphBuilder = new GraphBuilder(new File(""), mock(GraphBuilderParameters.class));
@@ -85,7 +92,6 @@ public class ProtoStuffTest extends TestCase {
         graph = graphBuilder.getGraph();
         graph.index(new DefaultStreetVertexIndexFactory());
     }
-
 
     @Test
     public void testProtoStuff() throws IOException, JAXBException, XMLStreamException, SAXException {
