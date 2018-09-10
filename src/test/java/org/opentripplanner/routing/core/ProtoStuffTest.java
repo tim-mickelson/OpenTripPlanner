@@ -75,7 +75,7 @@ public class ProtoStuffTest extends TestCase {
         GraphBuilder graphBuilder = new GraphBuilder(new File(""), mock(GraphBuilderParameters.class));
 
         List<OpenStreetMapProvider> osmProviders = Lists.newArrayList();
-        OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("/home/cristoffer/rutebanken/opentripplanner/norway-latest.osm.pbf"));
+        OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("norway-latest.osm.pbf"));
         osmProviders.add(osmProvider);
         OpenStreetMapModule osmModule = new OpenStreetMapModule(osmProviders);
         DefaultStreetEdgeFactory streetEdgeFactory = new DefaultStreetEdgeFactory();
@@ -83,7 +83,7 @@ public class ProtoStuffTest extends TestCase {
         osmModule.skipVisibility = true;
         graphBuilder.addModule(osmModule);
         List<GtfsBundle> gtfsBundles = Lists.newArrayList();
-        GtfsBundle gtfsBundle = new GtfsBundle(new File(ConstantsForTests.OSLO_MINIMAL_GTFS));
+        GtfsBundle gtfsBundle = new GtfsBundle(new File("rb_norway-aggregated-gtfs.zip"));
         gtfsBundle.linkStopsToParentStations = true;
         gtfsBundle.parentStationTransfers = true;
         gtfsBundles.add(gtfsBundle);
