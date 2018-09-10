@@ -164,7 +164,8 @@ public class OnBoardDepartPatternHop extends Edge implements OnboardEdge, Tempor
 
     @Override
     public String getDirection() {
-        return tripTimes.getHeadsign(stopIndex);
+        //return tripTimes.getHeadsign(stopIndex);
+        return "";
     }
 
     @Override

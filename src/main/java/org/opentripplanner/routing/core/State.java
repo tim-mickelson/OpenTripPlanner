@@ -386,7 +386,8 @@ public class State implements Cloneable {
         // This can happen when stop_headsign says different things at two trips on the same 
         // pattern and at the same stop.
         if (backEdge instanceof TablePatternEdge) {
-            return stateData.tripTimes.getHeadsign(((TablePatternEdge)backEdge).getStopIndex());
+            //return stateData.tripTimes.getHeadsign(((TablePatternEdge)backEdge).getStopIndex());
+            return backEdge.getDirection();
         }
         else {
             return backEdge.getDirection();
