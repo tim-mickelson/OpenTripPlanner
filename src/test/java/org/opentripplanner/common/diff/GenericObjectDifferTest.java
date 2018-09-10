@@ -1,5 +1,6 @@
 package org.opentripplanner.common.diff;
 
+import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.opentripplanner.routing.graph.Graph;
 
@@ -10,6 +11,8 @@ public class GenericObjectDifferTest {
     private GenericObjectDiffer genericObjectDiffer = new GenericObjectDiffer();
 
     private GenericDiffConfig genericDiffConfig = GenericDiffConfig.builder()
+            .ignoreFields(Sets.newHashSet("graphBuilderAnnotations", "streetNotesService"))
+            .identifiers(Sets.newHashSet("id", "index"))
             .build();
 
     private DiffPrinter diffPrinter = new DiffPrinter();

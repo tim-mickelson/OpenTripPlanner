@@ -14,6 +14,7 @@
 package org.opentripplanner.routing.core;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import io.protostuff.GraphIOUtil;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.Schema;
@@ -64,7 +65,10 @@ public class ProtoStuffTest extends TestCase {
     private static Graph graph;
 
     private GenericObjectDiffer genericObjectDiffer = new GenericObjectDiffer();
-    private GenericDiffConfig genericDiffConfig = GenericDiffConfig.builder().build();
+    private GenericDiffConfig genericDiffConfig = GenericDiffConfig.builder()
+            .ignoreFields(Sets.newHashSet("graphBuilderAnnotations", "streetNotesService"))
+            .identifiers(Sets.newHashSet("id", "index"))
+            .build();
     private DiffPrinter diffPrinter = new DiffPrinter();
 
 
