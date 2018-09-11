@@ -26,8 +26,8 @@ import org.joda.time.DateTime;
 import org.onebusaway.gtfs.impl.calendar.CalendarServiceImpl;
 import org.onebusaway.gtfs.model.Agency;
 import org.onebusaway.gtfs.model.AgencyAndId;
-import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.FeedInfo;
+import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.calendar.CalendarServiceData;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.services.calendar.CalendarService;
@@ -736,44 +736,56 @@ public class Graph implements Serializable {
      * @throws ClassNotFoundException
      */
     @SuppressWarnings("unchecked")
-    public static Graph load(ObjectInputStream in, LoadLevel level,
-            StreetVertexIndexFactory indexFactory) throws IOException, ClassNotFoundException {
+    public static Graph load(ObjectInputStream in, LoadLevel level, StreetVertexIndexFactory indexFactory) throws IOException, ClassNotFoundException {
+
         try {
             Graph graph = (Graph) in.readObject();
-            LOG.debug("Basic graph info read.");
-            if (graph.graphVersionMismatch())
-                throw new RuntimeException("Graph version mismatch detected.");
-            if (level == LoadLevel.BASIC)
-                return graph;
-            // vertex edge lists are transient to avoid excessive recursion depth
-            // vertex list is transient because it can be reconstructed from edges
             LOG.debug("Loading edges...");
             List<Edge> edges = (ArrayList<Edge>) in.readObject();
-            graph.vertices = new HashMap<String, Vertex>();
-            
-            for (Edge e : edges) {
-                graph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
-                graph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
-            }
-
-            LOG.info("Main graph read. |V|={} |E|={}", graph.countVertices(), graph.countEdges());
-            graph.index(indexFactory);
-
-            if (level == LoadLevel.FULL) {
-                return graph;
-            }
-            
-            if (graph.debugData) {
-                graph.graphBuilderAnnotations = (List<GraphBuilderAnnotation>) in.readObject();
-                LOG.debug("Debug info read.");
-            } else {
-                LOG.warn("Graph file does not contain debug data.");
-            }
-            return graph;
+            LOG.debug("Loading graph builder annotations (if any)");
+            List<GraphBuilderAnnotation> graphBuilderAnnotations = (List<GraphBuilderAnnotation>) in.readObject();
+            return load(graph, edges, graphBuilderAnnotations, level, indexFactory);
         } catch (InvalidClassException ex) {
             LOG.error("Stored graph is incompatible with this version of OTP, please rebuild it.");
             throw new IllegalStateException("Stored Graph version error", ex);
         }
+
+    }
+
+    public static Graph load(Graph deserializedGraph, List<Edge> edges, List<GraphBuilderAnnotation> graphBuilderAnnotations, LoadLevel level, StreetVertexIndexFactory indexFactory) {
+
+
+            LOG.debug("Basic graph info read.");
+            if (deserializedGraph.graphVersionMismatch())
+                throw new RuntimeException("Graph version mismatch detected.");
+            if (level == LoadLevel.BASIC)
+                return deserializedGraph;
+            // vertex edge lists are transient to avoid excessive recursion depth
+            // vertex list is transient because it can be reconstructed from edges
+
+            deserializedGraph.vertices = new HashMap<>();
+
+            for (Edge e : edges) {
+                deserializedGraph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
+                deserializedGraph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
+            }
+
+            LOG.info("Main graph read. |V|={} |E|={}", deserializedGraph.countVertices(), deserializedGraph.countEdges());
+            deserializedGraph.index(indexFactory);
+
+            if (level == LoadLevel.FULL) {
+                return deserializedGraph;
+            }
+
+            if (deserializedGraph.debugData) {
+                deserializedGraph.graphBuilderAnnotations = graphBuilderAnnotations;
+                LOG.debug("Debug info read.");
+            } else {
+                LOG.warn("Graph file does not contain debug data.");
+            }
+            return deserializedGraph;
+
+
     }
 
     /**
