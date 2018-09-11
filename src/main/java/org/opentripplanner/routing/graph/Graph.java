@@ -755,35 +755,35 @@ public class Graph implements Serializable {
     public static Graph load(Graph deserializedGraph, List<Edge> edges, List<GraphBuilderAnnotation> graphBuilderAnnotations, LoadLevel level, StreetVertexIndexFactory indexFactory) {
 
 
-            LOG.debug("Basic graph info read.");
-            if (deserializedGraph.graphVersionMismatch())
-                throw new RuntimeException("Graph version mismatch detected.");
-            if (level == LoadLevel.BASIC)
-                return deserializedGraph;
-            // vertex edge lists are transient to avoid excessive recursion depth
-            // vertex list is transient because it can be reconstructed from edges
-
-            deserializedGraph.vertices = new HashMap<>();
-
-            for (Edge e : edges) {
-                deserializedGraph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
-                deserializedGraph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
-            }
-
-            LOG.info("Main graph read. |V|={} |E|={}", deserializedGraph.countVertices(), deserializedGraph.countEdges());
-            deserializedGraph.index(indexFactory);
-
-            if (level == LoadLevel.FULL) {
-                return deserializedGraph;
-            }
-
-            if (deserializedGraph.debugData) {
-                deserializedGraph.graphBuilderAnnotations = graphBuilderAnnotations;
-                LOG.debug("Debug info read.");
-            } else {
-                LOG.warn("Graph file does not contain debug data.");
-            }
+        LOG.debug("Basic graph info read.");
+        if (deserializedGraph.graphVersionMismatch())
+            throw new RuntimeException("Graph version mismatch detected.");
+        if (level == LoadLevel.BASIC)
             return deserializedGraph;
+        // vertex edge lists are transient to avoid excessive recursion depth
+        // vertex list is transient because it can be reconstructed from edges
+
+        deserializedGraph.vertices = new HashMap<>();
+
+        for (Edge e : edges) {
+            deserializedGraph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
+            deserializedGraph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
+        }
+
+        LOG.info("Main graph read. |V|={} |E|={}", deserializedGraph.countVertices(), deserializedGraph.countEdges());
+        deserializedGraph.index(indexFactory);
+
+        if (level == LoadLevel.FULL) {
+            return deserializedGraph;
+        }
+
+        if (deserializedGraph.debugData) {
+            deserializedGraph.graphBuilderAnnotations = graphBuilderAnnotations;
+            LOG.debug("Debug info read.");
+        } else {
+            LOG.warn("Graph file does not contain debug data.");
+        }
+        return deserializedGraph;
 
 
     }
