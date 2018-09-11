@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.street_router;
+package org.opentripplanner.routing.algorithm.raptor_old.street_router;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import org.opentripplanner.common.pqueue.BinHeap;

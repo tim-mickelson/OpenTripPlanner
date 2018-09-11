@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.street_router;
+package org.opentripplanner.routing.algorithm.raptor_old.street_router;
 
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;

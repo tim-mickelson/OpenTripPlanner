@@ -1,7 +1,10 @@
-package org.opentripplanner.routing.algorithm.raptor.transit_layer;
+package org.opentripplanner.routing.algorithm.raptor_old.transit_layer;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.ArrivalTimeAtStop;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TransitDataProvider;
 import org.opentripplanner.routing.algorithm.raptor_old.util.BitSetIterator;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
@@ -11,8 +14,9 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
 
-public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
+public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider, TransitDataProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(OtpRRDataProvider.class);
 
@@ -97,6 +101,16 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
                     transitLayer.getTripPatterns().length, scheduledPatterns.size());
             PRINT_REFILTERING_PATTERNS_INFO = false;
         }
+    }
+
+    @Override
+    public Iterable<ArrivalTimeAtStop> getTransfers(int fromStop) {
+        return null;
+    }
+
+    @Override
+    public Iterator<org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern> patternIterator(org.opentripplanner.routing.algorithm.raptor.mcrr.BitSetIterator stops) {
+        return null;
     }
 
     @Override public PatternIterator patternIterator(BitSetIterator patternsTouched) {

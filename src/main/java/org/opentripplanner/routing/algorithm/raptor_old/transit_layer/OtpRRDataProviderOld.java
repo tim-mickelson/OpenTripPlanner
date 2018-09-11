@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.transit_layer;
+package org.opentripplanner.routing.algorithm.raptor_old.transit_layer;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -12,9 +12,9 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.BitSet;
 
-public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
+public class OtpRRDataProviderOld implements RaptorWorkerTransitDataProvider {
 
-    private static final Logger LOG = LoggerFactory.getLogger(OtpRRDataProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OtpRRDataProviderOld.class);
 
     private static boolean PRINT_REFILTERING_PATTERNS_INFO = true;
 
@@ -35,7 +35,7 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
     /** Allowed transit modes */
     private final TraverseModeSet transitModes;
 
-    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, TraverseModeSet transitModes) {
+    public OtpRRDataProviderOld(TransitLayer transitLayer, LocalDate date, TraverseModeSet transitModes) {
         this.transitLayer = transitLayer;
         this.servicesActive  = transitLayer.getActiveServicesForDate(date);
         this.transitModes = transitModes;

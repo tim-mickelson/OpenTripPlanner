@@ -1,9 +1,9 @@
-package org.opentripplanner.routing.algorithm.raptor.transit_layer;
+package org.opentripplanner.routing.algorithm.raptor_old.transit_layer;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.FeedId;
+import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.algorithm.raptor_old.util.OrderedIndexPair;

@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.transit_layer;
+package org.opentripplanner.routing.algorithm.raptor_old.transit_layer;
 
 import gnu.trove.list.TIntList;
 import org.opentripplanner.model.Stop;

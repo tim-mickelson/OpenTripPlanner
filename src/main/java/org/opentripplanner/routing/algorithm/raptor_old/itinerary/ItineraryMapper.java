@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.itinerary;
+package org.opentripplanner.routing.algorithm.raptor_old.itinerary;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import org.opentripplanner.api.model.Itinerary;
