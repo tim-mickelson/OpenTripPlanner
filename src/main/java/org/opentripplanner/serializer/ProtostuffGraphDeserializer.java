@@ -3,6 +3,7 @@ package org.opentripplanner.serializer;
 import com.google.common.io.ByteStreams;
 import io.protostuff.CodedInput;
 import io.protostuff.GraphIOUtil;
+import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import org.slf4j.Logger;
@@ -41,7 +42,12 @@ public class ProtostuffGraphDeserializer implements GraphDeserializer {
             LOG.debug("Deserializing");
 
             GraphWrapper graphWrapperFromProtostuff = schema.newMessage();
-            GraphIOUtil.mergeFrom(inputStream, graphWrapperFromProtostuff, schema);
+
+            // Using inputstream directly caused the following exception:
+            // Protocol message was too large.  May be malicious.  Use CodedInput.setSizeLimit() to increase the size limit.
+            byte[] protostuff = ByteStreams.toByteArray(inputStream);
+
+            GraphIOUtil.mergeFrom(protostuff, graphWrapperFromProtostuff, schema);
             LOG.debug("Returning wrapped graph object after {} ms", System.currentTimeMillis() - started);
             return graphWrapperFromProtostuff;
         } catch (IOException e) {
