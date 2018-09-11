@@ -49,7 +49,7 @@ public class TripTimeShort {
         realtime           = !tt.isScheduled();
         realtimeState      = tt.getRealTimeState();
         blockId            = tt.trip.getBlockId();
-        headsign           = "";
+        headsign           = tt.getHeadsign(i);
     }
 
     public TripTimeShort(TripTimes tt, int i, Stop stop, ServiceDay sd) {

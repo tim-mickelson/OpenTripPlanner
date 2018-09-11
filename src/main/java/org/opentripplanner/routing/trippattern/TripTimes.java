@@ -71,7 +71,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
      * trip_headsign we may also set the headsigns array to null to save space.
      * Field is private to force use of the getter method which does the necessary fallbacks.
      */
-    //private final String[] headsigns;
+    private final String[] headsigns;
 
     /**
      * The time in seconds after midnight at which the vehicle should arrive at each stop according
@@ -140,7 +140,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         this.scheduledDepartureTimes = deduplicator.deduplicateIntArray(departures);
         this.scheduledArrivalTimes = deduplicator.deduplicateIntArray(arrivals);
         this.stopSequences = deduplicator.deduplicateIntArray(sequences);
-        //this.headsigns = deduplicator.deduplicateStringArray(makeHeadsignsArray(stopTimes));
+        this.headsigns = deduplicator.deduplicateStringArray(makeHeadsignsArray(stopTimes));
         // We set these to null to indicate that this is a non-updated/scheduled TripTimes.
         // We cannot point to the scheduled times because they are shifted, and updated times are not.
         this.arrivalTimes = null;
@@ -156,7 +156,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         this.trip = object.trip;
         this.serviceCode = object.serviceCode;
         this.timeShift = object.timeShift;
-        //this.headsigns = object.headsigns;
+        this.headsigns = object.headsigns;
         this.scheduledDepartureTimes = object.scheduledDepartureTimes;
         this.scheduledArrivalTimes = object.scheduledArrivalTimes;
         this.stopSequences = object.stopSequences;
@@ -204,7 +204,6 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
      * StopPatterns unique human readable route variant names, but a TripTimes currently does not
      * have a pointer to its enclosing timetable or pattern.
      */
-    /*
     public String getHeadsign(final int stop) {
         if (headsigns == null) {
             return trip.getTripHeadsign();
@@ -212,7 +211,6 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
             return headsigns[stop];
         }
     }
-    */
 
     /** @return the time in seconds after midnight that the vehicle arrives at the stop. */
     public int getScheduledArrivalTime(final int stop) {
