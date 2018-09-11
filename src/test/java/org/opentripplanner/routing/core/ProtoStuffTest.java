@@ -44,13 +44,11 @@ import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
 import org.opentripplanner.routing.services.notes.StaticStreetNotesSource;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
+import org.opentripplanner.serializer.GraphDeserializerService;
 import org.opentripplanner.serializer.GraphWrapper;
 import org.opentripplanner.standalone.GraphBuilderParameters;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -99,6 +97,28 @@ public class ProtoStuffTest extends TestCase {
         graph.index(new DefaultStreetVertexIndexFactory());
     }
 
+    private byte[] write(GraphWrapper graphWrapper, Schema<GraphWrapper> schema) throws IOException {
+
+
+        LinkedBuffer buffer = LinkedBuffer.allocate(512);
+
+
+        long bufferStarted = System.currentTimeMillis();
+
+        byte[] protostuff = GraphIOUtil.toByteArray(graphWrapper, schema, buffer);
+
+        buffer.clear();
+
+        System.out.println("Written to protostuff bya in  " + (System.currentTimeMillis() - bufferStarted) + " ms");
+
+        System.out.println("The byte array length is " + protostuff.length);
+        long beforeWrite = System.currentTimeMillis();
+        IOUtils.copy(new ByteArrayInputStream(protostuff), new FileOutputStream("protostuff.file"));
+        System.out.println("Wrote protostuff file to disk in " + (System.currentTimeMillis() - beforeWrite) + " ms");
+        return protostuff;
+
+    }
+
     @Test
     public void testProtoStuffWithEdge() throws IOException, IllegalAccessException {
 
@@ -112,29 +132,21 @@ public class ProtoStuffTest extends TestCase {
         Schema<GraphWrapper> schema = RuntimeSchema.getSchema(GraphWrapper.class);
         System.out.println("Schema created in " + (System.currentTimeMillis() - schemaStarted) + " ms");
 
-
-        LinkedBuffer buffer = LinkedBuffer.allocate(512);
-
         GraphWrapper graphWrapper = new GraphWrapper();
         graphWrapper.edges = new ArrayList<>(graph.getEdges());
         graphWrapper.graph = graph;
-        long bufferStarted = System.currentTimeMillis();
 
-        byte[] protostuff = GraphIOUtil.toByteArray(graphWrapper, schema, buffer);
+        byte[] protostuff = write(graphWrapper, schema);
 
-        buffer.clear();
+        System.setProperty("deserialization-method", "protostuff");
 
-        System.out.println("Written to protostuff bya in  " + (System.currentTimeMillis() - bufferStarted) + " ms");
 
-        System.out.println("The byte array length is " + protostuff.length);
-        long beforeWrite = System.currentTimeMillis();
-        IOUtils.copy(new ByteArrayInputStream(protostuff), new FileOutputStream("protostuff.file"));
-        System.out.println("Wrote protostuff file to disk in " + (System.currentTimeMillis() - beforeWrite) + " ms");
+        System.out.println(protostuff.length);
 
+        GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
         long serializeBack = System.currentTimeMillis();
 
-        GraphWrapper graphWrapperFromProtobuf = schema.newMessage();
-        GraphIOUtil.mergeFrom(protostuff, graphWrapperFromProtobuf, schema);
+        GraphWrapper graphWrapperFromProtobuf = graphDeserializerService.deserialize(new ByteArrayInputStream(protostuff));
 
         System.out.println("Deserialized from protobuf in  " + (System.currentTimeMillis() - serializeBack) + " ms");
 
