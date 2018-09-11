@@ -44,10 +44,7 @@ import org.opentripplanner.routing.services.notes.StaticStreetNotesSource;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.standalone.GraphBuilderParameters;
-import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -77,7 +74,7 @@ public class ProtoStuffTest extends TestCase {
         GraphBuilder graphBuilder = new GraphBuilder(new File(""), mock(GraphBuilderParameters.class));
 
         List<OpenStreetMapProvider> osmProviders = Lists.newArrayList();
-        OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("norway-latest.osm.pbf"));
+        OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("oslo_norway.osm.pbf"));
         osmProviders.add(osmProvider);
         OpenStreetMapModule osmModule = new OpenStreetMapModule(osmProviders);
         DefaultStreetEdgeFactory streetEdgeFactory = new DefaultStreetEdgeFactory();
@@ -85,7 +82,7 @@ public class ProtoStuffTest extends TestCase {
         osmModule.skipVisibility = true;
         graphBuilder.addModule(osmModule);
         List<GtfsBundle> gtfsBundles = Lists.newArrayList();
-        GtfsBundle gtfsBundle = new GtfsBundle(new File("rb_norway-aggregated-gtfs.zip"));
+        GtfsBundle gtfsBundle = new GtfsBundle(new File("rb_rut-aggregated-gtfs.zip"));
         gtfsBundle.linkStopsToParentStations = true;
         gtfsBundle.parentStationTransfers = true;
         gtfsBundles.add(gtfsBundle);
@@ -100,7 +97,7 @@ public class ProtoStuffTest extends TestCase {
     }
 
     @Test
-    public void testProtoStuffWithEdge() throws IOException, JAXBException, XMLStreamException, SAXException, IllegalAccessException {
+    public void testProtoStuffWithEdge() throws IOException, IllegalAccessException {
 
         // Seems like I have to use GraphIOUtil instead of ProtostuffIOUtil to avoid stack overflow exception with SIRI
 
