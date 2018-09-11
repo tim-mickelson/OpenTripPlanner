@@ -103,8 +103,6 @@ public class Graph implements Serializable {
 
     private transient CalendarService calendarService;
 
-    private boolean debugData = true;
-
     // TODO this would be more efficient if it was just an array.
     private transient Map<Integer, Vertex> vertexById;
 
@@ -212,6 +210,8 @@ public class Graph implements Serializable {
 
     /** Parent stops **/
     public Map<AgencyAndId, Stop> parentStopById = new HashMap<>();
+
+    private boolean debugData = true;
 
     public Graph(Graph basedOn) {
         this();
@@ -671,63 +671,6 @@ public class Graph implements Serializable {
         BASIC, FULL, DEBUG;
     }
 
-    private static GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
-
-    public static Graph load(File file, LoadLevel level) {
-        GraphWrapper graphWrapper = graphDeserializerService.deserialize(file);
-        return load(graphWrapper, level, new DefaultStreetVertexIndexFactory());
-    }
-
-    public static Graph load(InputStream inputStream, LoadLevel level) {
-        GraphWrapper graphWrapper = graphDeserializerService.deserialize(inputStream);
-        return load(graphWrapper, level, new DefaultStreetVertexIndexFactory());
-    }
-
-    public static Graph load(InputStream inputStream, LoadLevel level, StreetVertexIndexFactory streetVertexIndexFactory) {
-        GraphWrapper graphWrapper = graphDeserializerService.deserialize(inputStream);
-        return load(graphWrapper, level, streetVertexIndexFactory);
-    }
-
-    private static Graph load(GraphWrapper graphWrapper, LoadLevel level, StreetVertexIndexFactory indexFactory) {
-
-        // Because some fields are marked as transient
-        Graph deserializedGraph = graphWrapper.graph;
-        List<Edge> edges = graphWrapper.edges;
-        List<GraphBuilderAnnotation> graphBuilderAnnotations = graphWrapper.graphBuilderAnnotations;
-
-        LOG.debug("Basic graph info read.");
-        if (deserializedGraph.graphVersionMismatch())
-            throw new RuntimeException("Graph version mismatch detected.");
-        if (level == LoadLevel.BASIC)
-            return deserializedGraph;
-        // vertex edge lists are transient to avoid excessive recursion depth
-        // vertex list is transient because it can be reconstructed from edges
-
-        deserializedGraph.vertices = new HashMap<>();
-
-        for (Edge e : edges) {
-            deserializedGraph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
-            deserializedGraph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
-        }
-
-        LOG.info("Main graph read. |V|={} |E|={}", deserializedGraph.countVertices(), deserializedGraph.countEdges());
-        deserializedGraph.index(indexFactory);
-
-        if (level == LoadLevel.FULL) {
-            return deserializedGraph;
-        }
-
-        if (deserializedGraph.debugData) {
-            deserializedGraph.graphBuilderAnnotations = graphBuilderAnnotations;
-            LOG.debug("Debug info read.");
-        } else {
-            LOG.warn("Graph file does not contain debug data.");
-        }
-        return deserializedGraph;
-
-
-    }
-
     /**
      * Perform indexing on vertices, edges, and timetables, and create transient data structures.
      * This used to be done in readObject methods upon deserialization, but stand-alone mode now
@@ -758,7 +701,7 @@ public class Graph implements Serializable {
      * @return false if Maven versions match (even if commit ids do not match), true if Maven version of graph does not match this version of OTP or
      *         graphs are otherwise obviously incompatible.
      */
-    private boolean graphVersionMismatch() {
+    public boolean graphVersionMismatch() {
         MavenVersion v = MavenVersion.VERSION;
         MavenVersion gv = this.mavenVersion;
         LOG.info("Graph version: {}", gv);
@@ -1063,5 +1006,9 @@ public class Graph implements Serializable {
 
     public long getTransitServiceEnds() {
         return transitServiceEnds;
+    }
+
+    public List<GraphBuilderAnnotation> getGraphBuilderAnnotations() {
+        return graphBuilderAnnotations;
     }
 }

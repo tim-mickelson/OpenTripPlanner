@@ -38,6 +38,7 @@ import org.opentripplanner.reflect.ReflectionLibrary;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Graph.LoadLevel;
+import org.opentripplanner.serializer.GraphDeserializerService;
 import org.opentripplanner.standalone.CommandLineParameters;
 import org.opentripplanner.standalone.GraphBuilderParameters;
 import org.opentripplanner.standalone.OTPMain;
@@ -76,6 +77,8 @@ public class GraphBuilder implements Runnable {
     
     private Graph graph = new Graph();
 
+    private GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
+
     /** Should the graph be serialized to disk after being created or not? */
     public boolean serializeGraph = true;
 
@@ -99,7 +102,7 @@ public class GraphBuilder implements Runnable {
     public void setBaseGraph(String baseGraph) {
         this._baseGraph = baseGraph;
         try {
-            graph = Graph.load(new File(baseGraph), LoadLevel.FULL);
+            graph = graphDeserializerService.load(new File(baseGraph), LoadLevel.FULL);
         } catch (Exception e) {
             throw new RuntimeException("error loading base graph");
         }
