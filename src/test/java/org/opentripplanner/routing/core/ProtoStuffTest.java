@@ -65,7 +65,7 @@ public class ProtoStuffTest extends TestCase {
 
     private GenericObjectDiffer genericObjectDiffer = new GenericObjectDiffer();
     private GenericDiffConfig genericDiffConfig = GenericDiffConfig.builder()
-            .ignoreFields(Sets.newHashSet("graphBuilderAnnotations", "streetNotesService", "vertexById", "vertices", "turnRestrictions"))
+            .ignoreFields(Sets.newHashSet("graphBuilderAnnotations", "streetNotesService", "vertexById", "vertices", "turnRestrictions", "stopClusterMode", "timeZone"))
             .identifiers(Sets.newHashSet("id", "index"))
             .useEqualsBuilder(Sets.newHashSet(TurnRestriction.class, StaticStreetNotesSource.class))
             .build();
@@ -180,7 +180,7 @@ public class ProtoStuffTest extends TestCase {
         System.out.println("Comparing graph object after deserializing it from protostuff");
 
         List<Difference> differences = genericObjectDiffer.compareObjects(graph, edgeInfoFromProtostuff.graph, genericDiffConfig);
-        System.out.println(diffPrinter.diffListToString(differences));
+        assertTrue(differences.isEmpty());
 
         testKissAndRide(edgeInfoFromProtostuff.graph);
 
