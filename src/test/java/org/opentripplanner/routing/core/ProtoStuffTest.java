@@ -44,12 +44,14 @@ import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
 import org.opentripplanner.routing.services.notes.StaticStreetNotesSource;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
+import org.opentripplanner.serializer.GraphWrapper;
 import org.opentripplanner.standalone.GraphBuilderParameters;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -107,18 +109,18 @@ public class ProtoStuffTest extends TestCase {
         System.setProperty("protostuff.runtime.allow_null_array_element", "true");
 
         long schemaStarted = System.currentTimeMillis();
-        Schema<EdgeInfo> schema = RuntimeSchema.getSchema(EdgeInfo.class);
+        Schema<GraphWrapper> schema = RuntimeSchema.getSchema(GraphWrapper.class);
         System.out.println("Schema created in " + (System.currentTimeMillis() - schemaStarted) + " ms");
 
 
         LinkedBuffer buffer = LinkedBuffer.allocate(512);
 
-        EdgeInfo edgeInfo = new EdgeInfo();
-        edgeInfo.edges = graph.getEdges();
-        edgeInfo.graph = graph;
+        GraphWrapper graphWrapper = new GraphWrapper();
+        graphWrapper.edges = new ArrayList<>(graph.getEdges());
+        graphWrapper.graph = graph;
         long bufferStarted = System.currentTimeMillis();
 
-        byte[] protostuff = GraphIOUtil.toByteArray(edgeInfo, schema, buffer);
+        byte[] protostuff = GraphIOUtil.toByteArray(graphWrapper, schema, buffer);
 
         buffer.clear();
 
@@ -131,23 +133,23 @@ public class ProtoStuffTest extends TestCase {
 
         long serializeBack = System.currentTimeMillis();
 
-        EdgeInfo edgeInfoFromProtostuff = schema.newMessage();
-        GraphIOUtil.mergeFrom(protostuff, edgeInfoFromProtostuff, schema);
+        GraphWrapper graphWrapperFromProtobuf = schema.newMessage();
+        GraphIOUtil.mergeFrom(protostuff, graphWrapperFromProtobuf, schema);
 
         System.out.println("Deserialized from protobuf in  " + (System.currentTimeMillis() - serializeBack) + " ms");
 
 
-        assertNotNull(edgeInfoFromProtostuff);
+        assertNotNull(graphWrapperFromProtobuf);
 
-        assertTrue(edgeInfoFromProtostuff.edges.size() > 0);
+        assertTrue(graphWrapperFromProtobuf.edges.size() > 0);
 
-        assertNotNull(edgeInfoFromProtostuff.graph);
-
-
-        System.out.println(edgeInfoFromProtostuff.edges.size());
+        assertNotNull(graphWrapperFromProtobuf.graph);
 
 
-        for (Edge e : edgeInfoFromProtostuff.edges) {
+        System.out.println(graphWrapperFromProtobuf.edges.size());
+
+
+        for (Edge e : graphWrapperFromProtobuf.edges) {
 
             if (e.fromv.incoming == null) {
                 e.fromv.incoming = new Edge[0];
@@ -168,17 +170,17 @@ public class ProtoStuffTest extends TestCase {
             e.fromv.addOutgoing(e);
             e.tov.addIncoming(e);
 
-            edgeInfoFromProtostuff.graph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
-            edgeInfoFromProtostuff.graph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
+            graphWrapperFromProtobuf.graph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
+            graphWrapperFromProtobuf.graph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
         }
 
 
-        edgeInfoFromProtostuff.graph.index(new DefaultStreetVertexIndexFactory());
+        graphWrapperFromProtobuf.graph.index(new DefaultStreetVertexIndexFactory());
 
 
         System.out.println("Comparing graph object after deserializing it from protostuff");
 
-        List<Difference> differences = genericObjectDiffer.compareObjects(graph, edgeInfoFromProtostuff.graph, genericDiffConfig);
+        List<Difference> differences = genericObjectDiffer.compareObjects(graph, graphWrapperFromProtobuf.graph, genericDiffConfig);
         assertTrue(differences.isEmpty());
 
         //testKissAndRide(edgeInfoFromProtostuff.graph);
@@ -213,13 +215,5 @@ public class ProtoStuffTest extends TestCase {
             }
         }
         assertTrue(carLegSeen && transitLegSeen);
-    }
-
-
-    public static class EdgeInfo {
-
-        public Collection<Edge> edges;
-        public Graph graph;
-
     }
 }
