@@ -54,6 +54,7 @@ import org.opentripplanner.routing.services.notes.StreetNotesService;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 import org.opentripplanner.routing.vertextype.PatternArriveVertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
+import org.opentripplanner.serializer.*;
 import org.opentripplanner.traffic.StreetSpeedSnapshotSource;
 import org.opentripplanner.updater.GraphUpdaterConfigurator;
 import org.opentripplanner.updater.GraphUpdaterManager;
@@ -670,90 +671,29 @@ public class Graph implements Serializable {
         BASIC, FULL, DEBUG;
     }
 
-    public static Graph load(File file, LoadLevel level) throws IOException, ClassNotFoundException {
-        LOG.info("Reading graph " + file.getAbsolutePath() + " ...");
-        // cannot use getClassLoader() in static context
-        ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
-        return load(in, level);
+    private static GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
+
+    public static Graph load(File file, LoadLevel level) {
+        GraphWrapper graphWrapper = graphDeserializerService.deserialize(file);
+        return load(graphWrapper, level, new DefaultStreetVertexIndexFactory());
     }
 
-    public static Graph load(ClassLoader classLoader, File file, LoadLevel level)
-            throws IOException, ClassNotFoundException {
-        LOG.info("Reading graph " + file.getAbsolutePath() + " with alternate classloader ...");
-        ObjectInputStream in = new GraphObjectInputStream(new BufferedInputStream(
-                new FileInputStream(file)), classLoader);
-        return load(in, level);
+    public static Graph load(InputStream inputStream, LoadLevel level) {
+        GraphWrapper graphWrapper = graphDeserializerService.deserialize(inputStream);
+        return load(graphWrapper, level, new DefaultStreetVertexIndexFactory());
     }
 
-    public static Graph load(InputStream is, LoadLevel level) throws ClassNotFoundException,
-            IOException {
-        return load(new ObjectInputStream(is), level);
+    public static Graph load(InputStream inputStream, LoadLevel level, StreetVertexIndexFactory streetVertexIndexFactory) {
+        GraphWrapper graphWrapper = graphDeserializerService.deserialize(inputStream);
+        return load(graphWrapper, level, streetVertexIndexFactory);
     }
 
-    /**
-     * Default load. Uses DefaultStreetVertexIndexFactory.
-     * @param in
-     * @param level
-     * @return
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    public static Graph load(ObjectInputStream in, LoadLevel level) throws IOException,
-            ClassNotFoundException {
-        return load(in, level, new DefaultStreetVertexIndexFactory());
-    }
-    
-    /** 
-     * Perform indexing on vertices, edges, and timetables, and create transient data structures.
-     * This used to be done in readObject methods upon deserialization, but stand-alone mode now
-     * allows passing graphs from graphbuilder to server in memory, without a round trip through
-     * serialization. 
-     * TODO: do we really need a factory for different street vertex indexes?
-     */
-    public void index(StreetVertexIndexFactory indexFactory) {
-        streetIndex = indexFactory.newIndex(this);
-        LOG.debug("street index built.");
-        LOG.debug("Rebuilding edge and vertex indices.");
-        rebuildVertexAndEdgeIndices();
-        Set<TripPattern> tableTripPatterns = Sets.newHashSet();
-        for (PatternArriveVertex pav : Iterables.filter(this.getVertices(), PatternArriveVertex.class)) {
-            tableTripPatterns.add(pav.getTripPattern());
-        }
-        for (TripPattern ttp : tableTripPatterns) {
-            if (ttp != null) ttp.scheduledTimetable.finish(); // skip frequency-based patterns with no table (null)
-        }
-        // TODO: Move this ^ stuff into the graph index
-        this.index = new GraphIndex(this);
-    }
-    
-    /**
-     * Loading which allows you to specify StreetVertexIndexFactory and inject other implementation.
-     * @param in
-     * @param level
-     * @param indexFactory
-     * @return
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    @SuppressWarnings("unchecked")
-    public static Graph load(ObjectInputStream in, LoadLevel level, StreetVertexIndexFactory indexFactory) throws IOException, ClassNotFoundException {
+    private static Graph load(GraphWrapper graphWrapper, LoadLevel level, StreetVertexIndexFactory indexFactory) {
 
-        try {
-            Graph graph = (Graph) in.readObject();
-            LOG.debug("Loading edges...");
-            List<Edge> edges = (ArrayList<Edge>) in.readObject();
-            LOG.debug("Loading graph builder annotations (if any)");
-            List<GraphBuilderAnnotation> graphBuilderAnnotations = (List<GraphBuilderAnnotation>) in.readObject();
-            return load(graph, edges, graphBuilderAnnotations, level, indexFactory);
-        } catch (InvalidClassException ex) {
-            LOG.error("Stored graph is incompatible with this version of OTP, please rebuild it.");
-            throw new IllegalStateException("Stored Graph version error", ex);
-        }
-
-    }
-
-    public static Graph load(Graph deserializedGraph, List<Edge> edges, List<GraphBuilderAnnotation> graphBuilderAnnotations, LoadLevel level, StreetVertexIndexFactory indexFactory) {
-
+        // Because some fields are marked as transient
+        Graph deserializedGraph = graphWrapper.graph;
+        List<Edge> edges = graphWrapper.edges;
+        List<GraphBuilderAnnotation> graphBuilderAnnotations = graphWrapper.graphBuilderAnnotations;
 
         LOG.debug("Basic graph info read.");
         if (deserializedGraph.graphVersionMismatch())
@@ -789,9 +729,32 @@ public class Graph implements Serializable {
     }
 
     /**
+     * Perform indexing on vertices, edges, and timetables, and create transient data structures.
+     * This used to be done in readObject methods upon deserialization, but stand-alone mode now
+     * allows passing graphs from graphbuilder to server in memory, without a round trip through
+     * serialization.
+     * TODO: do we really need a factory for different street vertex indexes?
+     */
+    public void index(StreetVertexIndexFactory indexFactory) {
+        streetIndex = indexFactory.newIndex(this);
+        LOG.debug("street index built.");
+        LOG.debug("Rebuilding edge and vertex indices.");
+        rebuildVertexAndEdgeIndices();
+        Set<TripPattern> tableTripPatterns = Sets.newHashSet();
+        for (PatternArriveVertex pav : Iterables.filter(this.getVertices(), PatternArriveVertex.class)) {
+            tableTripPatterns.add(pav.getTripPattern());
+        }
+        for (TripPattern ttp : tableTripPatterns) {
+            if (ttp != null) ttp.scheduledTimetable.finish(); // skip frequency-based patterns with no table (null)
+        }
+        // TODO: Move this ^ stuff into the graph index
+        this.index = new GraphIndex(this);
+    }
+
+    /**
      * Compares the OTP version number stored in the graph with that of the currently running instance. Logs warnings explaining that mismatched
      * versions can cause problems.
-     * 
+     *
      * @return false if Maven versions match (even if commit ids do not match), true if Maven version of graph does not match this version of OTP or
      *         graphs are otherwise obviously incompatible.
      */
