@@ -3,14 +3,15 @@ package org.opentripplanner.routing.algorithm.raptor.router;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.ArrivalTimeAtStop;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TransitDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.mc.McRangeRaptorWorker;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.mc.McWorkerState;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
+import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressToStopStatesMapper;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerMapper;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.graph.Graph;
@@ -46,8 +47,6 @@ public class RaptorRouter {
     }
 
     public TripPlan route(RoutingRequest request) {
-        TransitLayer transitLayer = otpRRDataProvider.getTransitLayer();
-
         /**
          * Prepare access/egress transfers
          */
@@ -57,7 +56,10 @@ public class RaptorRouter {
         Map<TransitStop, Transfer> egressTransfers =
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
+        AccessEgressToStopStatesMapper accessEgressToStopStatesMapper = new AccessEgressToStopStatesMapper(graph.transitLayer);
 
+        Collection<ArrivalTimeAtStop> accessTimes = accessEgressToStopStatesMapper.map(accessTransfers);
+        Collection<ArrivalTimeAtStop> egressTimes = accessEgressToStopStatesMapper.map(egressTransfers);
 
         /**
          * Prepare transit search
@@ -69,7 +71,7 @@ public class RaptorRouter {
 
         McWorkerState state = new McWorkerState(
                 request.maxTransfers + 5,
-                transitLayer.getStopCount(),
+                graph.transitLayer.getStopCount(),
                 MAX_DURATION_SECONDS
         );
 
@@ -78,8 +80,8 @@ public class RaptorRouter {
                 state,
                 departureTime,
                 departureTime + 60,
-                null,
-                null
+                accessTimes,
+                egressTimes
         );
 
         /**

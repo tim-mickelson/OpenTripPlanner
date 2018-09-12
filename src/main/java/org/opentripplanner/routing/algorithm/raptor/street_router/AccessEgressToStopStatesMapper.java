@@ -14,7 +14,7 @@ import java.util.Map;
 public class AccessEgressToStopStatesMapper {
     private TransitLayer transitLayer;
 
-    public void AccessEgressToStopStatesMapper(TransitLayer transitLayer) {
+    public AccessEgressToStopStatesMapper(TransitLayer transitLayer) {
         this.transitLayer = transitLayer;
     }
 
