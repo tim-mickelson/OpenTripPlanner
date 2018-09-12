@@ -6,6 +6,7 @@ import org.opentripplanner.api.model.Leg;
 import org.opentripplanner.api.model.Place;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
 import org.opentripplanner.routing.algorithm.raptor_old.Path;
 import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.RaptorWorkerTransitDataProvider;
 import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.Transfer;
@@ -37,7 +38,7 @@ public class ItineraryMapper {
         this.graph = graph;
     }
 
-    public Itinerary createItinerary(RoutingRequest request, Path path) {
+    public Itinerary createItinerary(RoutingRequest request, Path2 path) {
         Itinerary itinerary = new Itinerary();
         if (path == null) {
             return null;

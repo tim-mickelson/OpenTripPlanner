@@ -1,29 +1,20 @@
 package org.opentripplanner.routing.algorithm.raptor.router;
 
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.hash.TIntIntHashMap;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.routing.algorithm.raptor_old.Path;
-import org.opentripplanner.routing.algorithm.raptor_old.PathBuilderCursorBased;
-import org.opentripplanner.routing.algorithm.raptor_old.PathParetoSortableWrapper;
-import org.opentripplanner.routing.algorithm.raptor_old.RangeRaptorWorker;
-import org.opentripplanner.routing.algorithm.raptor_old.RangeRaptorWorkerState;
-import org.opentripplanner.routing.algorithm.raptor_old.RangeRaptorWorkerStateImpl;
-import org.opentripplanner.routing.algorithm.raptor_old.StopStateCollection;
-import org.opentripplanner.routing.algorithm.raptor_old.StopStatesIntArray;
-import org.opentripplanner.routing.algorithm.raptor_old.itinerary.ItineraryMapper;
-import org.opentripplanner.routing.algorithm.raptor_old.street_router.AccessEgressRouter;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.OtpRRDataProvider;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.RaptorWorkerTransitDataProvider;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.Transfer;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.TransitLayer;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.TransitLayerMapper;
-import org.opentripplanner.routing.algorithm.raptor_old.util.ParetoSet;
+import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TransitDataProvider;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.mc.McRangeRaptorWorker;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.mc.McWorkerState;
+import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerMapper;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.graph.Graph;
-import org.opentripplanner.routing.graph.Vertex;
+import org.opentripplanner.routing.vertextype.TransitStop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +22,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +32,7 @@ public class RaptorRouter {
 
     private static final Logger LOG = LoggerFactory.getLogger(RaptorRouter.class);
 
-    private final OtpRRDataProvider otpRRDataProvider;
+    private final TransitDataProvider otpRRDataProvider;
     private final Graph graph;
     private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
 
@@ -62,31 +52,12 @@ public class RaptorRouter {
          * Prepare access/egress transfers
          */
 
-        Map<Vertex, Transfer> accessTransfers =
+        Map<TransitStop, Transfer> accessTransfers =
             AccessEgressRouter.streetSearch(request, false, Integer.MAX_VALUE);
-        Map<Vertex, Transfer> egressTransfers =
+        Map<TransitStop, Transfer> egressTransfers =
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
-        Stop accessStop = new Stop();
-        accessStop.setName("Access stop");
-        accessStop.setLat(request.from.lat);
-        accessStop.setLon(request.from.lng);
 
-        Stop egressStop = new Stop();
-        egressStop.setName("Egress stop");
-        egressStop.setLat(request.from.lat);
-        egressStop.setLon(request.from.lng);
-
-        transitLayer.setAccessEgressStops(accessStop, egressStop);
-
-        transitLayer.addAccessEgressTransfers(accessTransfers, true);
-        transitLayer.addAccessEgressTransfers(egressTransfers, false);
-
-        // Temporary
-        TIntIntMap accessTimeToReservedStop = new TIntIntHashMap();
-        accessTimeToReservedStop.put(0, 0);
-        TIntIntMap egressTimeFromReservedStop = new TIntIntHashMap();
-        egressTimeFromReservedStop.put(1, 0);
 
         /**
          * Prepare transit search
@@ -94,60 +65,39 @@ public class RaptorRouter {
 
         int departureTime = Instant.ofEpochMilli(request.dateTime*1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
-        RaptorWorkerTransitDataProvider transitData = this.otpRRDataProvider;
+        TransitDataProvider transitData = this.otpRRDataProvider;
 
-        StopStateCollection stopStatesIntArray = new StopStatesIntArray(10, transitLayer.getStopCount());
-
-        RangeRaptorWorkerState stateImpl = new RangeRaptorWorkerStateImpl(
+        McWorkerState state = new McWorkerState(
                 request.maxTransfers + 5,
                 transitLayer.getStopCount(),
-                departureTime,
-                MAX_DURATION_SECONDS,
-                new StopStatesIntArray(10, transitLayer.getStopCount())
+                MAX_DURATION_SECONDS
         );
 
-        RangeRaptorWorker worker = new RangeRaptorWorker(
+        McRangeRaptorWorker worker = new McRangeRaptorWorker(
                 transitData,
-                stateImpl,
-                new PathBuilderCursorBased(stopStatesIntArray.newCursor()),
+                state,
                 departureTime,
                 departureTime + 60,
-                (float)request.walkSpeed,
-                23,
-                accessTimeToReservedStop,
-                egressTimeFromReservedStop.keys()
+                null,
+                null
         );
 
         /**
          * Route transit
          */
 
-        Collection<Path> workerPaths = worker.route();
-
-        /**
-         * Extract paths
-         */
-
-        ParetoSet<PathParetoSortableWrapper> paths = new ParetoSet<>(PathParetoSortableWrapper.paretoDominanceFunctions());
-
-            for (Path path : workerPaths ) {
-                if (path != null) {
-                    paths.add(new PathParetoSortableWrapper(path, 1000));
-                }
-            }
+        Collection<Path2> paths = worker.route();
 
         /**
          * Create itineraries
          */
 
-        ItineraryMapper itineraryMapper = new ItineraryMapper(otpRRDataProvider, transitLayer, graph);
+        ItineraryMapper itineraryMapper = new ItineraryMapper();
+
         List<Itinerary> itineraries = new ArrayList<>();
 
-        Iterator<PathParetoSortableWrapper> iterator = paths.paretoSet().iterator();
-        while (iterator.hasNext()) {
-            Path path = iterator.next().path;
-            Itinerary itinerary = itineraryMapper.createItinerary(request, path);
-            itineraries.add(itinerary);
+        for (Path2 p : paths) {
+            itineraries.add(itineraryMapper.createItinerary(request, p));
         }
 
         TripPlan tripPlan = new TripPlan();

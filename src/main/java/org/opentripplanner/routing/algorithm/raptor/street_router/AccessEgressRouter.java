@@ -2,7 +2,7 @@ package org.opentripplanner.routing.algorithm.raptor.street_router;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import org.opentripplanner.common.pqueue.BinHeap;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.Transfer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.strategies.InterleavedBidirectionalHeuristic;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;
@@ -26,9 +26,9 @@ import java.util.Map;
 public class AccessEgressRouter {
     private static Logger LOG = LoggerFactory.getLogger(InterleavedBidirectionalHeuristic.class);
 
-    public static Map<Vertex, Transfer> streetSearch (RoutingRequest rr, boolean fromTarget, long abortTime) {
+    public static Map<TransitStop, Transfer> streetSearch (RoutingRequest rr, boolean fromTarget, long abortTime) {
         rr.maxWalkDistance = 5000;
-        Map<Vertex, Transfer> result = new HashMap<>();
+        Map<TransitStop, Transfer> result = new HashMap<>();
         BinHeap<Vertex> transitQueue = new BinHeap<>();
         double maxWeightSeen = 0;
         LOG.debug("Heuristic street search around the {}.", fromTarget ? "target" : "origin");
@@ -51,7 +51,7 @@ public class AccessEgressRouter {
             State s = pq.extract_min();
             Vertex v = s.getVertex();
 
-            boolean initialStop = v instanceof TransitStop && s.backEdge != null && s.backEdge instanceof StationStopEdge;
+            boolean initialStop = v instanceof TransitStop && s.backEdge instanceof StationStopEdge;
 
             // At this point the vertex is closed (pulled off heap).
             // This is the lowest cost we will ever see for this vertex. We can record the cost to reach it.

@@ -2,7 +2,9 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import org.opentripplanner.routing.algorithm.raptor_old.util.BitSetIterator;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.BitSetIterator;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.ArrivalTimeAtStop;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TransitDataProvider;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
 import org.slf4j.Logger;
@@ -11,8 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
 
-public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
+public class OtpRRDataProvider implements TransitDataProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(OtpRRDataProvider.class);
 
@@ -41,21 +44,10 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
         this.transitModes = transitModes;
     }
 
-    @Override
-    public int[] getScheduledIndexForOriginalPatternIndex() {
-        return scheduledIndexForOriginalPatternIndex;
-    }
-
     public TransitLayer getTransitLayer() {
         return this.transitLayer;
     }
 
-    @Override
-    public TIntList getTransfersDistancesInMMForStop(int stop) {
-        return transitLayer.getTransfersForStop(stop);
-    }
-
-    @Override
     public TIntList getPatternsForStop(int stop) {
         return transitLayer.getPatternsForStop(stop);
     }
@@ -99,8 +91,14 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
         }
     }
 
-    @Override public PatternIterator patternIterator(BitSetIterator patternsTouched) {
-        return new InternalPatternIterator(getPatternsTouchedForStops(patternsTouched));
+    @Override
+    public Iterable<ArrivalTimeAtStop> getTransfers(int fromStop) {
+        return null;
+    }
+
+    @Override
+    public Iterator<org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern> patternIterator(org.opentripplanner.routing.algorithm.raptor.mcrr.BitSetIterator stops) {
+        return new InternalPatternIterator(getPatternsTouchedForStops(stops));
     }
 
     private BitSet getPatternsTouchedForStops(BitSetIterator stops) {
@@ -122,7 +120,7 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
         return patternsTouched;
     }
 
-    class InternalPatternIterator implements PatternIterator, Pattern {
+    class InternalPatternIterator implements Iterator<org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern>, org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern {
         private int nextPatternIndex;
         private int originalPatternIndex;
         private BitSet patternsTouched;
@@ -135,11 +133,11 @@ public class OtpRRDataProvider implements RaptorWorkerTransitDataProvider {
 
         /*  PatternIterator interface implementation */
 
-        @Override public boolean morePatterns() {
+        @Override public boolean hasNext() {
             return nextPatternIndex >=0;
         }
 
-        @Override public Pattern next() {
+        @Override public org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern next() {
             pattern = runningScheduledPatterns[nextPatternIndex];
             originalPatternIndex = originalPatternIndexForScheduledIndex[nextPatternIndex];
             nextPatternIndex = patternsTouched.nextSetBit(nextPatternIndex + 1);
