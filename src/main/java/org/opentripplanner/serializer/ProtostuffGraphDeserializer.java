@@ -1,15 +1,13 @@
 package org.opentripplanner.serializer;
 
-import com.google.common.io.ByteStreams;
-import io.protostuff.*;
+import io.protostuff.CodedInput;
+import io.protostuff.GraphCodedInput;
+import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public class ProtostuffGraphDeserializer implements GraphDeserializer {
 
@@ -18,7 +16,11 @@ public class ProtostuffGraphDeserializer implements GraphDeserializer {
 
     @Override
     public GraphWrapper deserialize(File file) {
-        return null;
+        try {
+            return deserialize(new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            throw new GraphSerializationException("Cannot deserialize graph", e);
+        }
     }
 
     @Override
@@ -40,7 +42,6 @@ public class ProtostuffGraphDeserializer implements GraphDeserializer {
             LOG.debug("Deserializing");
 
             GraphWrapper graphWrapperFromProtostuff = schema.newMessage();
-
 
             CodedInput input = new CodedInput(inputStream, true);
             input.setSizeLimit(SIZE_LIMIT);
