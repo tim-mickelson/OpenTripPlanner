@@ -14,7 +14,7 @@ import java.util.List;
 
 public class GraphSerializerService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Graph.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GraphSerializerService.class);
     public static final String SERIALIZATION_METHOD_PROP = "serialization-method";
     public static final String PROTOSTUFF = "protostuff";
     public static final String KRYO = "kryo";
@@ -45,8 +45,11 @@ public class GraphSerializerService {
     }
 
     public GraphWrapper deserialize(InputStream is) {
+        long started = System.currentTimeMillis();
         GraphWrapper graphWrapper = graphSerializer.deserialize(is);
-        LOG.debug("Deserialized graph using: {}", graphSerializer.getClass().getSimpleName());
+        long spent = System.currentTimeMillis() - started;
+
+        LOG.info("Deserialized graph using: {} in {} ms", graphSerializer.getClass().getSimpleName(), spent);
 
         return graphWrapper;
     }
@@ -74,8 +77,10 @@ public class GraphSerializerService {
 
     public void serialize(GraphWrapper graphWrapper, OutputStream outputStream) {
         LOG.info("Serializing graph. Main graph size: |V|={} |E|={}", graphWrapper.graph.countVertices(), graphWrapper.graph.countEdges());
+        long started = System.currentTimeMillis();
         graphSerializer.serialize(graphWrapper, outputStream);
-        LOG.info("Done");
+        long spent = System.currentTimeMillis() - started;
+        LOG.info("Graph serialized in {} ms", spent);
     }
 
     public Graph load(File file, Graph.LoadLevel level) {
