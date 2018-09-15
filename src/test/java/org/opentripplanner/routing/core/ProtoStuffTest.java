@@ -15,7 +15,9 @@ package org.opentripplanner.routing.core;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import io.protostuff.*;
+import io.protostuff.GraphIOUtil;
+import io.protostuff.LinkedBuffer;
+import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -45,7 +47,9 @@ import org.opentripplanner.serializer.GraphDeserializerService;
 import org.opentripplanner.serializer.GraphWrapper;
 import org.opentripplanner.standalone.GraphBuilderParameters;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,14 +107,14 @@ public class ProtoStuffTest extends TestCase {
     }
 
     /**
-     * This writeProtostuffFile method should of course be rewritten in a similar manner to deserializing {@link org.opentripplanner.serializer.ProtostuffGraphDeserializer}
+     * This writeToProtostuffFile method should of course be rewritten in a similar manner to deserializing {@link org.opentripplanner.serializer.ProtostuffGraphDeserializer}
      * Writes graph wrapper object to file using protostuff GraphIOUtil.
      */
-    private void writeProtostuffFile(GraphWrapper graphWrapper, Schema<GraphWrapper> schema, File file) throws IOException {
+    private void writeToProtostuffFile(GraphWrapper graphWrapper, Schema<GraphWrapper> schema, File file) throws IOException {
 
         long writeToFileStarted = System.currentTimeMillis();
 
-        LinkedBuffer linkedBuffer = LinkedBuffer.allocate(1024*8);
+        LinkedBuffer linkedBuffer = LinkedBuffer.allocate(1024 * 8);
 
         FileOutputStream fileOutputStream = new FileOutputStream(file);
 
@@ -139,7 +143,7 @@ public class ProtoStuffTest extends TestCase {
         String protoStuffFileName = "graph.protostuff";
         File protostuffFile = instantiateProtostuffFileWithDeleteOnExit(protoStuffFileName);
 
-        writeProtostuffFile(graphWrapper, schema, protostuffFile);
+        writeToProtostuffFile(graphWrapper, schema, protostuffFile);
 
         // Sets the deserialization method. This property is used by the GraphDeserializerService class.
         // The intention is to use something like this to choose serialization/deserialization method.
@@ -205,6 +209,7 @@ public class ProtoStuffTest extends TestCase {
 
     /**
      * Creates protostuff file. Deletes existing file if present. Deletes on exit is enabled.
+     *
      * @param protoStuffFileName
      * @return
      */
@@ -213,7 +218,7 @@ public class ProtoStuffTest extends TestCase {
         protostuffFile.deleteOnExit();
 
 
-        if(protostuffFile.exists()) {
+        if (protostuffFile.exists()) {
             protostuffFile.delete();
         }
         return protostuffFile;
