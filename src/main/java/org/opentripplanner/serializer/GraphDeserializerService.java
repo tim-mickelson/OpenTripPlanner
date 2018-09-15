@@ -19,6 +19,8 @@ public class GraphDeserializerService {
 
     private static final Logger LOG = LoggerFactory.getLogger(Graph.class);
     public static final String DESERIALIZATION_METHOD_PROP = "deserialization-method";
+    public static final String PROTOSTUFF = "protostuff";
+    public static final String KRYO = "kryo";
 
     /**
      * Load debug data ?
@@ -111,9 +113,9 @@ public class GraphDeserializerService {
     private static GraphDeserializer getGraphDeserializer(String deserializationMethod) {
 
         GraphDeserializer graphDeserializer;
-        if ("protostuff".equals(deserializationMethod)) {
+        if (PROTOSTUFF.equals(deserializationMethod)) {
             graphDeserializer = new ProtostuffGraphDeserializer();
-        } else if ("kryo".equals(deserializationMethod)) {
+        } else if (KRYO.equals(deserializationMethod)) {
             graphDeserializer = new KryoGraphDeserializer();
         } else {
             LOG.debug("Defaulting to java graph deserializer");
