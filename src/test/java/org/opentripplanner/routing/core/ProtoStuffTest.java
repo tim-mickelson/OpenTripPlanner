@@ -15,10 +15,6 @@ package org.opentripplanner.routing.core;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import io.protostuff.GraphIOUtil;
-import io.protostuff.LinkedBuffer;
-import io.protostuff.Schema;
-import io.protostuff.runtime.RuntimeSchema;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.opentripplanner.ConstantsForTests;
@@ -45,11 +41,9 @@ import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.serializer.GraphSerializerService;
 import org.opentripplanner.serializer.GraphWrapper;
-import org.opentripplanner.serializer.ProtostuffGraphSerializer;
 import org.opentripplanner.standalone.GraphBuilderParameters;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,17 +102,27 @@ public class ProtoStuffTest extends TestCase {
     }
 
     @Test
-    public void testProtoStuffWithEdge() throws IOException, IllegalAccessException {
+    public void testProtoStuff() throws IOException, IllegalAccessException {
+        testSerializeDeserialize(GraphSerializerService.PROTOSTUFF);
+    }
+
+
+    @Test
+    public void testKryo() throws IOException, IllegalAccessException {
+        testSerializeDeserialize(GraphSerializerService.KRYO);
+    }
+
+    public void testSerializeDeserialize(String implementation) throws IOException, IllegalAccessException {
 
         // Creates graph wrapper object from graph.
         GraphWrapper graphWrapper = new GraphWrapper();
         graphWrapper.edges = new ArrayList<>(graph.getEdges());
         graphWrapper.graph = graph;
 
-        String protoStuffFileName = "graph.protostuff";
-        File protostuffFile = instantiateProtostuffFileWithDeleteOnExit(protoStuffFileName);
+        String protoStuffFileName = "graph."+implementation.toLowerCase();
+        File protostuffFile = instantiateFileDeleteOnExit(protoStuffFileName);
 
-        GraphSerializerService graphDeserializerService = new GraphSerializerService(GraphSerializerService.PROTOSTUFF);
+        GraphSerializerService graphDeserializerService = new GraphSerializerService(implementation);
 
         graphDeserializerService.serialize(graphWrapper, protostuffFile);
 
@@ -181,11 +185,11 @@ public class ProtoStuffTest extends TestCase {
     /**
      * Creates protostuff file. Deletes existing file if present. Deletes on exit is enabled.
      *
-     * @param protoStuffFileName
+     * @param filename
      * @return
      */
-    private File instantiateProtostuffFileWithDeleteOnExit(String protoStuffFileName) {
-        File protostuffFile = new File(protoStuffFileName);
+    private File instantiateFileDeleteOnExit(String filename) {
+        File protostuffFile = new File(filename);
         protostuffFile.deleteOnExit();
 
 
