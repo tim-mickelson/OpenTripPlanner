@@ -18,26 +18,22 @@ import java.util.List;
 public class GraphDeserializerService {
 
     private static final Logger LOG = LoggerFactory.getLogger(Graph.class);
+    public static final String DESERIALIZATION_METHOD_PROP = "deserialization-method";
 
     /**
      * Load debug data ?
      */
     private boolean debugData = true;
 
-    private GraphDeserializer getGraphDeserializer() {
+    private final GraphDeserializer graphDeserializer;
 
-        String deserializationMethod = System.getProperty("deserialization-method");
 
-        GraphDeserializer graphDeserializer;
-        if ("protostuff".equals(deserializationMethod)) {
-            graphDeserializer = new ProtostuffGraphDeserializer();
-        } else if ("kryo".equals(deserializationMethod)) {
-            graphDeserializer = new KryoGraphDeserializer();
-        } else {
-            LOG.debug("Defaulting to java graph deserializer");
-            graphDeserializer = new JavaGraphDeserializer();
-        }
-        return graphDeserializer;
+    public GraphDeserializerService() {
+        this.graphDeserializer = getGraphDeserializer(System.getProperty(DESERIALIZATION_METHOD_PROP));
+    }
+
+    public GraphDeserializerService(String deserializationMethod) {
+        this.graphDeserializer = getGraphDeserializer(deserializationMethod);
     }
 
     public GraphWrapper deserialize(File file) {
@@ -50,8 +46,6 @@ public class GraphDeserializerService {
     }
 
     public GraphWrapper deserialize(InputStream is) {
-        GraphDeserializer graphDeserializer = getGraphDeserializer();
-        LOG.debug("Loading graph using: {}", graphDeserializer.getClass().getSimpleName());
         GraphWrapper graphWrapper = graphDeserializer.deserialize(is);
         LOG.debug("Deserialized graph using: {}", graphDeserializer.getClass().getSimpleName());
 
@@ -112,5 +106,20 @@ public class GraphDeserializerService {
         return deserializedGraph;
 
 
+    }
+
+    private static GraphDeserializer getGraphDeserializer(String deserializationMethod) {
+
+        GraphDeserializer graphDeserializer;
+        if ("protostuff".equals(deserializationMethod)) {
+            graphDeserializer = new ProtostuffGraphDeserializer();
+        } else if ("kryo".equals(deserializationMethod)) {
+            graphDeserializer = new KryoGraphDeserializer();
+        } else {
+            LOG.debug("Defaulting to java graph deserializer");
+            graphDeserializer = new JavaGraphDeserializer();
+        }
+        LOG.debug("Using the following deserializer for graph loading: {}", graphDeserializer.getClass().getSimpleName());
+        return graphDeserializer;
     }
 }
