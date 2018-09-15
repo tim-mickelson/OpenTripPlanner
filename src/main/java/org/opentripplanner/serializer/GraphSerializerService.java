@@ -12,6 +12,12 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Service for serializing and deserializing Graph objects.
+ * Load and save methods are extracted from the {@link Graph}.
+ * This implementation allows to switch implementation of GraphSerializer.
+ * Having multiple implementations makes it easier to compare speed and size of different implementations.
+ */
 public class GraphSerializerService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GraphSerializerService.class);
