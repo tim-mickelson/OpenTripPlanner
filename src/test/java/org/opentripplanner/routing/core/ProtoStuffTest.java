@@ -82,8 +82,8 @@ public class ProtoStuffTest extends TestCase {
 
         List<OpenStreetMapProvider> osmProviders = Lists.newArrayList();
 
-         OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("norway-latest.osm.pbf"));
-//        OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File(ConstantsForTests.OSLO_MINIMAL_OSM));
+//         OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("norway-latest.osm.pbf"));
+        OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File(ConstantsForTests.OSLO_MINIMAL_OSM));
         osmProviders.add(osmProvider);
         OpenStreetMapModule osmModule = new OpenStreetMapModule(osmProviders);
         DefaultStreetEdgeFactory streetEdgeFactory = new DefaultStreetEdgeFactory();
@@ -91,9 +91,9 @@ public class ProtoStuffTest extends TestCase {
         osmModule.skipVisibility = true;
         graphBuilder.addModule(osmModule);
         List<GtfsBundle> gtfsBundles = Lists.newArrayList();
-        GtfsBundle gtfsBundle = new GtfsBundle(new File("rb_norway-aggregated-gtfs.zip"));
 
-//        GtfsBundle gtfsBundle = new GtfsBundle(new File(ConstantsForTests.PORTLAND_GTFS));
+//        GtfsBundle gtfsBundle = new GtfsBundle(new File("rb_norway-aggregated-gtfs.zip"));
+        GtfsBundle gtfsBundle = new GtfsBundle(new File(ConstantsForTests.PORTLAND_GTFS));
         gtfsBundle.linkStopsToParentStations = true;
         gtfsBundle.parentStationTransfers = true;
         gtfsBundles.add(gtfsBundle);
