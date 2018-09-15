@@ -15,17 +15,6 @@ public class JavaGraphDeserializer implements GraphDeserializer {
     private static final Logger LOG = LoggerFactory.getLogger(JavaGraphDeserializer.class);
 
     @Override
-    public GraphWrapper deserialize(File file) {
-
-        try {
-            FileInputStream in = new FileInputStream(file);
-            return deserialize(in);
-        } catch (FileNotFoundException e) {
-            throw new GraphSerializationException(file.getName(), e);
-        }
-    }
-
-    @Override
     public GraphWrapper deserialize(InputStream inputStream) {
         try {
             ObjectInputStream in = new ObjectInputStream(inputStream);
