@@ -3,21 +3,19 @@ package org.opentripplanner.serializer;
 import org.opentripplanner.graph_builder.annotation.GraphBuilderAnnotation;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
-import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
 import org.opentripplanner.routing.services.StreetVertexIndexFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class GraphSerializerService {
 
     private static final Logger LOG = LoggerFactory.getLogger(Graph.class);
-    public static final String DESERIALIZATION_METHOD_PROP = "serialization-method";
+    public static final String SERIALIZATION_METHOD_PROP = "serialization-method";
     public static final String PROTOSTUFF = "protostuff";
     public static final String KRYO = "kryo";
 
@@ -30,7 +28,7 @@ public class GraphSerializerService {
 
 
     public GraphSerializerService() {
-        this.graphSerializer = getGraphSerializer(System.getProperty(DESERIALIZATION_METHOD_PROP));
+        this.graphSerializer = getGraphSerializer(System.getProperty(SERIALIZATION_METHOD_PROP));
     }
 
     public GraphSerializerService(String serializationMethod) {
