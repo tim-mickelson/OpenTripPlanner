@@ -15,12 +15,9 @@ package org.opentripplanner.routing.core;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import io.protostuff.GraphIOUtil;
-import io.protostuff.LinkedBuffer;
-import io.protostuff.Schema;
+import io.protostuff.*;
 import io.protostuff.runtime.RuntimeSchema;
 import junit.framework.TestCase;
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.common.TurnRestriction;
@@ -50,7 +47,6 @@ import org.opentripplanner.standalone.GraphBuilderParameters;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
@@ -72,9 +68,16 @@ public class ProtoStuffTest extends TestCase {
 
     @Override
     public void setUp() {
+
+        System.setProperty("protostuff.runtime.collection_schema_on_repeated_fields", "true");
+        System.setProperty("protostuff.runtime.morph_non_final_pojos", "true");
+        System.setProperty("protostuff.runtime.allow_null_array_element", "true");
+
         GraphBuilder graphBuilder = new GraphBuilder(new File(""), mock(GraphBuilderParameters.class));
 
         List<OpenStreetMapProvider> osmProviders = Lists.newArrayList();
+
+        // OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("norway-latest.osm.pbf"));
         OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File(ConstantsForTests.OSLO_MINIMAL_OSM));
         osmProviders.add(osmProvider);
         OpenStreetMapModule osmModule = new OpenStreetMapModule(osmProviders);
@@ -83,6 +86,8 @@ public class ProtoStuffTest extends TestCase {
         osmModule.skipVisibility = true;
         graphBuilder.addModule(osmModule);
         List<GtfsBundle> gtfsBundles = Lists.newArrayList();
+        //GtfsBundle gtfsBundle = new GtfsBundle(new File("rb_norway-aggregated-gtfs.zip"));
+
         GtfsBundle gtfsBundle = new GtfsBundle(new File(ConstantsForTests.PORTLAND_GTFS));
         gtfsBundle.linkStopsToParentStations = true;
         gtfsBundle.parentStationTransfers = true;
@@ -97,71 +102,68 @@ public class ProtoStuffTest extends TestCase {
         graph.index(new DefaultStreetVertexIndexFactory());
     }
 
-    private byte[] write(GraphWrapper graphWrapper, Schema<GraphWrapper> schema) throws IOException {
+    /**
+     * This writeProtostuffFile method should of course be rewritten in a similar manner to deserializing {@link org.opentripplanner.serializer.ProtostuffGraphDeserializer}
+     * Writes graph wrapper object to file using protostuff GraphIOUtil.
+     */
+    private void writeProtostuffFile(GraphWrapper graphWrapper, Schema<GraphWrapper> schema, File file) throws IOException {
 
+        long writeToFileStarted = System.currentTimeMillis();
 
-        LinkedBuffer buffer = LinkedBuffer.allocate(512);
+        LinkedBuffer linkedBuffer = LinkedBuffer.allocate(1024*8);
 
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
 
-        long bufferStarted = System.currentTimeMillis();
+        int written = GraphIOUtil.writeTo(fileOutputStream, graphWrapper, schema, linkedBuffer);
 
-        byte[] protostuff = GraphIOUtil.toByteArray(graphWrapper, schema, buffer);
+        System.out.println("Written " + written + " bytes to protostuff FILE " + file.getName() + " in  " + (System.currentTimeMillis() - writeToFileStarted) + " ms");
+    }
 
-        buffer.clear();
-
-        System.out.println("Written to protostuff bya in  " + (System.currentTimeMillis() - bufferStarted) + " ms");
-
-        System.out.println("The byte array length is " + protostuff.length);
-        long beforeWrite = System.currentTimeMillis();
-        IOUtils.copy(new ByteArrayInputStream(protostuff), new FileOutputStream("protostuff.file"));
-        System.out.println("Wrote protostuff file to disk in " + (System.currentTimeMillis() - beforeWrite) + " ms");
-        return protostuff;
-
+    private Schema<GraphWrapper> createSchema() {
+        long schemaStarted = System.currentTimeMillis();
+        Schema<GraphWrapper> schema = RuntimeSchema.getSchema(GraphWrapper.class);
+        System.out.println("Schema created in " + (System.currentTimeMillis() - schemaStarted) + " ms");
+        return schema;
     }
 
     @Test
     public void testProtoStuffWithEdge() throws IOException, IllegalAccessException {
 
-        // Seems like I have to use GraphIOUtil instead of ProtostuffIOUtil to avoid stack overflow exception with SIRI
+        Schema<GraphWrapper> schema = createSchema();
 
-        System.setProperty("protostuff.runtime.collection_schema_on_repeated_fields", "true");
-        System.setProperty("protostuff.runtime.morph_non_final_pojos", "true");
-        System.setProperty("protostuff.runtime.allow_null_array_element", "true");
-
-        long schemaStarted = System.currentTimeMillis();
-        Schema<GraphWrapper> schema = RuntimeSchema.getSchema(GraphWrapper.class);
-        System.out.println("Schema created in " + (System.currentTimeMillis() - schemaStarted) + " ms");
-
+        // Creates graph wrapper object from graph.
         GraphWrapper graphWrapper = new GraphWrapper();
         graphWrapper.edges = new ArrayList<>(graph.getEdges());
         graphWrapper.graph = graph;
 
-        byte[] protostuff = write(graphWrapper, schema);
+        String protoStuffFileName = "graph.protostuff";
+        File protostuffFile = instantiateProtostuffFileWithDeleteOnExit(protoStuffFileName);
 
+        writeProtostuffFile(graphWrapper, schema, protostuffFile);
+
+        // Sets the deserialization method. This property is used by the GraphDeserializerService class.
+        // The intention is to use something like this to choose serialization/deserialization method.
         System.setProperty("deserialization-method", "protostuff");
 
-
-        System.out.println(protostuff.length);
-
         GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
+
         long serializeBack = System.currentTimeMillis();
 
-        GraphWrapper graphWrapperFromProtobuf = graphDeserializerService.deserialize(new ByteArrayInputStream(protostuff));
+        GraphWrapper graphWrapperFromProtostuff = graphDeserializerService.deserialize(protostuffFile);
 
-        System.out.println("Deserialized from protobuf in  " + (System.currentTimeMillis() - serializeBack) + " ms");
+        System.out.println("Deserialized from protostuff in  " + (System.currentTimeMillis() - serializeBack) + " ms");
 
+        assertNotNull("The deserialized graph wrapper object shall not be null", graphWrapperFromProtostuff);
 
-        assertNotNull(graphWrapperFromProtobuf);
+        assertTrue("Edges must not be empty", graphWrapperFromProtostuff.edges.size() > 0);
 
-        assertTrue(graphWrapperFromProtobuf.edges.size() > 0);
+        assertNotNull("Graph object itself must not be empty", graphWrapperFromProtostuff.graph);
 
-        assertNotNull(graphWrapperFromProtobuf.graph);
+        System.out.println("Number of edges: " + graphWrapperFromProtostuff.edges.size());
 
-
-        System.out.println(graphWrapperFromProtobuf.edges.size());
-
-
-        for (Edge e : graphWrapperFromProtobuf.edges) {
+        // This instantiates some of the edges
+        // It is related to how protostuff deserializes field instantiated arrays?
+        for (Edge e : graphWrapperFromProtostuff.edges) {
 
             if (e.fromv.incoming == null) {
                 e.fromv.incoming = new Edge[0];
@@ -182,21 +184,39 @@ public class ProtoStuffTest extends TestCase {
             e.fromv.addOutgoing(e);
             e.tov.addIncoming(e);
 
-            graphWrapperFromProtobuf.graph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
-            graphWrapperFromProtobuf.graph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
+            graphWrapperFromProtostuff.graph.vertices.put(e.getFromVertex().getLabel(), e.getFromVertex());
+            graphWrapperFromProtostuff.graph.vertices.put(e.getToVertex().getLabel(), e.getToVertex());
         }
 
 
-        graphWrapperFromProtobuf.graph.index(new DefaultStreetVertexIndexFactory());
+        graphWrapperFromProtostuff.graph.index(new DefaultStreetVertexIndexFactory());
 
 
         System.out.println("Comparing graph object after deserializing it from protostuff");
 
-        List<Difference> differences = genericObjectDiffer.compareObjects(graph, graphWrapperFromProtobuf.graph, genericDiffConfig);
+        // Using the generic object differ is something we do only for testing protostuff to check differences
+        List<Difference> differences = genericObjectDiffer.compareObjects(graph, graphWrapperFromProtostuff.graph, genericDiffConfig);
+        System.out.println(diffPrinter.diffListToString(differences));
         assertTrue(differences.isEmpty());
 
         //testKissAndRide(edgeInfoFromProtostuff.graph);
 
+    }
+
+    /**
+     * Creates protostuff file. Deletes existing file if present. Deletes on exit is enabled.
+     * @param protoStuffFileName
+     * @return
+     */
+    private File instantiateProtostuffFileWithDeleteOnExit(String protoStuffFileName) {
+        File protostuffFile = new File(protoStuffFileName);
+        protostuffFile.deleteOnExit();
+
+
+        if(protostuffFile.exists()) {
+            protostuffFile.delete();
+        }
+        return protostuffFile;
     }
 
     public void testKissAndRide(Graph graphToUse) {
