@@ -3,12 +3,14 @@ package org.opentripplanner.serializer;
 import org.opentripplanner.graph_builder.annotation.GraphBuilderAnnotation;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
+import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
 import org.opentripplanner.routing.services.StreetVertexIndexFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -51,18 +53,32 @@ public class GraphSerializerService {
         return graphWrapper;
     }
 
-    public GraphWrapper serialize(GraphWrapper graphWrapper, File file) {
+    public void serialize(Graph graph, OutputStream outputStream) {
+        GraphWrapper graphWrapper = new GraphWrapper();
+        graphWrapper.graph = graph;
+        serialize(graphWrapper, outputStream);
+    }
+    public void serialize(Graph graph, File file) {
+        GraphWrapper graphWrapper = new GraphWrapper();
+        graphWrapper.graph = graph;
+        serialize(graphWrapper, file);
+    }
+
+    public void serialize(GraphWrapper graphWrapper, File file) {
         try {
             LOG.debug("Writing graph to file {} using {}", file.getName(), graphSerializer.getClass().getName());
-            graphSerializer.serialize(graphWrapper, new FileOutputStream(file));
+            LOG.info("Writing graph " + file.getAbsolutePath() + " ...");
+            serialize(graphWrapper, new FileOutputStream(file));
         } catch (FileNotFoundException e) {
             throw new GraphSerializationException("Cannot read file " + file.getName(), e);
         }
-
-        return graphWrapper;
     }
 
-
+    public void serialize(GraphWrapper graphWrapper, OutputStream outputStream) {
+        LOG.info("Serializing graph. Main graph size: |V|={} |E|={}", graphWrapper.graph.countVertices(), graphWrapper.graph.countEdges());
+        graphSerializer.serialize(graphWrapper, outputStream);
+        LOG.info("Done");
+    }
 
     public Graph load(File file, Graph.LoadLevel level) {
         GraphWrapper graphWrapper = deserialize(file);

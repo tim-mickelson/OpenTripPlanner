@@ -309,6 +309,14 @@ public class Graph implements Serializable {
     }
 
     /**
+     * Exposed for JavaGraphSerializer
+     */
+    public Map<Integer, Vertex> getVertexById() {
+        return this.vertexById;
+    }
+
+
+    /**
      * Get all the vertices in the graph.
      * @return
      */
@@ -327,6 +335,10 @@ public class Graph implements Serializable {
      */
     public Edge getEdgeById(int id) {
         return edgeById.get(id);
+    }
+
+    public Map<Integer, Edge> getEdgeById() {
+        return edgeById;
     }
 
     /**
@@ -725,49 +737,6 @@ public class Graph implements Serializable {
             LOG.info("This graph was built with the currently running version and commit of OTP.");
             return false;
         }
-    }
-
-    public void save(File file) throws IOException {
-        LOG.info("Main graph size: |V|={} |E|={}", this.countVertices(), this.countEdges());
-        LOG.info("Writing graph " + file.getAbsolutePath() + " ...");
-        ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(
-                new FileOutputStream(file)));
-        try {
-            save(out);
-            out.close();
-        } catch (RuntimeException e) {
-            out.close();
-            file.delete(); // remove half-written file
-            throw e;
-        }
-    }
-
-    public void save(ObjectOutputStream out) throws IOException {
-        LOG.debug("Consolidating edges...");
-        // this is not space efficient
-        List<Edge> edges = new ArrayList<Edge>(this.countEdges());
-        for (Vertex v : getVertices()) {
-            // there are assumed to be no edges in an incoming list that are not
-            // in an outgoing list
-            edges.addAll(v.getOutgoing());
-            if (v.getDegreeOut() + v.getDegreeIn() == 0)
-                LOG.debug("vertex {} has no edges, it will not survive serialization.", v);
-        }
-        LOG.debug("Assigning vertex/edge ID numbers...");
-        this.rebuildVertexAndEdgeIndices();
-        LOG.debug("Writing edges...");
-        out.writeObject(this);
-        out.writeObject(edges);
-        if (debugData) {
-            // should we make debug info generation conditional?
-            LOG.debug("Writing debug data...");
-            out.writeObject(this.graphBuilderAnnotations);
-            out.writeObject(this.vertexById);
-            out.writeObject(this.edgeById);
-        } else {
-            LOG.debug("Skipping debug data.");
-        }
-        LOG.info("Graph written.");
     }
 
     /* deserialization for org.opentripplanner.customize */
