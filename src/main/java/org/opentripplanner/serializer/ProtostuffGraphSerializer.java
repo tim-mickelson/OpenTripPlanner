@@ -29,12 +29,10 @@ public class ProtostuffGraphSerializer implements GraphSerializer {
 
     @Override
     public GraphWrapper deserialize(InputStream inputStream) {
-        
+
         try {
 
             final long started = System.currentTimeMillis();
-
-            LOG.debug("Deserializin object graph from input stream");
 
             GraphWrapper graphWrapperFromProtostuff = schema.newMessage();
 
