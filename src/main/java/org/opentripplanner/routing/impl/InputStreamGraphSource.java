@@ -22,7 +22,7 @@ import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Graph.LoadLevel;
 import org.opentripplanner.routing.services.GraphSource;
 import org.opentripplanner.routing.services.StreetVertexIndexFactory;
-import org.opentripplanner.serializer.GraphDeserializerService;
+import org.opentripplanner.serializer.GraphSerializerService;
 import org.opentripplanner.standalone.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public class InputStreamGraphSource implements GraphSource {
 
     private Object preEvictMutex = new Boolean(false);
 
-    private GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
+    private GraphSerializerService graphDeserializerService = new GraphSerializerService();
 
     /**
      * The current used input stream implementation for getting graph data source.

@@ -1,24 +1,30 @@
 package org.opentripplanner.serializer;
 
-import io.protostuff.CodedInput;
-import io.protostuff.GraphCodedInput;
-import io.protostuff.Schema;
+import io.protostuff.*;
 import io.protostuff.runtime.RuntimeSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
-public class ProtostuffGraphDeserializer implements GraphDeserializer {
+public class ProtostuffGraphSerializer implements GraphSerializer {
 
     private static final int SIZE_LIMIT = 2000000000;
-    private static final Logger LOG = LoggerFactory.getLogger(ProtostuffGraphDeserializer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProtostuffGraphSerializer.class);
 
-    public ProtostuffGraphDeserializer() {
+    private final Schema<GraphWrapper> schema;
+    private final int linkedBufferSize;
+
+    public ProtostuffGraphSerializer() {
         System.setProperty("protostuff.runtime.collection_schema_on_repeated_fields", "true");
         System.setProperty("protostuff.runtime.morph_non_final_pojos", "true");
         System.setProperty("protostuff.runtime.allow_null_array_element", "true");
+
+        LOG.debug("Creating schema for protostuff");
+        schema = RuntimeSchema.getSchema(GraphWrapper.class);
+        linkedBufferSize = 1024 * 8;
     }
 
     @Override
@@ -27,11 +33,8 @@ public class ProtostuffGraphDeserializer implements GraphDeserializer {
         try {
 
             final long started = System.currentTimeMillis();
-            LOG.debug("Creating schema");
-            // Can be cached
-            Schema<GraphWrapper> schema = RuntimeSchema.getSchema(GraphWrapper.class);
 
-            LOG.debug("Deserializing");
+            LOG.debug("Deserializin object graph from input stream");
 
             GraphWrapper graphWrapperFromProtostuff = schema.newMessage();
 
@@ -46,5 +49,22 @@ public class ProtostuffGraphDeserializer implements GraphDeserializer {
         } catch (IOException e) {
             throw new GraphSerializationException("Cannot deserialize graph", e);
         }
+    }
+
+    @Override
+    public void serialize(GraphWrapper graphWrapper, OutputStream outputStream) throws GraphSerializationException {
+        long writeToFileStarted = System.currentTimeMillis();
+
+        LinkedBuffer linkedBuffer = LinkedBuffer.allocate(linkedBufferSize);
+
+        try {
+            int written = GraphIOUtil.writeTo(outputStream, graphWrapper, schema, linkedBuffer);
+            long millisSpent = System.currentTimeMillis() - writeToFileStarted;
+            LOG.debug("Written {} bytes to protostuff in {} ms", written, millisSpent);
+
+        } catch (IOException e) {
+            throw new GraphSerializationException("Cannot deserialize graph", e);
+        }
+
     }
 }

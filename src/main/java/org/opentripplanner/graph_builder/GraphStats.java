@@ -33,7 +33,7 @@ import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.vertextype.StreetVertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
-import org.opentripplanner.serializer.GraphDeserializerService;
+import org.opentripplanner.serializer.GraphSerializerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +79,7 @@ public class GraphStats {
     
     private CsvWriter writer;
 
-    private GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
+    private GraphSerializerService graphDeserializerService = new GraphSerializerService();
     
     public static void main(String[] args) {
         GraphStats graphStats = new GraphStats(args);

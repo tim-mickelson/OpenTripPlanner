@@ -8,17 +8,14 @@ import org.opentripplanner.routing.services.StreetVertexIndexFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 
-public class GraphDeserializerService {
+public class GraphSerializerService {
 
     private static final Logger LOG = LoggerFactory.getLogger(Graph.class);
-    public static final String DESERIALIZATION_METHOD_PROP = "deserialization-method";
+    public static final String DESERIALIZATION_METHOD_PROP = "serialization-method";
     public static final String PROTOSTUFF = "protostuff";
     public static final String KRYO = "kryo";
 
@@ -27,15 +24,15 @@ public class GraphDeserializerService {
      */
     private boolean debugData = true;
 
-    private final GraphDeserializer graphDeserializer;
+    private final GraphSerializer graphSerializer;
 
 
-    public GraphDeserializerService() {
-        this.graphDeserializer = getGraphDeserializer(System.getProperty(DESERIALIZATION_METHOD_PROP));
+    public GraphSerializerService() {
+        this.graphSerializer = getGraphSerializer(System.getProperty(DESERIALIZATION_METHOD_PROP));
     }
 
-    public GraphDeserializerService(String deserializationMethod) {
-        this.graphDeserializer = getGraphDeserializer(deserializationMethod);
+    public GraphSerializerService(String serializationMethod) {
+        this.graphSerializer = getGraphSerializer(serializationMethod);
     }
 
     public GraphWrapper deserialize(File file) {
@@ -48,11 +45,23 @@ public class GraphDeserializerService {
     }
 
     public GraphWrapper deserialize(InputStream is) {
-        GraphWrapper graphWrapper = graphDeserializer.deserialize(is);
-        LOG.debug("Deserialized graph using: {}", graphDeserializer.getClass().getSimpleName());
+        GraphWrapper graphWrapper = graphSerializer.deserialize(is);
+        LOG.debug("Deserialized graph using: {}", graphSerializer.getClass().getSimpleName());
 
         return graphWrapper;
     }
+
+    public GraphWrapper serialize(GraphWrapper graphWrapper, File file) {
+        try {
+            LOG.debug("Writing graph to file {} using {}", file.getName(), graphSerializer.getClass().getName());
+            graphSerializer.serialize(graphWrapper, new FileOutputStream(file));
+        } catch (FileNotFoundException e) {
+            throw new GraphSerializationException("Cannot read file " + file.getName(), e);
+        }
+
+        return graphWrapper;
+    }
+
 
 
     public Graph load(File file, Graph.LoadLevel level) {
@@ -110,18 +119,18 @@ public class GraphDeserializerService {
 
     }
 
-    private static GraphDeserializer getGraphDeserializer(String deserializationMethod) {
+    private static GraphSerializer getGraphSerializer(String serializationMethod) {
 
-        GraphDeserializer graphDeserializer;
-        if (PROTOSTUFF.equals(deserializationMethod)) {
-            graphDeserializer = new ProtostuffGraphDeserializer();
-        } else if (KRYO.equals(deserializationMethod)) {
-            graphDeserializer = new KryoGraphDeserializer();
+        GraphSerializer graphSerializer;
+        if (PROTOSTUFF.equals(serializationMethod)) {
+            graphSerializer = new ProtostuffGraphSerializer();
+        } else if (KRYO.equals(serializationMethod)) {
+            graphSerializer = new KryoGraphSerializer();
         } else {
             LOG.debug("Defaulting to java graph deserializer");
-            graphDeserializer = new JavaGraphDeserializer();
+            graphSerializer = new JavaGraphSerializer();
         }
-        LOG.debug("Using the following deserializer for graph loading: {}", graphDeserializer.getClass().getSimpleName());
-        return graphDeserializer;
+        LOG.debug("Using the following deserializer for graph loading: {}", graphSerializer.getClass().getSimpleName());
+        return graphSerializer;
     }
 }

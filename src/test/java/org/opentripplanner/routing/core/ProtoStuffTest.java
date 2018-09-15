@@ -43,8 +43,9 @@ import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
 import org.opentripplanner.routing.services.notes.StaticStreetNotesSource;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
-import org.opentripplanner.serializer.GraphDeserializerService;
+import org.opentripplanner.serializer.GraphSerializerService;
 import org.opentripplanner.serializer.GraphWrapper;
+import org.opentripplanner.serializer.ProtostuffGraphSerializer;
 import org.opentripplanner.standalone.GraphBuilderParameters;
 
 import java.io.File;
@@ -106,34 +107,8 @@ public class ProtoStuffTest extends TestCase {
         graph.index(new DefaultStreetVertexIndexFactory());
     }
 
-    /**
-     * This writeToProtostuffFile method should of course be rewritten in a similar manner to deserializing {@link org.opentripplanner.serializer.ProtostuffGraphDeserializer}
-     * Writes graph wrapper object to file using protostuff GraphIOUtil.
-     */
-    private void writeToProtostuffFile(GraphWrapper graphWrapper, Schema<GraphWrapper> schema, File file) throws IOException {
-
-        long writeToFileStarted = System.currentTimeMillis();
-
-        LinkedBuffer linkedBuffer = LinkedBuffer.allocate(1024 * 8);
-
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-
-        int written = GraphIOUtil.writeTo(fileOutputStream, graphWrapper, schema, linkedBuffer);
-
-        System.out.println("Written " + written + " bytes to protostuff FILE " + file.getName() + " in  " + (System.currentTimeMillis() - writeToFileStarted) + " ms");
-    }
-
-    private Schema<GraphWrapper> createSchema() {
-        long schemaStarted = System.currentTimeMillis();
-        Schema<GraphWrapper> schema = RuntimeSchema.getSchema(GraphWrapper.class);
-        System.out.println("Schema created in " + (System.currentTimeMillis() - schemaStarted) + " ms");
-        return schema;
-    }
-
     @Test
     public void testProtoStuffWithEdge() throws IOException, IllegalAccessException {
-
-        Schema<GraphWrapper> schema = createSchema();
 
         // Creates graph wrapper object from graph.
         GraphWrapper graphWrapper = new GraphWrapper();
@@ -143,13 +118,9 @@ public class ProtoStuffTest extends TestCase {
         String protoStuffFileName = "graph.protostuff";
         File protostuffFile = instantiateProtostuffFileWithDeleteOnExit(protoStuffFileName);
 
-        writeToProtostuffFile(graphWrapper, schema, protostuffFile);
+        GraphSerializerService graphDeserializerService = new GraphSerializerService(GraphSerializerService.PROTOSTUFF);
 
-        // Sets the deserialization method. This property is used by the GraphDeserializerService class.
-        // The intention is to use something like this to choose serialization/deserialization method.
-        System.setProperty("deserialization-method", "protostuff");
-
-        GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
+        graphDeserializerService.serialize(graphWrapper, protostuffFile);
 
         long serializeBack = System.currentTimeMillis();
 

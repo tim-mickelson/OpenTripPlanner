@@ -27,7 +27,6 @@ import org.opentripplanner.graph_builder.module.ned.DegreeGridNEDTileSource;
 import org.opentripplanner.graph_builder.module.ned.ElevationModule;
 import org.opentripplanner.graph_builder.module.ned.GeotiffGridCoverageFactoryImpl;
 import org.opentripplanner.graph_builder.module.ned.NEDGridCoverageFactoryImpl;
-import org.opentripplanner.graph_builder.module.osm.DefaultWayPropertySetSource;
 import org.opentripplanner.graph_builder.module.osm.OpenStreetMapModule;
 import org.opentripplanner.graph_builder.services.DefaultStreetEdgeFactory;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
@@ -38,7 +37,7 @@ import org.opentripplanner.reflect.ReflectionLibrary;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Graph.LoadLevel;
-import org.opentripplanner.serializer.GraphDeserializerService;
+import org.opentripplanner.serializer.GraphSerializerService;
 import org.opentripplanner.standalone.CommandLineParameters;
 import org.opentripplanner.standalone.GraphBuilderParameters;
 import org.opentripplanner.standalone.OTPMain;
@@ -77,7 +76,7 @@ public class GraphBuilder implements Runnable {
     
     private Graph graph = new Graph();
 
-    private GraphDeserializerService graphDeserializerService = new GraphDeserializerService();
+    private GraphSerializerService graphDeserializerService = new GraphSerializerService();
 
     /** Should the graph be serialized to disk after being created or not? */
     public boolean serializeGraph = true;

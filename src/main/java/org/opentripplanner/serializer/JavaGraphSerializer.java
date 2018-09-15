@@ -10,9 +10,9 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JavaGraphDeserializer implements GraphDeserializer {
+public class JavaGraphSerializer implements GraphSerializer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JavaGraphDeserializer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JavaGraphSerializer.class);
 
     @Override
     public GraphWrapper deserialize(InputStream inputStream) {
@@ -33,5 +33,10 @@ public class JavaGraphDeserializer implements GraphDeserializer {
             LOG.error("Stored graph is incompatible with this version of OTP, please rebuild it.");
             throw new GraphSerializationException("Stored Graph version error", ex);
         }
+    }
+
+    @Override
+    public void serialize(GraphWrapper graphWrapper, OutputStream outputStream) throws GraphSerializationException {
+        throw new GraphSerializationException("Not implemented / migrated from existing code");
     }
 }
