@@ -808,6 +808,15 @@
             <artifactId>kryo-serializers</artifactId>
             <version>0.42</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8</version>
+        </dependency>
+
+
         <!--
             Scripting language dependencies such as Groovy and Jython can double the size of the OTP JAR.
             Therefore we don't include them by default. You can either update the POM in your fork to include the
