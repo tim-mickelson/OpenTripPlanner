@@ -4,7 +4,7 @@ import org.glassfish.grizzly.http.server.Request;
 import org.opentripplanner.api.common.RoutingResource;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.api.model.error.PlannerError;
-import org.opentripplanner.routing.algorithm.raptor_old.RaptorRouter;
+import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.standalone.Router;

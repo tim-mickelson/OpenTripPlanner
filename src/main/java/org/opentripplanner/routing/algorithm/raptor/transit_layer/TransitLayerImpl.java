@@ -3,7 +3,6 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 import gnu.trove.list.TIntList;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.routing.algorithm.raptor_old.util.OrderedIndexPair;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
 

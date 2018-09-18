@@ -56,7 +56,7 @@ public class AccessEgressRouter {
             // At this point the vertex is closed (pulled off heap).
             // This is the lowest cost we will ever see for this vertex. We can record the cost to reach it.
             if (v instanceof TransitStop) {
-                result.put(v, createTransfer(s, fromTarget));
+                result.put((TransitStop)v, createTransfer(s, fromTarget));
                 // We don't want to continue into the transit network yet, but when searching around the target
                 // place vertices on the transit queue so we can explore the transit network backward later.
                 if (fromTarget) {

@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor_old.util;
+package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import java.util.Objects;
 

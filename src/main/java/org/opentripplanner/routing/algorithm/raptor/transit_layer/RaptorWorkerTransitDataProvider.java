@@ -1,7 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import gnu.trove.list.TIntList;
-import org.opentripplanner.routing.algorithm.raptor_old.util.BitSetIterator;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.BitSetIterator;
 
 
 /**

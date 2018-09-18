@@ -94,7 +94,7 @@ public class RaptorRouter {
          * Create itineraries
          */
 
-        ItineraryMapper itineraryMapper = new ItineraryMapper();
+        ItineraryMapper itineraryMapper = new ItineraryMapper(this.graph.transitLayer, this.graph);
 
         List<Itinerary> itineraries = new ArrayList<>();
 

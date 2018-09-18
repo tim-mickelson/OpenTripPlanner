@@ -8,10 +8,9 @@ import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.PathLeg;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.RaptorWorkerTransitDataProvider;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.Transfer;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.TransitLayer;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.TripSchedule;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.graph.Graph;
@@ -27,13 +26,11 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class ItineraryMapper {
-    private final RaptorWorkerTransitDataProvider raptorWorkerTransitDataProvider;
     private final TransitLayer transitLayer;
 
     private final Graph graph;
 
-    public ItineraryMapper(RaptorWorkerTransitDataProvider raptorWorkerTransitDataProvider, TransitLayer transitLayer, Graph graph) {
-        this.raptorWorkerTransitDataProvider = raptorWorkerTransitDataProvider;
+    public ItineraryMapper(TransitLayer transitLayer, Graph graph) {
         this.transitLayer = transitLayer;
         this.graph = graph;
     }

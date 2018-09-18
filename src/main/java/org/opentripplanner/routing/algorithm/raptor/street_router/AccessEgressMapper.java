@@ -2,8 +2,8 @@ package org.opentripplanner.routing.algorithm.raptor.street_router;
 
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.Transfer;
-import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
 
