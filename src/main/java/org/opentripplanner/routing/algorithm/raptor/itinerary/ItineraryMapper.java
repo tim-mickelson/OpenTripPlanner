@@ -7,7 +7,7 @@ import org.opentripplanner.api.model.Place;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
-import org.opentripplanner.routing.algorithm.raptor_old.Path;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.PathLeg;
 import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.RaptorWorkerTransitDataProvider;
 import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor_old.transit_layer.TransitLayer;
@@ -39,39 +39,41 @@ public class ItineraryMapper {
     }
 
     public Itinerary createItinerary(RoutingRequest request, Path2 path) {
-        Itinerary itinerary = new Itinerary();
         if (path == null) {
             return null;
         }
 
-        int walkSpeedMillimetersPerSecond = (int)(request.walkSpeed * 1000);
-        int startTimeSeconds = path.boardTimes[1] - transitLayer.getTransfer(0, path.boardStops[1]).distance / walkSpeedMillimetersPerSecond;
+        Itinerary itinerary = new Itinerary();
+
+        PathLeg accessPathLeg = path.accessLeg();
+        PathLeg egressPathLeg = path.accessLeg();
+
+        int startTimeSeconds = accessPathLeg.fromTime();
         itinerary.startTime = createCalendar(request.getDateTime(), startTimeSeconds);
-        itinerary.endTime = createCalendar(request.getDateTime(), path.transferTimes[path.transferTimes.length - 1]);
-        itinerary.duration = (long)path.transferTimes[path.transferTimes.length - 1] - startTimeSeconds;
+        itinerary.endTime = createCalendar(request.getDateTime(), egressPathLeg.toTime());
+        itinerary.duration = (long) egressPathLeg.toTime() - accessPathLeg.fromTime();
         int walkingTime = 0;
 
-        itinerary.transfers = path.patterns.length - 1;
+        itinerary.transfers = 0; // TODO count
 
-        for (int i = 0; i < path.patterns.length; i++) {
+        for (PathLeg pathLeg : path.legs()) {
             // Get stops for transit leg
-            int boardStopIndex = path.boardStops[i];
-            int alightStopIndex = path.alightStops[i];
+            int boardStopIndex = pathLeg.fromStop();
+            int alightStopIndex = pathLeg.toStop();
             Stop boardStop = transitLayer.getStopByIndex(boardStopIndex);
             Stop alightStop = transitLayer.getStopByIndex(alightStopIndex);
 
             // Create transit leg if present
-            if (boardStopIndex != -1) {
+            if (pathLeg.isTransit()) {
                 Leg transitLeg = new Leg();
 
-                int patternIndex = raptorWorkerTransitDataProvider.getScheduledIndexForOriginalPatternIndex()[path.patterns[i]];
+                int patternIndex = pathLeg.pattern();
 
-                TripSchedule tripSchedule = transitLayer.getTripPatterns()[patternIndex].tripSchedules.get(path.trips[i]);
+                TripSchedule tripSchedule = transitLayer.getTripPatterns()[patternIndex].tripSchedules.get(pathLeg.trip());
                 TripPattern tripPattern = transitLayer.getTripPatternByIndex(patternIndex);
                 Route route = tripPattern.route;
 
-                itinerary.transitTime += path.alightTimes[i] - path.boardTimes[i];
-                itinerary.waitingTime += path.boardTimes[i] - path.transferTimes[i];
+                itinerary.transitTime += pathLeg.toTime() - pathLeg.fromTime();
 
                 transitLeg.from = new Place(boardStop.getLat(), boardStop.getLon(), boardStop.getName());
                 transitLeg.from.stopId = boardStop.getId();
@@ -91,37 +93,38 @@ public class ItineraryMapper {
                 List<Coordinate> transitLegCoordinates = new ArrayList<>();
                 boolean boarded = false;
                 for (int j = 0; j < tripPattern.stopPattern.stops.length; j++) {
-                    if (!boarded && tripSchedule.departures[j] == path.boardTimes[i]) {
+                    if (!boarded && tripSchedule.departures[j] == pathLeg.fromTime() && pathLeg.fromStop() == j) {
                         boarded = true;
                     }
                     if (boarded) {
                         transitLegCoordinates.add(new Coordinate(tripPattern.stopPattern.stops[j].getLon(),
                                 tripPattern.stopPattern.stops[j].getLat()));
                     }
-                    if (boarded && tripSchedule.arrivals[j] == path.alightTimes[i]) {
+                    if (boarded && tripSchedule.arrivals[j] == pathLeg.toTime() && pathLeg.toStop() == j) {
                         break;
                     }
                 }
 
                 transitLeg.legGeometry = PolylineEncoder.createEncodings(transitLegCoordinates);
-                transitLeg.startTime = createCalendar(request.getDateTime(), path.boardTimes[i]);
-                transitLeg.endTime = createCalendar(request.getDateTime(), path.alightTimes[i]);
-                walkingTime += path.boardTimes[i] - path.alightTimes[i];
+                transitLeg.startTime = createCalendar(request.getDateTime(), pathLeg.fromTime());
+                transitLeg.endTime = createCalendar(request.getDateTime(), pathLeg.toTime());
                 itinerary.addLeg(transitLeg);
             }
 
             // Get stops for transfer leg
-            int transferFromIndex = path.alightStops[i];
-            int transferToIndex = i < path.boardStops.length - 1 ? path.boardStops[i + 1] : 1;
-            Stop transferFromStop = transitLayer.getStopByIndex(transferFromIndex);
-            Stop transferToStop = transitLayer.getStopByIndex(transferToIndex);
+
 
             // Create transfer leg if present
-            if (transferFromIndex != transferToIndex) {
+            if (pathLeg.isTransfer()) {
+                int transferFromIndex = pathLeg.fromStop();
+                int transferToIndex = pathLeg.toStop();
+                Stop transferFromStop = transitLayer.getStopByIndex(transferFromIndex);
+                Stop transferToStop = transitLayer.getStopByIndex(transferToIndex);
+
                 Transfer transfer = transitLayer.getTransfer(transferFromIndex, transferToIndex);
                 Leg transferLeg = new Leg();
-                transferLeg.startTime = i == 0 ? itinerary.startTime : createCalendar(request.getDateTime(), path.alightTimes[i]);
-                transferLeg.endTime = createCalendar(request.getDateTime(), path.transferTimes[i]);
+                transferLeg.startTime = createCalendar(request.getDateTime(), pathLeg.fromTime());
+                transferLeg.endTime = createCalendar(request.getDateTime(), pathLeg.toTime());
                 transferLeg.mode = "WALK";
                 transferLeg.from = new Place(transferFromStop.getLat(), transferFromStop.getLon(), transferFromStop.getName());
                 transferLeg.to = new Place(transferToStop.getLat(), transferToStop.getLon(), transferToStop.getName());
