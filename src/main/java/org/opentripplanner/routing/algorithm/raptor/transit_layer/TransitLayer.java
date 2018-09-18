@@ -6,6 +6,7 @@ import org.opentripplanner.routing.graph.Vertex;
 
 import java.time.LocalDate;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Map;
 
 public interface TransitLayer {
@@ -21,4 +22,5 @@ public interface TransitLayer {
     Transfer getTransfer(int fromIndex, int toIndex);
     void addAccessEgressTransfers(Map<Vertex, Transfer> transferMap, boolean mapAccess);
     void setAccessEgressStops(Stop accessStop, Stop egressStop);
+    List<TIntList> transfersForStop();
 }

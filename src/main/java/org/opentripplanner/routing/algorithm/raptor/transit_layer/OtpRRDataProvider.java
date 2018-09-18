@@ -13,9 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.List;
 
 public class OtpRRDataProvider implements TransitDataProvider {
 
@@ -40,10 +42,45 @@ public class OtpRRDataProvider implements TransitDataProvider {
     /** Allowed transit modes */
     private final TraverseModeSet transitModes;
 
+    private final List<LightweightTransferIterator> transfers;
+
+    private final int walkSpeedMillimetersPerSecond;
+
+    private static final Iterator<DurationToStop> EMPTY_TRANSFER_ITERATOR = new Iterator<DurationToStop>() {
+        @Override public boolean hasNext() { return false; }
+        @Override public DurationToStop next() { return null; }
+    };
+
     public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, TraverseModeSet transitModes) {
         this.transitLayer = transitLayer;
         this.servicesActive  = transitLayer.getActiveServicesForDate(date);
         this.transitModes = transitModes;
+        this.walkSpeedMillimetersPerSecond = (int)(1.33 * 1000f);
+        this.transfers = createTransfers(transitLayer.transfersForStop(), walkSpeedMillimetersPerSecond);
+    }
+
+    private static List<LightweightTransferIterator> createTransfers(List<TIntList> transfers, int walkSpeedMillimetersPerSecond) {
+
+        List<LightweightTransferIterator> list = new ArrayList<>();
+
+        for (int i = 0; i < transfers.size(); i++) {
+            list.add(transfersAt(transfers.get(i), walkSpeedMillimetersPerSecond));
+        }
+        return list;
+    }
+
+    private static LightweightTransferIterator transfersAt(TIntList m, int walkSpeedMillimetersPerSecond) {
+        if(m == null) return null;
+
+        int[] stopTimes = new int[m.size()];
+
+        for(int i=0; i<m.size();) {
+            stopTimes[i] = m.get(i);
+            ++i;
+            stopTimes[i] = m.get(i) / walkSpeedMillimetersPerSecond;
+            ++i;
+        }
+        return new LightweightTransferIterator(stopTimes);
     }
 
     public TransitLayer getTransitLayer() {
@@ -90,7 +127,13 @@ public class OtpRRDataProvider implements TransitDataProvider {
 
     @Override
     public Iterator<DurationToStop> getTransfers(int fromStop) {
-        return null;
+        LightweightTransferIterator it = transfers.get(fromStop);
+
+        if(it == null) return EMPTY_TRANSFER_ITERATOR;
+
+        it.reset();
+
+        return it;
     }
 
     @Override public Iterator<Pattern> patternIterator(BitSetIterator stops) {

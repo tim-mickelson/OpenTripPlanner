@@ -7,9 +7,12 @@ import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class TransitLayerImpl implements TransitLayer {
 
@@ -94,5 +97,9 @@ public class TransitLayerImpl implements TransitLayer {
     public void setAccessEgressStops(Stop accessStop, Stop egressStop) {
         stopsByIndex[0] = accessStop;
         stopsByIndex[1] = egressStop;
+    }
+
+    public List<TIntList> transfersForStop() {
+        return Arrays.stream(transfers).collect(Collectors.toList());
     }
 }

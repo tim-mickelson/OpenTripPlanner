@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr.transitadapter;
+package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.DurationToStop;
 
