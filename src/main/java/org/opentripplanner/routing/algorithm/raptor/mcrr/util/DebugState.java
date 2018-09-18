@@ -1,12 +1,12 @@
 package org.opentripplanner.routing.algorithm.raptor.mcrr.util;
 
-import org.opentripplanner.routing.algorithm.raptor.mcrr.StopState;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.standard.StopState;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.opentripplanner.routing.algorithm.raptor.mcrr.StopState.NOT_SET;
-import static org.opentripplanner.routing.algorithm.raptor.mcrr.StopState.UNREACHED;
+import static org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.standard.StopState.NOT_SET;
+import static org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.standard.StopState.UNREACHED;
 import static org.opentripplanner.routing.algorithm.raptor.mcrr.util.IntUtils.intToString;
 import static org.opentripplanner.routing.algorithm.raptor.mcrr.util.TimeUtils.timeToStrCompact;
 import static org.opentripplanner.routing.algorithm.raptor.mcrr.util.TimeUtils.timeToStrLong;
@@ -19,7 +19,6 @@ public final class DebugState {
 
     public enum Type {Access, Transfer, Transit}
 
-    private static boolean DEBUG = true;
     private static final List<Integer> DEBUG_STOPS = new ArrayList<>();
 
     private static final String STOP_HEADER = "Description Rnd  From  To     Start    End        Time   Pattern Trp";
@@ -36,12 +35,12 @@ public final class DebugState {
     private DebugState() {
     }
 
-    public static void init(List<Integer> debugStops) {
+    public static void init(boolean debug, List<Integer> debugStops) {
         if(debugStops == null) {
-            DEBUG = false;
+            Debug.setDebug(debug);
         }
         else {
-            DEBUG = true;
+            Debug.setDebug(true);
             DEBUG_STOPS.addAll(debugStops);
         }
     }
@@ -51,11 +50,11 @@ public final class DebugState {
     }
 
     public static boolean isDebug(int stop) {
-        return DEBUG && DEBUG_STOPS.contains(stop);
+        return Debug.isDebug() && DEBUG_STOPS.contains(stop);
     }
 
     public static void debugStopHeader(String newTitle, String newHeaderPostfix) {
-        if (DEBUG) {
+        if (Debug.isDebug()) {
             title = newTitle;
             headerPostfix = newHeaderPostfix;
         }
@@ -159,7 +158,7 @@ public final class DebugState {
     }
 
     private static void debugStopHeaderAtMostOnce() {
-        if (DEBUG && !title.equals(lastTitle)) {
+        if (Debug.isDebug() && !title.equals(lastTitle)) {
             System.err.println("\n" + title);
             System.err.println(STOP_HEADER + (headerPostfix == null ? "" : " | " + headerPostfix));
             lastTitle = title;

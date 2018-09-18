@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.util;
 
 import java.util.BitSet;
 

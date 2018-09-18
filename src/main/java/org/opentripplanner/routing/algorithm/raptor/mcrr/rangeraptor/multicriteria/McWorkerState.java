@@ -1,8 +1,9 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr.mc;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria;
 
-import org.opentripplanner.routing.algorithm.raptor.mcrr.BitSetIterator;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.DurationToStop;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.ArrivalTimeAtStop;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.standard.WorkerState;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.util.BitSetIterator;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.DebugState;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ import static org.opentripplanner.routing.algorithm.raptor.mcrr.util.DebugState.
  *
  * @author mattwigway
  */
-public final class McWorkerState {
+public final class McWorkerState implements WorkerState {
 
     /** Maximum duration of trips stored by this RaptorState */
     private final int maxDurationSeconds;
@@ -59,7 +60,7 @@ public final class McWorkerState {
         this.maxDurationSeconds = maxDurationSeconds;
     }
 
-    void initNewDepatureForMinute(int departureTime) {
+    @Override public void initNewDepatureForMinute(int departureTime) {
         //this.departureTime = departureTime;
         maxTimeLimit = departureTime + maxDurationSeconds;
         // clear all touched stops to avoid constant rexploration
@@ -68,18 +69,18 @@ public final class McWorkerState {
         round = 0;
     }
 
-    void setInitialTime(int stop, int fromTime,  int accessTime) {
-        stops.setInitialTime(stop, fromTime, accessTime);
+    @Override public void setInitialTime(int stop, int fromTime, int accesDurationInSeconds, int boardSlackInSeconds) {
+        stops.setInitialTime(stop, fromTime, accesDurationInSeconds, boardSlackInSeconds);
         touchedCurrent.set(stop);
         debugStops(Access, round, stop);
     }
 
-    boolean isNewRoundAvailable() {
+    @Override public boolean isNewRoundAvailable() {
         final boolean moreRoundsToGo = round < nRounds-1;
         return moreRoundsToGo && isCurrentRoundUpdated();
     }
 
-    void gotoNextRound () {
+    @Override public void gotoNextRound () {
         ++round;
     }
 
@@ -88,7 +89,7 @@ public final class McWorkerState {
         return new BitSetIterator(touchedPrevious);
     }
 
-    BitSetIterator stopsTouchedByTransitCurrentRound() {
+    @Override public BitSetIterator stopsTouchedByTransitCurrentRound() {
         swapTouchedStops();
         return new BitSetIterator(touchedPrevious);
     }
@@ -118,7 +119,7 @@ public final class McWorkerState {
     /**
      * Set the time at a transit stop iff it is optimal.
      */
-    void transferToStop(int fromStop, int targetStop, int transferTimeInSeconds) {
+    @Override public void transferToStop(int fromStop, int targetStop, int transferTimeInSeconds) {
         for(McStopState it :  stops.listArrivedByTransit(round, fromStop)) {
             int arrivalTime = it.time() + transferTimeInSeconds;
 
@@ -131,13 +132,13 @@ public final class McWorkerState {
         debugStops(Transfer, round, targetStop);
     }
 
-    Collection<Path2> extractPaths(Collection<ArrivalTimeAtStop> egressStops) {
+    Collection<Path2> extractPaths(Collection<DurationToStop> egressStops) {
         List<Path2> paths = new ArrayList<>();
-        McPath2Builder builder = new McPath2Builder();
+        McPathBuilder builder = new McPathBuilder();
 
-        for (ArrivalTimeAtStop egressStop : egressStops) {
-            for (McStopState it : stops.listAll(egressStop.stop)) {
-                Path2 p = builder.extractPathsForStop(it, egressStop.time);
+        for (DurationToStop egressStop : egressStops) {
+            for (McStopState it : stops.listAll(egressStop.stop())) {
+                Path2 p = builder.extractPathsForStop(it, egressStop.durationInSeconds());
                 if(p != null) {
                     paths.add(p);
                 }
@@ -146,7 +147,7 @@ public final class McWorkerState {
         return paths;
     }
 
-    static void debugStopHeader(String title) {
+    @Override public void debugStopHeader(String title) {
         DebugState.debugStopHeader(title,"C P");
     }
 

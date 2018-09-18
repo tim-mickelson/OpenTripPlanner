@@ -3,11 +3,12 @@ package org.opentripplanner.routing.algorithm.raptor.router;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.ArrivalTimeAtStop;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.DurationToStop;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.api.RangeRaptorRequest;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TransitDataProvider;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.mc.McRangeRaptorWorker;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.mc.McWorkerState;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria.McRangeRaptorWorker;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria.McWorkerState;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressToStopStatesMapper;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
@@ -58,8 +59,8 @@ public class RaptorRouter {
 
         AccessEgressToStopStatesMapper accessEgressToStopStatesMapper = new AccessEgressToStopStatesMapper(graph.transitLayer);
 
-        Collection<ArrivalTimeAtStop> accessTimes = accessEgressToStopStatesMapper.map(accessTransfers);
-        Collection<ArrivalTimeAtStop> egressTimes = accessEgressToStopStatesMapper.map(egressTransfers);
+        Collection<DurationToStop> accessTimes = accessEgressToStopStatesMapper.map(accessTransfers);
+        Collection<DurationToStop> egressTimes = accessEgressToStopStatesMapper.map(egressTransfers);
 
         /**
          * Prepare transit search
@@ -77,18 +78,16 @@ public class RaptorRouter {
 
         McRangeRaptorWorker worker = new McRangeRaptorWorker(
                 transitData,
-                state,
-                departureTime,
-                departureTime + 60,
-                accessTimes,
-                egressTimes
+                state
         );
 
         /**
          * Route transit
          */
 
-        Collection<Path2> paths = worker.route();
+
+
+        Collection<Path2> paths = worker.route(new RangeRaptorRequest(departureTime, departureTime + 60, accessTimes, egressTimes, 60, 60));
 
         /**
          * Create itineraries

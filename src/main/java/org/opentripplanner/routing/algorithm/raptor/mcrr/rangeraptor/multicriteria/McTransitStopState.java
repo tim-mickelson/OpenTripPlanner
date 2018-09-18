@@ -1,11 +1,9 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr.mc;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria;
 
 
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.PathLeg;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.DebugState;
 
 import static org.opentripplanner.routing.algorithm.raptor.mcrr.util.DebugState.Type.Transit;
-
 
 public final class McTransitStopState extends McStopState {
     private final int boardTime;
@@ -45,9 +43,4 @@ public final class McTransitStopState extends McStopState {
 
     @Override
     DebugState.Type type() { return Transit; }
-
-    @Override
-    PathLeg mapToLeg() {
-        return McPathLeg.createTransitLeg(this);
-    }
 }

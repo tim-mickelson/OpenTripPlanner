@@ -1,7 +1,6 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr.mc;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria;
 
-import org.opentripplanner.routing.algorithm.raptor.mcrr.StopState;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.PathLeg;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.standard.StopState;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.DebugState;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.ParetoSortable;
 
@@ -99,8 +98,6 @@ public abstract class McStopState implements StopState, ParetoSortable {
     }
 
     abstract DebugState.Type type();
-
-    abstract PathLeg mapToLeg();
 
     public void debug() {
         DebugState.debugStop(type(), round, stopIndex, this);

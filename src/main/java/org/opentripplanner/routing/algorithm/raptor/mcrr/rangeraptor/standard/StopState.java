@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.standard;
 
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.IntUtils;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.TimeUtils;

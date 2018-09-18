@@ -1,6 +1,5 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr.mc;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria;
 
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.PathLeg;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.DebugState;
 
 public final class McTransferStopState extends McStopState {
@@ -29,8 +28,4 @@ public final class McTransferStopState extends McStopState {
     @Override
     DebugState.Type type() { return DebugState.Type.Transfer; }
 
-    @Override
-    PathLeg mapToLeg() {
-        return McPathLeg.createTransferLeg(this);
-    }
 }

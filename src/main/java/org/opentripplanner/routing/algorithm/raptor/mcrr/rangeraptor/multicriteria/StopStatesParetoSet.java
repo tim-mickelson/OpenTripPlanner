@@ -1,11 +1,11 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr.mc;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria;
 
 
-import org.opentripplanner.routing.algorithm.raptor.mcrr.StopState;
+import org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.standard.StopState;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.ParetoDominanceFunctions;
 
-import static java.util.Collections.emptyList;
 import static org.opentripplanner.routing.algorithm.raptor.mcrr.util.ParetoDominanceFunctions.createParetoDominanceFunctionArray;
+import static java.util.Collections.emptyList;
 
 
 final class StopStatesParetoSet  {
@@ -24,8 +24,8 @@ final class StopStatesParetoSet  {
         this.stops = new StopStateParetoSet[stops];
     }
 
-    void setInitialTime(int stop, int fromTime,  int accessTime) {
-        findOrCreateSet(stop).add(new McAccessStopState(stop, fromTime,  accessTime));
+    void setInitialTime(int stop, int fromTime, int accessTime, int boardSlackInSeconds) {
+        findOrCreateSet(stop).add(new McAccessStopState(stop, fromTime,  accessTime, boardSlackInSeconds));
     }
 
     boolean transitToStop(StopState previous, int round, int stop, int time, int pattern, int trip, int boardTime) {

@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr.mc;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria;
 
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.ParetoDominanceFunctions;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.util.ParetoSet;

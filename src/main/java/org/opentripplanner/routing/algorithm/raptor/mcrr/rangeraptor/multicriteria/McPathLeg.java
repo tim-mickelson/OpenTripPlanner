@@ -1,30 +1,27 @@
-package org.opentripplanner.routing.algorithm.raptor.mcrr.mc;
+package org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria;
 
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.PathLeg;
 
-import static org.opentripplanner.routing.algorithm.raptor.mcrr.StopState.NOT_SET;
+import static org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.standard.StopState.NOT_SET;
 
+abstract class McPathLeg<S extends McStopState> implements PathLeg {
+    final S state;
 
-abstract class McPathLeg implements PathLeg {
-    final McStopState state;
-
-    private McPathLeg(McStopState state) {
+    private McPathLeg(S state) {
         this.state = state;
     }
 
-    static PathLeg createAccessLeg(McStopState state, int fromTime) {
-        return new AccessLeg(state, fromTime);
+    static PathLeg createAccessLeg(McAccessStopState state, int boardTimeFirstTransitLeg) {
+        return new AccessLeg(state, boardTimeFirstTransitLeg);
     }
 
-    static PathLeg createTransitLeg(McStopState state) {
-        return new TransitLeg(state);
+    static PathLeg createLeg(McStopState state) {
+        return state.arrivedByTransit()
+                ? new TransitLeg((McTransitStopState) state)
+                : new TransferLeg((McTransferStopState) state);
     }
 
-    static PathLeg createTransferLeg(McStopState state) {
-        return new TransferLeg(state);
-    }
-
-    static PathLeg createEgressLeg(McStopState state, int egressTime) {
+    static PathLeg createEgressLeg(McTransitStopState state, int egressTime) {
         return new EgressLeg(state, egressTime);
     }
 
@@ -64,9 +61,9 @@ abstract class McPathLeg implements PathLeg {
     }
 
 
-    private static final class TransitLeg extends McPathLeg {
+    private static final class TransitLeg extends McPathLeg<McTransitStopState> {
 
-        private TransitLeg(McStopState state) {
+        private TransitLeg(McTransitStopState state) {
             super(state);
         }
 
@@ -81,9 +78,9 @@ abstract class McPathLeg implements PathLeg {
         }
     }
 
-    private static final class TransferLeg extends McPathLeg {
+    private static final class TransferLeg extends McPathLeg<McTransferStopState> {
 
-        private TransferLeg(McStopState state) {
+        private TransferLeg(McTransferStopState state) {
             super(state);
         }
 
@@ -98,31 +95,33 @@ abstract class McPathLeg implements PathLeg {
         }
     }
 
-    private static final class AccessLeg extends McPathLeg {
-        private int fromTime;
+    private static final class AccessLeg extends McPathLeg<McAccessStopState> {
+        private final int fromTime;
+        private final int toTime;
 
-        private AccessLeg(McStopState state, int fromTime) {
+        private AccessLeg(McAccessStopState state, int boardTimeFirstTransitLeg) {
             super(state);
-            this.fromTime = fromTime;
+            this.toTime = boardTimeFirstTransitLeg - state.boardSlackInSeconds;
+            this.fromTime = this.toTime - state.accessDuationInSeconds;
         }
 
-        @Override
-        public int fromStop() {
+        @Override public int fromStop() {
             return NOT_SET;
         }
 
-        @Override
-        public int fromTime() {
-            return fromTime;
+        @Override public int fromTime() { return fromTime; }
+
+        @Override public int toTime() {
+            return toTime;
         }
     }
 
 
     /** TODO TGR  - This class should be simplefied, when the egress path becomes part of mc raptor */
-    private static final class EgressLeg extends McPathLeg {
+    private static final class EgressLeg extends McPathLeg<McTransitStopState> {
         private int egressTime;
 
-        private EgressLeg(McStopState fromState, int egressTime) {
+        private EgressLeg(McTransitStopState fromState, int egressTime) {
             super(fromState);
             this.egressTime = egressTime;
         }
