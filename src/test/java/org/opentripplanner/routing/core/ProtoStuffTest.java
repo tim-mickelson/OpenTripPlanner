@@ -28,8 +28,13 @@ import org.opentripplanner.graph_builder.GraphBuilder;
 import org.opentripplanner.graph_builder.model.GtfsBundle;
 import org.opentripplanner.graph_builder.module.GtfsModule;
 import org.opentripplanner.graph_builder.module.StreetLinkerModule;
+import org.opentripplanner.graph_builder.module.ned.ElevationModule;
+import org.opentripplanner.graph_builder.module.ned.GeotiffGridCoverageFactoryImpl;
+import org.opentripplanner.graph_builder.module.ned.NEDGridCoverageFactoryImpl;
 import org.opentripplanner.graph_builder.module.osm.OpenStreetMapModule;
 import org.opentripplanner.graph_builder.services.DefaultStreetEdgeFactory;
+import org.opentripplanner.graph_builder.services.GraphBuilderModule;
+import org.opentripplanner.graph_builder.services.ned.ElevationGridCoverageFactory;
 import org.opentripplanner.openstreetmap.impl.AnyFileBasedOpenStreetMapProviderImpl;
 import org.opentripplanner.openstreetmap.services.OpenStreetMapProvider;
 import org.opentripplanner.routing.algorithm.AStar;
@@ -76,9 +81,12 @@ public class ProtoStuffTest extends TestCase {
 
         List<OpenStreetMapProvider> osmProviders = Lists.newArrayList();
 
-//         OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("norway-latest.osm.pbf"));
+
+
+//        OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File("norway-latest.osm.pbf"));
         OpenStreetMapProvider osmProvider = new AnyFileBasedOpenStreetMapProviderImpl(new File(ConstantsForTests.OSLO_MINIMAL_OSM));
         osmProviders.add(osmProvider);
+
         OpenStreetMapModule osmModule = new OpenStreetMapModule(osmProviders);
         DefaultStreetEdgeFactory streetEdgeFactory = new DefaultStreetEdgeFactory();
         osmModule.edgeFactory = streetEdgeFactory;
@@ -95,6 +103,13 @@ public class ProtoStuffTest extends TestCase {
         graphBuilder.addModule(gtfsModule);
         graphBuilder.addModule(new StreetLinkerModule());
         graphBuilder.serializeGraph = false;
+
+        // Load the elevation from a file in the graph inputs directory
+        ElevationGridCoverageFactory gcf = new GeotiffGridCoverageFactoryImpl(new File("norge_dem_50m_33.tif"));
+        GraphBuilderModule elevationBuilder = new ElevationModule(gcf);
+        graphBuilder.addModule(elevationBuilder);
+
+
         graphBuilder.run();
 
         graph = graphBuilder.getGraph();
@@ -104,6 +119,11 @@ public class ProtoStuffTest extends TestCase {
     @Test
     public void testProtoStuff() throws IOException, IllegalAccessException {
         testSerializeDeserialize(GraphSerializerService.PROTOSTUFF);
+    }
+
+    @Test
+    public void testJava() throws IOException, IllegalAccessException {
+        testSerializeDeserialize("JAVA");
     }
 
 
@@ -190,7 +210,7 @@ public class ProtoStuffTest extends TestCase {
      */
     private File instantiateFileDeleteOnExit(String filename) {
         File protostuffFile = new File(filename);
-        protostuffFile.deleteOnExit();
+//        protostuffFile.deleteOnExit();
 
 
         if (protostuffFile.exists()) {
