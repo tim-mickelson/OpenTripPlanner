@@ -98,7 +98,7 @@ public class RaptorRouter {
 
         List<Itinerary> itineraries = new ArrayList<>();
 
-        for (Path2 p : paths.stream().limit(request.numItineraries).collect(Collectors.toList())) {
+        for (Path2 p : paths.stream().sorted((p1, p2) -> Integer.compare(p1.egressLeg().toTime(), p2.egressLeg().toTime())).limit(request.numItineraries).collect(Collectors.toList())) {
             itineraries.add(itineraryMapper.createItinerary(request, p));
         }
 
