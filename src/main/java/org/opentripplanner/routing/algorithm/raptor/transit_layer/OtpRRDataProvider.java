@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class OtpRRDataProvider implements TransitDataProvider {
 
@@ -30,10 +31,10 @@ public class OtpRRDataProvider implements TransitDataProvider {
     /** Array mapping from original pattern indices to the filtered scheduled indices */
     private int[] scheduledIndexForOriginalPatternIndex;
 
-    /** Schedule-based trip patterns running on a given day */
+    /** Schedule-based trip tripPatterns running on a given day */
     private TripPattern[] runningScheduledPatterns;
 
-    /** Map from internal, filtered pattern indices back to original pattern indices for scheduled patterns */
+    /** Map from internal, filtered pattern indices back to original pattern indices for scheduled tripPatterns */
     private int[] originalPatternIndexForScheduledIndex;
 
     /** Services active on the date of the search */
@@ -91,10 +92,10 @@ public class OtpRRDataProvider implements TransitDataProvider {
         return transitLayer.getPatternsForStop(stop);
     }
 
-    /** Prefilter the patterns to only ones that are running */
+    /** Prefilter the tripPatterns to only ones that are running */
     public void init() {
         TIntList scheduledPatterns = new TIntArrayList();
-        scheduledIndexForOriginalPatternIndex = new int[transitLayer.getTripPatterns().length];
+        scheduledIndexForOriginalPatternIndex = new int[transitLayer.getTripPatterns().size()];
         Arrays.fill(scheduledIndexForOriginalPatternIndex, -1);
 
         int patternIndex = -1; // first increment lands at 0
@@ -106,7 +107,7 @@ public class OtpRRDataProvider implements TransitDataProvider {
             TraverseMode mode = pattern.transitModesSet;
             if (pattern.containsServices.intersects(servicesActive) && transitModes.contains(mode)) {
                 // at least one trip on this pattern is relevant, based on the profile request's date and modes
-                if (pattern.hasSchedules) { // NB not else b/c we still support combined frequency and schedule patterns.
+                if (pattern.hasSchedules) { // NB not else b/c we still support combined frequency and schedule tripPatterns.
                     scheduledPatterns.add(patternIndex);
                     scheduledIndexForOriginalPatternIndex[patternIndex] = scheduledIndex++;
                 }
@@ -115,12 +116,12 @@ public class OtpRRDataProvider implements TransitDataProvider {
 
         originalPatternIndexForScheduledIndex = scheduledPatterns.toArray();
 
-        // TODO check this
-        runningScheduledPatterns = transitLayer.getTripPatterns();
+        runningScheduledPatterns = IntStream.of(originalPatternIndexForScheduledIndex)
+                .mapToObj(transitLayer.tripPatterns::get).toArray(TripPattern[]::new);
 
         if (PRINT_REFILTERING_PATTERNS_INFO) {
-            LOG.info("Prefiltering patterns based on date active reduced {} patterns to {} scheduled patterns",
-                    transitLayer.getTripPatterns().length, scheduledPatterns.size());
+            LOG.info("Prefiltering tripPatterns based on date active reduced {} tripPatterns to {} scheduled tripPatterns",
+                    transitLayer.getTripPatterns().size(), scheduledPatterns.size());
             PRINT_REFILTERING_PATTERNS_INFO = false;
         }
     }
@@ -155,7 +156,7 @@ public class OtpRRDataProvider implements TransitDataProvider {
                 int filteredPattern = scheduledIndexForOriginalPatternIndex[originalPattern];
 
                 if (filteredPattern < 0) {
-                    return true; // this pattern does not exist in the local subset of patterns, continue iteration
+                    return true; // this pattern does not exist in the local subset of tripPatterns, continue iteration
                 }
 
                 patternsTouched.set(filteredPattern);

@@ -29,19 +29,19 @@ public class TransitLayerMapper {
     private static final Logger LOG = LoggerFactory.getLogger(TransitLayerMapper.class);
 
     private Graph graph;
-    private TransitLayerImpl transitLayer;
+    private TransitLayer transitLayer;
 
     private static final int RESERVED_STOPS = 2;
     private static final double WALK_SPEED = 5; // km/h
 
-    public TransitLayerImpl map(Graph graph) {
+    public TransitLayer map(Graph graph) {
         this.graph = graph;
-        this.transitLayer = new TransitLayerImpl();
+        this.transitLayer = new TransitLayer();
         LOG.info("Creating stop maps...");
         createStopMaps();
         LOG.info("Mapping services...");
         mapServices();
-        LOG.info("Mapping trip patterns...");
+        LOG.info("Mapping trip tripPatterns...");
         mapTripPatterns();
         LOG.info("Mapping transfers...");
         mapTransfers();
@@ -76,12 +76,12 @@ public class TransitLayerMapper {
         }
     }
 
-    /** Map trip patterns and trips to Raptor classes */
+    /** Map trip tripPatterns and trips to Raptor classes */
     private void mapTripPatterns() {
         List<org.opentripplanner.routing.edgetype.TripPattern> originalTripPatterns = new ArrayList<>(graph.index.patternForId.values());
         transitLayer.tripPatternByIndex = new org.opentripplanner.routing.edgetype.TripPattern[originalTripPatterns.size()];
         transitLayer.tripByIndex = new ArrayList[originalTripPatterns.size()];
-        transitLayer.patterns = new TripPattern[originalTripPatterns.size()];
+        transitLayer.tripPatterns = new ArrayList();
         transitLayer.patternsByStop = new TIntList[transitLayer.stopsByIndex.length];
         for (int i = 0; i < transitLayer.patternsByStop.length; i++) {
             transitLayer.patternsByStop[i] = new TIntArrayList();
@@ -114,7 +114,7 @@ public class TransitLayerMapper {
                 newTripPattern.tripSchedules.add(tripSchedule);
             }
             newTripPattern.hasSchedules = !newTripPattern.tripSchedules.isEmpty();
-            transitLayer.patterns[patternIndex] = newTripPattern;
+            transitLayer.tripPatterns.add(newTripPattern);
         }
     }
 

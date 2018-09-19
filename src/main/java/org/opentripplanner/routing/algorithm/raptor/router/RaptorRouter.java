@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Does a complete transit search, including access and egress legs.
@@ -97,7 +98,7 @@ public class RaptorRouter {
 
         List<Itinerary> itineraries = new ArrayList<>();
 
-        for (Path2 p : paths) {
+        for (Path2 p : paths.stream().limit(request.numItineraries).collect(Collectors.toList())) {
             itineraries.add(itineraryMapper.createItinerary(request, p));
         }
 

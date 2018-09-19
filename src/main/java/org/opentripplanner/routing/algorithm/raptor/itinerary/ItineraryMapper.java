@@ -66,7 +66,7 @@ public class ItineraryMapper {
 
                 int patternIndex = pathLeg.pattern();
 
-                TripSchedule tripSchedule = transitLayer.getTripPatterns()[patternIndex].tripSchedules.get(pathLeg.trip());
+                TripSchedule tripSchedule = transitLayer.tripPatterns.get(patternIndex).tripSchedules.get(pathLeg.trip());
                 TripPattern tripPattern = transitLayer.getTripPatternByIndex(patternIndex);
                 Route route = tripPattern.route;
 
