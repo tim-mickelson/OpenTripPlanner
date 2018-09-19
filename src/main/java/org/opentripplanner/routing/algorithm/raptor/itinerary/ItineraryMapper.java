@@ -47,11 +47,27 @@ public class ItineraryMapper {
 
         int startTimeSeconds = accessPathLeg.fromTime();
         itinerary.startTime = createCalendar(request.getDateTime(), startTimeSeconds);
-        itinerary.endTime = createCalendar(request.getDateTime(), egressPathLeg.toTime());
+        itinerary.endTime = createCalendar(request.getDateTime(), accessPathLeg.toTime());
         itinerary.duration = (long) egressPathLeg.toTime() - accessPathLeg.fromTime();
         int walkingTime = 0;
 
         itinerary.transfers = 0; // TODO count
+
+        int accessToIndex = accessPathLeg.toStop();
+        //Stop transferFromStop = transitLayer.getStopByIndex(transferFromIndex); // TODO
+        Stop accessToStop = transitLayer.getStopByIndex(accessToIndex);
+
+        Leg accessLeg = new Leg();
+        accessLeg.startTime = createCalendar(request.getDateTime(), accessPathLeg.fromTime());
+        accessLeg.endTime = createCalendar(request.getDateTime(), accessPathLeg.toTime());
+        accessLeg.mode = "WALK";
+        accessLeg.from = new Place(accessToStop.getLat(), accessToStop.getLon(), accessToStop.getName()); // TODO Fix
+        accessLeg.to = new Place(accessToStop.getLat(), accessToStop.getLon(), accessToStop.getName());
+        //transferLeg.legGeometry = PolylineEncoder.createEncodings(transfer.coordinates); // TODO
+        accessLeg.distance = 0.0;
+        itinerary.addLeg(accessLeg);
+
+        int lastTime = 0;
 
         for (PathLeg pathLeg : path.legs()) {
             // Get stops for transit leg
@@ -63,6 +79,8 @@ public class ItineraryMapper {
             // Create transit leg if present
             if (pathLeg.isTransit()) {
                 Leg transitLeg = new Leg();
+
+                lastTime = pathLeg.toTime();
 
                 int patternIndex = pathLeg.pattern();
 
@@ -132,6 +150,23 @@ public class ItineraryMapper {
                 itinerary.addLeg(transferLeg);
             }
         }
+
+        int egressToIndex = egressPathLeg.toStop();
+        Stop egressFromStop = transitLayer.getStopByIndex(egressToIndex);
+
+        Leg egressLeg = new Leg();
+        int egressDuration = egressPathLeg.toTime() - egressPathLeg.fromTime();
+        int newEgressToTime = lastTime + egressDuration;
+
+
+        egressLeg.startTime = createCalendar(request.getDateTime(), lastTime);
+        egressLeg.endTime = createCalendar(request.getDateTime(), newEgressToTime);
+        egressLeg.mode = "WALK";
+        egressLeg.from = new Place(egressFromStop.getLat(), egressFromStop.getLon(), egressFromStop.getName()); // TODO Fix
+        egressLeg.to = new Place(egressFromStop.getLat(), egressFromStop.getLon(), egressFromStop.getName());
+        //transferLeg.legGeometry = PolylineEncoder.createEncodings(transfer.coordinates); // TODO
+        egressLeg.distance = 0.0;
+        itinerary.addLeg(egressLeg);
 
         itinerary.walkTime = walkingTime;
         itinerary.walkDistance = walkingTime / request.walkSpeed;
