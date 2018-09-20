@@ -11,45 +11,33 @@ import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TransitDataProvider
 import org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria.McRangeRaptorWorker;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.rangeraptor.multicriteria.McWorkerState;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
-import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressToStopStatesMapper;
+import org.opentripplanner.routing.algorithm.raptor.street_router.DuationToStopMapper;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerMapper;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.core.RoutingRequest;
-import org.opentripplanner.routing.graph.Graph;
-import org.opentripplanner.routing.vertextype.TransitStop;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Does a complete transit search, including access and egress legs.
  */
 public class RaptorRouter {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RaptorRouter.class);
-
     private final TransitDataProvider otpRRDataProvider;
-    private final Graph graph;
+    private final TransitLayer transitLayer;
     private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
+    private static final int SEARCH_RANGE = 4 * 60 * 60;
 
-    public RaptorRouter(RoutingRequest request, Graph graph) {
-        // Map transitLayer again to remove temporary transfers
-        TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
-        graph.transitLayer = transitLayerMapper.map(graph);
-
-        this.otpRRDataProvider = new OtpRRDataProvider(graph.transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes);
-        this.graph = graph;
+    public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
+        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes);
+        this.transitLayer = transitLayer;
     }
 
     public TripPlan route(RoutingRequest request) {
+
         /**
          * Prepare access/egress transfers
          */
@@ -59,47 +47,48 @@ public class RaptorRouter {
         Map<Stop, Transfer> egressTransfers =
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
-        AccessEgressToStopStatesMapper accessEgressToStopStatesMapper = new AccessEgressToStopStatesMapper(graph.transitLayer);
-
-        Collection<DurationToStop> accessTimes = accessEgressToStopStatesMapper.map(accessTransfers);
-        Collection<DurationToStop> egressTimes = accessEgressToStopStatesMapper.map(egressTransfers);
+        DuationToStopMapper duationToStopMapper = new DuationToStopMapper(transitLayer);
+        Collection<DurationToStop> accessTimes = duationToStopMapper.map(accessTransfers);
+        Collection<DurationToStop> egressTimes = duationToStopMapper.map(egressTransfers);
 
         /**
          * Prepare transit search
          */
 
-        int departureTime = Instant.ofEpochMilli(request.dateTime*1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
-
-        TransitDataProvider transitData = this.otpRRDataProvider;
-
-        McWorkerState state = new McWorkerState(
-                request.maxTransfers + 5,
-                graph.transitLayer.getStopCount(),
-                MAX_DURATION_SECONDS
-        );
-
         McRangeRaptorWorker worker = new McRangeRaptorWorker(
-                transitData,
-                state
-        );
+                this.otpRRDataProvider,
+                new McWorkerState(
+                request.maxTransfers + 5,
+                    transitLayer.getStopCount(),
+                    MAX_DURATION_SECONDS
+        ));
 
         /**
          * Route transit
          */
 
+        int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay() + 3600;
 
-
-        Collection<Path2> paths = worker.route(new RangeRaptorRequest(departureTime, departureTime + 60, accessTimes, egressTimes, 60, 60));
+        Collection<Path2> paths = worker.route(
+                new RangeRaptorRequest(
+                        departureTime,
+                        departureTime + SEARCH_RANGE,
+                        accessTimes,
+                        egressTimes,
+                        60,
+                        60));
 
         /**
          * Create itineraries
          */
 
-        ItineraryMapper itineraryMapper = new ItineraryMapper(this.graph.transitLayer, this.graph);
+        ItineraryMapper itineraryMapper = new ItineraryMapper(transitLayer, request);
 
         List<Itinerary> itineraries = new ArrayList<>();
 
-        for (Path2 p : paths.stream().sorted((p1, p2) -> Integer.compare(p1.egressLeg().toTime(), p2.egressLeg().toTime())).limit(request.numItineraries).collect(Collectors.toList())) {
+        // Limit paths to number of itineraries requested
+        for (Path2 p : paths.stream().sorted(Comparator.comparing(p -> p.egressLeg().toTime()))
+                .limit(request.numItineraries).collect(Collectors.toList())) {
             itineraries.add(itineraryMapper.createItinerary(request, p, accessTransfers, egressTransfers));
         }
 

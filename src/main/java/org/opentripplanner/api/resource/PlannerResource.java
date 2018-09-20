@@ -68,7 +68,7 @@ public class PlannerResource extends RoutingResource {
         router = otpServer.getRouter(request.routerId);
         request.setRoutingContext(router.graph);
 
-        RaptorRouter raptorRouter = new RaptorRouter(request, router.graph);
+        RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
         TripPlan plan = raptorRouter.route(request);
 
         response.setPlan(plan);

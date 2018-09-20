@@ -11,10 +11,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class AccessEgressToStopStatesMapper {
+public class DuationToStopMapper {
     private TransitLayer transitLayer;
 
-    public AccessEgressToStopStatesMapper(TransitLayer transitLayer) {
+    public DuationToStopMapper(TransitLayer transitLayer) {
         this.transitLayer = transitLayer;
     }
 
