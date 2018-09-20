@@ -1,7 +1,9 @@
 package org.opentripplanner.routing.algorithm.raptor.street_router;
 
+import com.sun.media.imageioimpl.plugins.jpeg2000.DataEntryURLBox;
 import com.vividsolutions.jts.geom.Coordinate;
 import org.opentripplanner.common.pqueue.BinHeap;
+import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.strategies.InterleavedBidirectionalHeuristic;
 import org.opentripplanner.routing.core.RoutingRequest;
@@ -26,9 +28,9 @@ import java.util.Map;
 public class AccessEgressRouter {
     private static Logger LOG = LoggerFactory.getLogger(InterleavedBidirectionalHeuristic.class);
 
-    public static Map<TransitStop, Transfer> streetSearch (RoutingRequest rr, boolean fromTarget, long abortTime) {
+    public static Map<Stop, Transfer> streetSearch (RoutingRequest rr, boolean fromTarget, long abortTime) {
         rr.maxWalkDistance = 5000;
-        Map<TransitStop, Transfer> result = new HashMap<>();
+        Map<TransitStop, Transfer> transitStopsFound = new HashMap<>();
         BinHeap<Vertex> transitQueue = new BinHeap<>();
         double maxWeightSeen = 0;
         LOG.debug("Heuristic street search around the {}.", fromTarget ? "target" : "origin");
@@ -56,7 +58,7 @@ public class AccessEgressRouter {
             // At this point the vertex is closed (pulled off heap).
             // This is the lowest cost we will ever see for this vertex. We can record the cost to reach it.
             if (v instanceof TransitStop) {
-                result.put((TransitStop)v, createTransfer(s, fromTarget));
+                transitStopsFound.put((TransitStop)v, createTransfer(s, fromTarget));
                 // We don't want to continue into the transit network yet, but when searching around the target
                 // place vertices on the transit queue so we can explore the transit network backward later.
                 if (fromTarget) {
@@ -92,9 +94,14 @@ public class AccessEgressRouter {
                 }
             }
         }
-        LOG.debug("Heuristric street search hit {} vertices.", result.size());
+        LOG.debug("Heuristric street search hit {} vertices.", transitStopsFound.size());
         LOG.debug("Heuristric street search hit {} transit stops.", transitQueue.size());
-        
+
+        Map<Stop, Transfer> result = new HashMap<>();
+        for (Map.Entry<TransitStop, Transfer> entry : transitStopsFound.entrySet()) {
+            result.put(entry.getKey().getStop(), entry.getValue());
+        }
+
         return result;
     }
 

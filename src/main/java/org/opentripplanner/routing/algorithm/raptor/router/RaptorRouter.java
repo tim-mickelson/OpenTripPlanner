@@ -2,6 +2,7 @@ package org.opentripplanner.routing.algorithm.raptor.router;
 
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
+import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.DurationToStop;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
@@ -53,9 +54,9 @@ public class RaptorRouter {
          * Prepare access/egress transfers
          */
 
-        Map<TransitStop, Transfer> accessTransfers =
+        Map<Stop, Transfer> accessTransfers =
             AccessEgressRouter.streetSearch(request, false, Integer.MAX_VALUE);
-        Map<TransitStop, Transfer> egressTransfers =
+        Map<Stop, Transfer> egressTransfers =
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
         AccessEgressToStopStatesMapper accessEgressToStopStatesMapper = new AccessEgressToStopStatesMapper(graph.transitLayer);
@@ -99,7 +100,7 @@ public class RaptorRouter {
         List<Itinerary> itineraries = new ArrayList<>();
 
         for (Path2 p : paths.stream().sorted((p1, p2) -> Integer.compare(p1.egressLeg().toTime(), p2.egressLeg().toTime())).limit(request.numItineraries).collect(Collectors.toList())) {
-            itineraries.add(itineraryMapper.createItinerary(request, p));
+            itineraries.add(itineraryMapper.createItinerary(request, p, accessTransfers, egressTransfers));
         }
 
         TripPlan tripPlan = new TripPlan();

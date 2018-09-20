@@ -18,11 +18,11 @@ public class AccessEgressToStopStatesMapper {
         this.transitLayer = transitLayer;
     }
 
-    public Collection<DurationToStop> map(Map<TransitStop, Transfer> input) {
+    public Collection<DurationToStop> map(Map<Stop, Transfer> input) {
         List result = new ArrayList();
-        for (Map.Entry entry : input.entrySet()) {
-            Stop stop = ((TransitStop)entry.getKey()).getStop();
-            int duration = (int)Math.floor(((Transfer)entry.getValue()).distance / 1000.0 / 1.33);
+        for (Map.Entry<Stop, Transfer> entry : input.entrySet()) {
+            Stop stop = entry.getKey();
+            int duration = (int)Math.floor((entry.getValue()).distance / 1000.0 / 1.33);
             int stopIndex = transitLayer.getIndexByStop(stop);
             DurationToStop arrivalTimeAtStop = new DurationToStop() {
                 @Override
