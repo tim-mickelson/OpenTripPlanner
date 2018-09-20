@@ -16,7 +16,7 @@ import java.util.List;
 
 public class ProtostuffGraphSerializer implements GraphSerializer {
 
-    private static final long SIZE_LIMIT = Long.MAX_VALUE;
+    private static final int SIZE_LIMIT = Integer.MAX_VALUE;
     private static final Logger LOG = LoggerFactory.getLogger(ProtostuffGraphSerializer.class);
 
     private final Schema<GraphWrapper> schema;
@@ -42,7 +42,7 @@ public class ProtostuffGraphSerializer implements GraphSerializer {
             GraphWrapper deserializedGraph = schema.newMessage();
 
             CodedInput input = new CodedInput(inputStream, true);
-            input.setSizeLimit(Long.MAX_VALUE);
+            input.setSizeLimit(Integer.MAX_VALUE);
             GraphCodedInput graphInput = new GraphCodedInput(input);
             schema.mergeFrom(graphInput, deserializedGraph);
             input.checkLastTagWas(0);
