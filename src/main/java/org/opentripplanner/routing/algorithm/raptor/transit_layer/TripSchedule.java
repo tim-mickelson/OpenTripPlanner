@@ -22,6 +22,8 @@ public class TripSchedule implements TripScheduleInfo {
 
     public int serviceCode;
 
+    public int dayOffset;
+
     public Integer headwaySeconds;
 
     @Override

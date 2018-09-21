@@ -26,7 +26,8 @@ public class TransitLayerMapper {
     private TransitLayer transitLayer;
 
     private static final int RESERVED_STOPS = 2;
-    private static final double WALK_SPEED = 5; // km/h
+    private static final int TIME_EXPANSION_NO_DAYS = 7;
+    private static final int SECONDS_OF_DAY = 60 * 60 * 24;
 
     public TransitLayer map(Graph graph) {
         this.graph = graph;
@@ -39,6 +40,7 @@ public class TransitLayerMapper {
         mapTripPatterns();
         LOG.info("Mapping transfers...");
         mapTransfers();
+        LOG.info("Time-expanding trips");
         return this.transitLayer;
     }
 
@@ -99,18 +101,21 @@ public class TransitLayerMapper {
                     .sorted(Comparator.comparing(t -> t.getArrivalTime(0)))
                     .collect(Collectors.toList());
 
-            for (TripTimes tripTimes : sortedTripTimes) {
-                transitLayer.tripByIndex[patternIndex].add(tripTimes.trip);
-                TripSchedule tripSchedule = new TripSchedule();
-                tripSchedule.arrivals = new int[stopPattern.length];
-                tripSchedule.departures = new int[stopPattern.length];
-                for (int i = 0; i < tripPattern.stopPattern.size; i++) {
-                    tripSchedule.arrivals[i] = tripTimes.getArrivalTime(i);
-                    tripSchedule.departures[i] = tripTimes.getDepartureTime(i);
+            for (int day = 0; day < TIME_EXPANSION_NO_DAYS; day++) {
+                for (TripTimes tripTimes : sortedTripTimes) {
+                    transitLayer.tripByIndex[patternIndex].add(tripTimes.trip);
+                    TripSchedule tripSchedule = new TripSchedule();
+                    tripSchedule.dayOffset = day;
+                    tripSchedule.arrivals = new int[stopPattern.length];
+                    tripSchedule.departures = new int[stopPattern.length];
+                    for (int i = 0; i < tripPattern.stopPattern.size; i++) {
+                        tripSchedule.arrivals[i] = tripTimes.getArrivalTime(i) + day * SECONDS_OF_DAY;
+                        tripSchedule.departures[i] = tripTimes.getDepartureTime(i) + day * SECONDS_OF_DAY;
+                    }
+                    tripSchedule.serviceCode = tripTimes.serviceCode;
+                    newTripPattern.containsServices.set(tripTimes.serviceCode);
+                    newTripPattern.tripSchedules.add(tripSchedule);
                 }
-                tripSchedule.serviceCode = tripTimes.serviceCode;
-                newTripPattern.containsServices.set(tripTimes.serviceCode);
-                newTripPattern.tripSchedules.add(tripSchedule);
             }
             newTripPattern.hasSchedules = !newTripPattern.tripSchedules.isEmpty();
             transitLayer.tripPatterns.add(newTripPattern);

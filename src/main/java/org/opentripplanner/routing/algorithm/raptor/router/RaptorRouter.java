@@ -31,11 +31,11 @@ import java.util.stream.Collectors;
 public class RaptorRouter {
     private final TransitDataProvider otpRRDataProvider;
     private final TransitLayer transitLayer;
-    private static final int MAX_DURATION_SECONDS = 24 * 60 * 60;
+    private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
     private static final int SEARCH_RANGE_SECONDS = 60;
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
-        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes, request.walkSpeed);
+        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), 7, request.modes, request.walkSpeed);
         this.transitLayer = transitLayer;
     }
 
