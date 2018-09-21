@@ -29,7 +29,7 @@ public class RaptorRouter {
     private final TransitDataProvider otpRRDataProvider;
     private final TransitLayer transitLayer;
     private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
-    private static final int SEARCH_RANGE = 4 * 60 * 60;
+    private static final int SEARCH_RANGE = 60;
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
         this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes);
@@ -67,7 +67,7 @@ public class RaptorRouter {
          * Route transit
          */
 
-        int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay() + 3600;
+        int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
         Collection<Path2> paths = worker.route(
                 new RangeRaptorRequest(

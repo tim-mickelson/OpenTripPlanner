@@ -15,13 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TransitLayerMapper {
@@ -100,7 +94,12 @@ public class TransitLayerMapper {
                 transitLayer.patternsByStop[stopIndex].add(patternIndex);
             }
             newTripPattern.stopPattern = stopPattern;
-            for (TripTimes tripTimes : tripPattern.scheduledTimetable.tripTimes) {
+
+            List<TripTimes> sortedTripTimes = tripPattern.scheduledTimetable.tripTimes.stream()
+                    .sorted(Comparator.comparing(t -> t.getArrivalTime(0)))
+                    .collect(Collectors.toList());
+
+            for (TripTimes tripTimes : sortedTripTimes) {
                 transitLayer.tripByIndex[patternIndex].add(tripTimes.trip);
                 TripSchedule tripSchedule = new TripSchedule();
                 tripSchedule.arrivals = new int[stopPattern.length];
