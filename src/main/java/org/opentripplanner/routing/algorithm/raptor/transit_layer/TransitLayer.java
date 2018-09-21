@@ -29,18 +29,17 @@ public class TransitLayer {
     public List<Trip>[] tripByIndex;
     public Map<OrderedIndexPair, Transfer> transferMap;
 
-    public BitSet getActiveServicesForDate(LocalDate date) {
-        BitSet acticeServices = new BitSet();
-        for (int i = 0; i < this.services.size(); i++) {
-            if (this.services.get(i).activeOn(date)) {
-                acticeServices.set(i);
+    public BitSet[] getActiveServicesForDates(LocalDate date, int dayRange) {
+        BitSet[] activeServicesPerDay = new BitSet[dayRange];
+        for (int day = 0; day < dayRange; day++) {
+            activeServicesPerDay[day] = new BitSet();
+            for (int i = 0; i < this.services.size(); i++) {
+                if (this.services.get(i).activeOn(date.plusDays(day))) {
+                    activeServicesPerDay[day].set(i);
+                }
             }
         }
-        return acticeServices;
-    }
-
-    public TIntList getTransfersForStop(int stop) {
-        return transfers[stop];
+        return activeServicesPerDay;
     }
 
     public TIntList getPatternsForStop(int stop) {

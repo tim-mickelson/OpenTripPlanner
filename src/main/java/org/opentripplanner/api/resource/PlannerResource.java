@@ -16,8 +16,9 @@ import org.glassfish.grizzly.http.server.Request;
 import org.opentripplanner.api.common.RoutingResource;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.api.model.error.PlannerError;
+import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.core.RoutingRequest;
-import org.opentripplanner.routing.impl.GraphPathFinder;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.standalone.Router;
 import org.slf4j.Logger;
@@ -55,7 +56,6 @@ public class PlannerResource extends RoutingResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + Q, MediaType.TEXT_XML + Q })
     public Response plan(@Context UriInfo uriInfo, @Context Request grizzlyRequest) {
-
         /*
          * TODO: add Lang / Locale parameter, and thus get localized content (Messages & more...)
          * TODO: from/to inputs should be converted / geocoded / etc... here, and maybe send coords 
@@ -70,32 +70,23 @@ public class PlannerResource extends RoutingResource {
         Router router = null;
         List<GraphPath> paths = null;
         try {
-
             /* Fill in request fields from query parameters via shared superclass method, catching any errors. */
             request = super.buildRequest();
-            router = otpServer.getRouter(request.routerId);
-
-            /* Find some good GraphPaths through the OTP Graph. */
-            GraphPathFinder gpFinder = new GraphPathFinder(router); // we could also get a persistent router-scoped GraphPathFinder but there's no setup cost here
-            paths = gpFinder.graphPathFinderEntryPoint(request);
-
-            /* Convert the internal GraphPaths to a TripPlan object that is included in an OTP web service Response. */
-            TripPlan plan = GraphPathToTripPlanConverter.generatePlan(paths, request);
-            response.setPlan(plan);
-
         } catch (Exception e) {
-            PlannerError error = new PlannerError(e);
-            if(!PlannerError.isPlanningError(e.getClass()))
-                LOG.warn("Error while planning path: ", e);
-            response.setError(error);
-        } finally {
-            if (request != null) {
-                if (request.rctx != null) {
-                    response.debugOutput = request.rctx.debugOutput;
-                }
-                request.cleanup(); // TODO verify that this cleanup step is being done on Analyst web services
-            }
+                PlannerError error = new PlannerError(e);
+                if(!PlannerError.isPlanningError(e.getClass()))
+                    LOG.warn("Error while planning path: ", e);
+                response.setError(error);
         }
+        router = otpServer.getRouter(request.routerId);
+        request.setRoutingContext(router.graph);
+
+        request.modes.setMode(TraverseMode.AIRPLANE, false);
+
+        RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
+        TripPlan plan = raptorRouter.route(request);
+
+        response.setPlan(plan);
 
         /* Populate up the elevation metadata */
         response.elevationMetadata = new ElevationMetadata();

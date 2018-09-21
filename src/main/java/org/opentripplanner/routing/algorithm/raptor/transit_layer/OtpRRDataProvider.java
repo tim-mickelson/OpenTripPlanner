@@ -37,8 +37,11 @@ public class OtpRRDataProvider implements TransitDataProvider {
     /** Map from internal, filtered pattern indices back to original pattern indices for scheduled tripPatterns */
     private int[] originalPatternIndexForScheduledIndex;
 
-    /** Services active on the date of the search */
+    /** Services active on the date range of the search */
     private final BitSet servicesActive;
+
+    /** Services active per day of the date range of the search */
+    private final BitSet[] servicesActivePerDay;
 
     /** Allowed transit modes */
     private final TraverseModeSet transitModes;
@@ -52,12 +55,21 @@ public class OtpRRDataProvider implements TransitDataProvider {
         @Override public DurationToStop next() { return null; }
     };
 
-    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, TraverseModeSet transitModes, double walkSpeed) {
+    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, int dayRange, TraverseModeSet transitModes, double walkSpeed) {
         this.transitLayer = transitLayer;
-        this.servicesActive  = transitLayer.getActiveServicesForDate(date);
+        this.servicesActivePerDay  = transitLayer.getActiveServicesForDates(date, dayRange);
+        this.servicesActive = aggregateServicesActive();
         this.transitModes = transitModes;
         this.walkSpeedMillimetersPerSecond = (int)(walkSpeed * 1000f);
         this.transfers = createTransfers(transitLayer.transfersForStop(), walkSpeedMillimetersPerSecond);
+    }
+
+    private BitSet aggregateServicesActive() {
+        BitSet servicesActiveAggregated = new BitSet();
+        for (BitSet activeForDay : this.servicesActivePerDay) {
+            servicesActiveAggregated.or(activeForDay);
+        }
+        return servicesActiveAggregated;
     }
 
     private static List<LightweightTransferIterator> createTransfers(List<TIntList> transfers, int walkSpeedMillimetersPerSecond) {
@@ -144,7 +156,7 @@ public class OtpRRDataProvider implements TransitDataProvider {
     @Override
     public boolean isTripScheduleInService(TripScheduleInfo trip) {
         TripSchedule t = (TripSchedule)trip;
-        return t.headwaySeconds == null && servicesActive.get(t.serviceCode);
+        return t.headwaySeconds == null && servicesActivePerDay[t.dayOffset].get(t.serviceCode);
     }
 
     private BitSet getPatternsTouchedForStops(BitSetIterator stops) {
