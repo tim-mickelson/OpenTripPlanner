@@ -53,13 +53,6 @@ public class TransitLayer {
 
     public int getStopCount() { return stopsByIndex.length; }
 
-    public void addTransfer(int fromStopId, int toStopId, int timeInSeconds, Transfer transfer) {
-        System.out.println("From stop: " + fromStopId + " To stop: " + toStopId + " Time: " + timeInSeconds);
-        transfers[fromStopId].add(toStopId);
-        transfers[fromStopId].add(timeInSeconds);
-        transferMap.put(new OrderedIndexPair(fromStopId, toStopId), transfer);
-    }
-
     public int getIndexByStop(Stop stop) {
         return indexByStop.get(stop);
     }
@@ -74,28 +67,6 @@ public class TransitLayer {
 
     public Transfer getTransfer(int fromIndex, int toIndex) {
         return transferMap.get(new OrderedIndexPair(fromIndex, toIndex));
-    }
-
-    public void addAccessEgressTransfers(Map<Vertex, Transfer> transferMap, boolean mapAccess) {
-        for (Map.Entry entry : transferMap.entrySet()) {
-            Vertex stop = (TransitStop)entry.getKey();
-            int stopIndex = this.getIndexByStop(((TransitStop) stop).getStop());
-            Transfer transfer = (Transfer)entry.getValue();
-            if (transfer.distance > 2000000) {
-                continue;
-            }
-
-            if (mapAccess) {
-                addTransfer(0, stopIndex, transfer.distance, transfer);
-            } else {
-                addTransfer(stopIndex, 1, transfer.distance, transfer);
-            }
-        }
-    }
-
-    public void setAccessEgressStops(Stop accessStop, Stop egressStop) {
-        stopsByIndex[0] = accessStop;
-        stopsByIndex[1] = egressStop;
     }
 
     public List<TIntList> transfersForStop() {

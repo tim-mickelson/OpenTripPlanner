@@ -142,8 +142,4 @@ public class TransitLayerMapper {
     private LocalDate localDateFromServiceDate(ServiceDate serviceDate) {
         return LocalDate.of(serviceDate.getYear(), serviceDate.getMonth(), serviceDate.getDay());
     }
-
-    private int distanceToTime(double distanceInMeters) {
-        return (int)(Math.ceil(distanceInMeters * 60) / (WALK_SPEED * 1000));
-    }
 }
