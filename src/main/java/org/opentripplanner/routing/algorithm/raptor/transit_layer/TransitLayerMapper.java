@@ -3,7 +3,7 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import org.opentripplanner.model.CalendarService;
-import org.opentripplanner.model.FeedId;
+import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
@@ -59,9 +59,9 @@ public class TransitLayerMapper {
     private void mapServices() {
         transitLayer.services = new ArrayList<>();
         CalendarService calendarService = graph.getCalendarService();
-        Iterator<FeedId> serviceIdIterator = calendarService.getServiceIds().iterator();
+        Iterator<AgencyAndId> serviceIdIterator = calendarService.getServiceIds().iterator();
         while (serviceIdIterator.hasNext()) {
-            FeedId serviceId = serviceIdIterator.next();
+            AgencyAndId serviceId = serviceIdIterator.next();
             int serviceIndex = graph.serviceCodes.get(serviceId);
             Set<LocalDate> localDates = calendarService.getServiceDatesForServiceId(serviceId)
                     .stream().map(this::localDateFromServiceDate).collect(Collectors.toSet());
