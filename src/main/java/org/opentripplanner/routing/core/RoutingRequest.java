@@ -623,6 +623,13 @@ public class RoutingRequest implements Cloneable, Serializable {
     public boolean geoidElevation = false;
 
     /**
+     * Use the Raptor algorithm for route planning.
+     */
+    public boolean useRaptorAlgorithm = false;
+
+    /** Saves split edge which can be split on origin/destination search
+     *
+    /**
      * How many trips used in a itineraries should be banned from inclusion in successive itineraries. Counting from start of itinerary.
      */
     public int banFirstTripsFromReuseNo = Integer.MAX_VALUE;
