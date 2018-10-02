@@ -42,6 +42,8 @@ import org.opentripplanner.graph_builder.annotation.GraphBuilderAnnotation;
 import org.opentripplanner.graph_builder.annotation.NoFutureDates;
 import org.opentripplanner.model.GraphBundle;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayerMapper;
 import org.opentripplanner.routing.core.MortonVertexComparatorFactory;
 import org.opentripplanner.routing.core.TransferTable;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -240,6 +242,9 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     /** Multimodal stops **/
     public Map<AgencyAndId, Stop> multiModalStopById = new HashMap<>();
+
+    /** Data model for Raptor routing */
+    public transient TransitLayer transitLayer;
 
     public Graph(Graph basedOn) {
         this();
@@ -753,6 +758,12 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         }
         // TODO: Move this ^ stuff into the graph index
         this.index = new GraphIndex(this);
+
+
+        /** Create transit layer for Raptor routing */
+        LOG.info("Creating transit layer for Raptor routing.");
+        TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
+        this.transitLayer = transitLayerMapper.map(this);
     }
     
     /**
