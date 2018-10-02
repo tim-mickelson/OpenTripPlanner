@@ -4,6 +4,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.Leg;
 import org.opentripplanner.api.model.Place;
+import org.opentripplanner.api.model.VertexType;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
@@ -42,6 +43,8 @@ public class ItineraryMapper {
         accessLeg.mode = "WALK";
         accessLeg.from = new Place(request.from.lat, request.from.lng, "Coordinate");
         accessLeg.to = new Place(accessStop.getLat(), accessStop.getLon(), accessStop.getName());
+        accessLeg.to.stopId = accessStop.getId();
+        accessLeg.to.vertexType = VertexType.TRANSIT;
         accessLeg.legGeometry = PolylineEncoder.createEncodings(accessPath.coordinates);
         accessLeg.distance = distanceMMToMeters(accessPath.distance);
         itinerary.addLeg(accessLeg);
@@ -66,8 +69,10 @@ public class ItineraryMapper {
                 transitLeg.mode = tripPattern.mode.toString();
                 transitLeg.from = new Place(boardStop.getLat(), boardStop.getLon(), boardStop.getName());
                 transitLeg.from.stopId = boardStop.getId();
+                transitLeg.from.vertexType = VertexType.TRANSIT;
                 transitLeg.to = new Place(alightStop.getLat(), alightStop.getLon(), alightStop.getName());
                 transitLeg.to.stopId = alightStop.getId();
+                transitLeg.to.vertexType = VertexType.TRANSIT;
                 Collection<Coordinate> transitLegCoordinates = extractTransitLegCoordinates(tripSchedule, tripPattern, raptorTripPattern, pathLeg);
                 transitLeg.legGeometry = PolylineEncoder.createEncodings(transitLegCoordinates);
                 transitLeg.distance = (double)transitLeg.legGeometry.getLength();
@@ -96,8 +101,10 @@ public class ItineraryMapper {
                 transferLeg.mode = "WALK";
                 transferLeg.from = new Place(transferFromStop.getLat(), transferFromStop.getLon(), transferFromStop.getName());
                 transferLeg.from.stopId = transferFromStop.getId();
+                transferLeg.from.vertexType = VertexType.TRANSIT;
                 transferLeg.to = new Place(transferToStop.getLat(), transferToStop.getLon(), transferToStop.getName());
                 transferLeg.to.stopId = transferToStop.getId();
+                transferLeg.to.vertexType = VertexType.TRANSIT;
                 transferLeg.legGeometry = PolylineEncoder.createEncodings(transfer.coordinates);
                 transferLeg.distance = distanceMMToMeters(transfer.distance);
 
@@ -118,6 +125,8 @@ public class ItineraryMapper {
         egressLeg.endTime = createCalendar(path.egressLeg().toTime());
         egressLeg.mode = "WALK";
         egressLeg.from = new Place(egressStop.getLat(), egressStop.getLon(), egressStop.getName());
+        egressLeg.from.stopId = egressStop.getId();
+        egressLeg.from.vertexType = VertexType.TRANSIT;
         egressLeg.to = new Place(request.to.lat, request.to.lng, "Coordinate");
         egressLeg.legGeometry = PolylineEncoder.createEncodings(egressPath.coordinates);
         egressLeg.distance = distanceMMToMeters(egressPath.distance);
