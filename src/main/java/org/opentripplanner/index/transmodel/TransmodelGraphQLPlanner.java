@@ -17,6 +17,7 @@ import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.index.transmodel.mapping.TransmodelMappingUtil;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.TransmodelTransportSubmode;
+import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.core.OptimizeType;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -69,8 +70,14 @@ public class TransmodelGraphQLPlanner {
         DebugOutput debugOutput = new DebugOutput();
 
         try {
-            List<GraphPath> paths = gpFinder.graphPathFinderEntryPoint(request);
-            plan = GraphPathToTripPlanConverter.generatePlan(paths, request);
+            if (request.useRaptorAlgorithm) {
+                request.setRoutingContext(router.graph);
+                RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
+                plan = raptorRouter.route(request);
+            } else {
+                List<GraphPath> paths = gpFinder.graphPathFinderEntryPoint(request);
+                plan = GraphPathToTripPlanConverter.generatePlan(paths, request);
+            }
         } catch (Exception e) {
             PlannerError error = new PlannerError(e);
             if (!PlannerError.isPlanningError(e.getClass()))
@@ -283,6 +290,8 @@ public class TransmodelGraphQLPlanner {
 
         callWith.argument("ignoreRealtimeUpdates", (Boolean v) -> request.ignoreRealtimeUpdates = v);
         callWith.argument("includePlannedCancellations", (Boolean v) -> request.includePlannedCancellations = v);
+
+        callWith.argument("useRaptor", (Boolean v) -> request.useRaptorAlgorithm = v);
 
         if (!request.modes.isTransit() && request.modes.getCar()) {
             request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
