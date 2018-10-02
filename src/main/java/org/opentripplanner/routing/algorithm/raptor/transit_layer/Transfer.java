@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import java.util.List;
 

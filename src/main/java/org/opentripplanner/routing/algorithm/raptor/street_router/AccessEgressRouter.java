@@ -1,7 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.street_router;
 
-import com.sun.media.imageioimpl.plugins.jpeg2000.DataEntryURLBox;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 import org.opentripplanner.common.pqueue.BinHeap;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
