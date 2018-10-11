@@ -1,6 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.router;
 
 import org.opentripplanner.api.model.Itinerary;
+import org.opentripplanner.api.model.Place;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
@@ -16,6 +17,8 @@ import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvi
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.core.RoutingRequest;
+import org.opentripplanner.routing.graph.Vertex;
+import org.opentripplanner.routing.spt.GraphPath;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -92,7 +95,13 @@ public class RaptorRouter {
             itineraries.add(itineraryMapper.createItinerary(request, p, accessTransfers, egressTransfers));
         }
 
-        TripPlan tripPlan = new TripPlan();
+        Place from = new Place();
+        Place to = new Place();
+        if (!itineraries.isEmpty()) {
+            from = itineraries.get(0).legs.get(0).from;
+            to = itineraries.get(0).legs.get(itineraries.get(0).legs.size() - 1).to;
+        }
+        TripPlan tripPlan = new TripPlan(from, to, request.getDateTime());
         tripPlan.itinerary = itineraries;
 
         return tripPlan;

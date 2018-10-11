@@ -1,12 +1,10 @@
 package org.opentripplanner.routing.algorithm.raptor.itinerary;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import org.opentripplanner.api.model.Itinerary;
-import org.opentripplanner.api.model.Leg;
-import org.opentripplanner.api.model.Place;
-import org.opentripplanner.api.model.VertexType;
+import org.opentripplanner.api.model.*;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.PathLeg;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
@@ -47,6 +45,9 @@ public class ItineraryMapper {
         accessLeg.to.vertexType = VertexType.TRANSIT;
         accessLeg.legGeometry = PolylineEncoder.createEncodings(accessPath.coordinates);
         accessLeg.distance = distanceMMToMeters(accessPath.distance);
+        accessLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
+        itinerary.walkDistance += accessLeg.distance;
+
         itinerary.addLeg(accessLeg);
 
         // Increment counters
@@ -60,6 +61,7 @@ public class ItineraryMapper {
 
                 org.opentripplanner.routing.algorithm.raptor.transit_layer.TripPattern raptorTripPattern = transitLayer.getTripPatterns().get(pathLeg.pattern());
                 TripSchedule tripSchedule = transitLayer.tripPatterns.get(pathLeg.pattern()).tripSchedules.get(pathLeg.trip());
+                Trip trip = transitLayer.tripByIndex[pathLeg.pattern()].get(pathLeg.trip());
                 TripPattern tripPattern = transitLayer.getTripPatternByIndex(pathLeg.pattern());
                 Route route = tripPattern.route;
 
@@ -67,6 +69,7 @@ public class ItineraryMapper {
                 transitLeg.startTime = createCalendar(pathLeg.fromTime());
                 transitLeg.endTime = createCalendar(pathLeg.toTime());
                 transitLeg.mode = tripPattern.mode.toString();
+                transitLeg.tripId = trip.getId();
                 transitLeg.from = new Place(boardStop.getLat(), boardStop.getLon(), boardStop.getName());
                 transitLeg.from.stopId = boardStop.getId();
                 transitLeg.from.vertexType = VertexType.TRANSIT;
@@ -75,14 +78,16 @@ public class ItineraryMapper {
                 transitLeg.to.vertexType = VertexType.TRANSIT;
                 Collection<Coordinate> transitLegCoordinates = extractTransitLegCoordinates(tripSchedule, tripPattern, raptorTripPattern, pathLeg);
                 transitLeg.legGeometry = PolylineEncoder.createEncodings(transitLegCoordinates);
-                transitLeg.distance = (double)transitLeg.legGeometry.getLength();
+                transitLeg.distance = 0.0; // TODO Calculate distance from trip shapes
                 transitLeg.route = route.getLongName();
+                transitLeg.routeId = route.getId();
                 transitLeg.agencyName = route.getAgency().getName();
                 transitLeg.routeColor = route.getColor();
                 transitLeg.tripShortName = route.getShortName();
-                transitLeg.agencyId = route.getId().getAgencyId();
+                transitLeg.agencyId = route.getAgency().getId();
                 transitLeg.routeShortName = route.getShortName();
                 transitLeg.routeLongName = route.getLongName();
+                transitLeg.walkSteps = new ArrayList<>();
                 itinerary.addLeg(transitLeg);
 
                 // Increment counters
@@ -107,6 +112,8 @@ public class ItineraryMapper {
                 transferLeg.to.vertexType = VertexType.TRANSIT;
                 transferLeg.legGeometry = PolylineEncoder.createEncodings(transfer.coordinates);
                 transferLeg.distance = distanceMMToMeters(transfer.distance);
+                transferLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
+                itinerary.walkDistance += transferLeg.distance;
 
                 itinerary.addLeg(transferLeg);
 
@@ -130,6 +137,8 @@ public class ItineraryMapper {
         egressLeg.to = new Place(request.to.lat, request.to.lng, "Coordinate");
         egressLeg.legGeometry = PolylineEncoder.createEncodings(egressPath.coordinates);
         egressLeg.distance = distanceMMToMeters(egressPath.distance);
+        egressLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
+        itinerary.walkDistance = egressLeg.distance;
         itinerary.addLeg(egressLeg);
 
         // Increment counters
@@ -139,6 +148,8 @@ public class ItineraryMapper {
         itinerary.startTime = createCalendar(path.accessLeg().fromTime());
         itinerary.endTime = createCalendar(path.egressLeg().toTime());
         itinerary.duration = (long) path.egressLeg().toTime() - path.accessLeg().fromTime();
+        itinerary.waitingTime = itinerary.duration - itinerary.walkTime - itinerary.transitTime;
+        itinerary.distance = itinerary.legs.stream().mapToDouble(l -> l.distance).sum();
 
         return itinerary;
     }
