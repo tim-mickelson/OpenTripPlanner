@@ -24,6 +24,7 @@ import gnu.trove.list.linked.TDoubleLinkedList;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.joda.time.DateTime;
 import org.opentripplanner.calendar.impl.CalendarServiceImpl;
+import org.opentripplanner.graph_builder.linking.SynchronisedSimpleStreetSplitter;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Notice;
@@ -245,6 +246,8 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     /** Data model for Raptor routing */
     public transient TransitLayer transitLayer;
+
+    private SynchronisedSimpleStreetSplitter synchronisedSimpleStreetSplitter;
 
     public Graph(Graph basedOn) {
         this();
@@ -744,7 +747,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
      * serialization. 
      * TODO: do we really need a factory for different street vertex indexes?
      */
-    public void index(StreetVertexIndexFactory indexFactory) {
+    public void index(StreetVertexIndexFactory indexFactory, boolean createTransitLayer) {
         streetIndex = indexFactory.newIndex(this);
         LOG.debug("street index built.");
         LOG.debug("Rebuilding edge and vertex indices.");
@@ -763,7 +766,13 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         /** Create transit layer for Raptor routing */
         LOG.info("Creating transit layer for Raptor routing.");
         TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
-        this.transitLayer = transitLayerMapper.map(this);
+        if (createTransitLayer) {
+            this.transitLayer = transitLayerMapper.map(this);
+        }
+    }
+
+    public void index(StreetVertexIndexFactory indexFactory) {
+        this.index(indexFactory, false);
     }
     
     /**
@@ -1137,5 +1146,12 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     public long getTransitServiceEnds() {
         return transitServiceEnds;
+    }
+
+    public synchronized SynchronisedSimpleStreetSplitter getSynchronisedSimpleStreetSplitter() {
+        if (synchronisedSimpleStreetSplitter == null) {
+            synchronisedSimpleStreetSplitter = new SynchronisedSimpleStreetSplitter(this);
+        }
+        return synchronisedSimpleStreetSplitter;
     }
 }

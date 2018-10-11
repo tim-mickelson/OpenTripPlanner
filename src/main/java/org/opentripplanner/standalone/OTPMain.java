@@ -112,7 +112,7 @@ public class OTPMain {
                 /* If requested, hand off the graph to the server as the default graph using an in-memory GraphSource. */
                 if (params.inMemory || params.preFlight) {
                     Graph graph = graphBuilder.getGraph();
-                    graph.index(new DefaultStreetVertexIndexFactory());
+                    graph.index(new DefaultStreetVertexIndexFactory(), true);
                     // FIXME set true router IDs
                     graphService.registerGraph("", new MemoryGraphSource("", graph));
                 }
