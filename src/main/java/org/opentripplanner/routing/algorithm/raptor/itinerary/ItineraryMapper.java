@@ -59,7 +59,9 @@ public class ItineraryMapper {
         accessLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
         itinerary.walkDistance += accessLeg.distance;
 
-        itinerary.addLeg(accessLeg);
+        if (accessLeg.distance > 0) {
+            itinerary.addLeg(accessLeg);
+        }
 
         // Increment counters
         itinerary.walkTime += path.accessLeg().toTime() - path.accessLeg().fromTime();
@@ -126,7 +128,9 @@ public class ItineraryMapper {
                 transferLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
                 itinerary.walkDistance += transferLeg.distance;
 
-                itinerary.addLeg(transferLeg);
+                if (transferLeg.distance > 0) {
+                    itinerary.addLeg(transferLeg);
+                }
 
                 // Increment counters
                 itinerary.transfers++;
@@ -157,7 +161,9 @@ public class ItineraryMapper {
         egressLeg.distance = distanceMMToMeters(egressPath.distance);
         egressLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
         itinerary.walkDistance = egressLeg.distance;
-        itinerary.addLeg(egressLeg);
+        if (egressLeg.distance > 0) {
+            itinerary.addLeg(egressLeg);
+        }
 
         // Increment counters
         itinerary.walkTime += path.egressLeg().toTime() - path.egressLeg().fromTime();
