@@ -52,11 +52,11 @@ public class OtpRRDataProvider implements TransitDataProvider {
         @Override public DurationToStop next() { return null; }
     };
 
-    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, TraverseModeSet transitModes) {
+    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, TraverseModeSet transitModes, double walkSpeed) {
         this.transitLayer = transitLayer;
         this.servicesActive  = transitLayer.getActiveServicesForDate(date);
         this.transitModes = transitModes;
-        this.walkSpeedMillimetersPerSecond = (int)(1.33 * 1000f);
+        this.walkSpeedMillimetersPerSecond = (int)(walkSpeed * 1000f);
         this.transfers = createTransfers(transitLayer.transfersForStop(), walkSpeedMillimetersPerSecond);
     }
 
