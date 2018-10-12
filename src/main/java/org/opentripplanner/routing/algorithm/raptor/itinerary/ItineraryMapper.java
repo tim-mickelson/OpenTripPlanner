@@ -2,6 +2,7 @@ package org.opentripplanner.routing.algorithm.raptor.itinerary;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import org.opentripplanner.api.model.*;
+import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
@@ -211,7 +212,7 @@ public class ItineraryMapper {
     private double getDistanceFromCoordinates(List<Coordinate> coordinates) {
         double distance = 0;
         for (int i = 1; i < coordinates.size(); i++) {
-            distance += coordinates.get(i).distance(coordinates.get(i - 1));
+            distance += SphericalDistanceLibrary.distance(coordinates.get(i), coordinates.get(i - 1));
         }
         return distance;
     }
