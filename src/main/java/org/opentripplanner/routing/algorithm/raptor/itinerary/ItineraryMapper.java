@@ -12,6 +12,7 @@ import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.edgetype.TripPattern;
+import org.opentripplanner.routing.vertextype.TransitVertex;
 import org.opentripplanner.util.PolylineEncoder;
 
 import java.time.Instant;
@@ -33,15 +34,22 @@ public class ItineraryMapper {
         Itinerary itinerary = new Itinerary();
 
         // Map access leg
-        Stop accessStop = transitLayer.getStopByIndex(path.accessLeg().toStop());
-        Transfer accessPath = accessPaths.get(accessStop);
+        Stop accessToStop = transitLayer.getStopByIndex(path.accessLeg().toStop());
+        Transfer accessPath = accessPaths.get(accessToStop);
         Leg accessLeg = new Leg();
         accessLeg.startTime = createCalendar(path.accessLeg().fromTime());
         accessLeg.endTime = createCalendar(path.accessLeg().toTime());
         accessLeg.mode = "WALK";
-        accessLeg.from = new Place(request.from.lat, request.from.lng, "Coordinate");
-        accessLeg.to = new Place(accessStop.getLat(), accessStop.getLon(), accessStop.getName());
-        accessLeg.to.stopId = accessStop.getId();
+        if (request.rctx.fromVertex instanceof TransitVertex) {
+            accessLeg.from = new Place(request.rctx.fromVertex.getLat(), request.rctx.fromVertex.getLon(), request.rctx.fromVertex.getName());
+            accessLeg.from.stopId = ((TransitVertex) request.rctx.fromVertex).getStopId();
+            accessLeg.from.vertexType = VertexType.TRANSIT;
+        }
+        else {
+            accessLeg.from = new Place(request.from.lat, request.from.lng, "Coordinate");
+        }
+        accessLeg.to = new Place(accessToStop.getLat(), accessToStop.getLon(), accessToStop.getName());
+        accessLeg.to.stopId = accessToStop.getId();
         accessLeg.to.vertexType = VertexType.TRANSIT;
         accessLeg.legGeometry = PolylineEncoder.createEncodings(accessPath.coordinates);
         accessLeg.distance = distanceMMToMeters(accessPath.distance);
@@ -134,7 +142,14 @@ public class ItineraryMapper {
         egressLeg.from = new Place(egressStop.getLat(), egressStop.getLon(), egressStop.getName());
         egressLeg.from.stopId = egressStop.getId();
         egressLeg.from.vertexType = VertexType.TRANSIT;
-        egressLeg.to = new Place(request.to.lat, request.to.lng, "Coordinate");
+        if (request.rctx.toVertex instanceof TransitVertex) {
+            egressLeg.to = new Place(request.rctx.toVertex.getLat(), request.rctx.toVertex.getLon(), request.rctx.toVertex.getName());
+            egressLeg.to.stopId = ((TransitVertex) request.rctx.toVertex).getStopId();
+            egressLeg.to.vertexType = VertexType.TRANSIT;
+        }
+        else {
+            egressLeg.to = new Place(request.to.lat, request.to.lng, "Coordinate");
+        }
         egressLeg.legGeometry = PolylineEncoder.createEncodings(egressPath.coordinates);
         egressLeg.distance = distanceMMToMeters(egressPath.distance);
         egressLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
