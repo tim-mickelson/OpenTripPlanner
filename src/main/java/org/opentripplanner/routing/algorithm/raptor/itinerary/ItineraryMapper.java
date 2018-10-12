@@ -86,9 +86,9 @@ public class ItineraryMapper {
                 transitLeg.to = new Place(alightStop.getLat(), alightStop.getLon(), alightStop.getName());
                 transitLeg.to.stopId = alightStop.getId();
                 transitLeg.to.vertexType = VertexType.TRANSIT;
-                Collection<Coordinate> transitLegCoordinates = extractTransitLegCoordinates(tripSchedule, tripPattern, raptorTripPattern, pathLeg);
+                List<Coordinate> transitLegCoordinates = extractTransitLegCoordinates(tripSchedule, tripPattern, raptorTripPattern, pathLeg);
                 transitLeg.legGeometry = PolylineEncoder.createEncodings(transitLegCoordinates);
-                transitLeg.distance = 0.0; // TODO Calculate distance from trip shapes
+                transitLeg.distance = getDistanceFromCoordinates(transitLegCoordinates);
                 transitLeg.route = route.getLongName();
                 transitLeg.routeId = route.getId();
                 transitLeg.agencyName = route.getAgency().getName();
@@ -190,7 +190,7 @@ public class ItineraryMapper {
         return (double) (distanceMm / 1000);
     }
 
-    private Collection<Coordinate> extractTransitLegCoordinates(TripSchedule tripSchedule, TripPattern tripPattern, org.opentripplanner.routing.algorithm.raptor.transit_layer.TripPattern raptorTripPattern, PathLeg pathLeg) {
+    private List<Coordinate> extractTransitLegCoordinates(TripSchedule tripSchedule, TripPattern tripPattern, org.opentripplanner.routing.algorithm.raptor.transit_layer.TripPattern raptorTripPattern, PathLeg pathLeg) {
         List<Coordinate> transitLegCoordinates = new ArrayList<>();
         boolean boarded = false;
         for (int j = 0; j < tripPattern.stopPattern.stops.length; j++) {
@@ -206,5 +206,13 @@ public class ItineraryMapper {
             }
         }
         return transitLegCoordinates;
+    }
+
+    private double getDistanceFromCoordinates(List<Coordinate> coordinates) {
+        double distance = 0;
+        for (int i = 1; i < coordinates.size(); i++) {
+            distance += coordinates.get(i).distance(coordinates.get(i - 1));
+        }
+        return distance;
     }
 }
