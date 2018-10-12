@@ -18,11 +18,11 @@ public class DuationToStopMapper {
         this.transitLayer = transitLayer;
     }
 
-    public Collection<DurationToStop> map(Map<Stop, Transfer> input) {
+    public Collection<DurationToStop> map(Map<Stop, Transfer> input, double walkSpeed) {
         List result = new ArrayList();
         for (Map.Entry<Stop, Transfer> entry : input.entrySet()) {
             Stop stop = entry.getKey();
-            int duration = (int)Math.floor((entry.getValue()).distance / 1000.0 / 1.33);
+            int duration = (int)Math.floor((entry.getValue()).distance / 1000.0 / walkSpeed); //TODO: Avoid hard coding walk speed
             int stopIndex = transitLayer.getIndexByStop(stop);
             DurationToStop arrivalTimeAtStop = new DurationToStop() {
                 @Override

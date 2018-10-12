@@ -35,7 +35,7 @@ public class RaptorRouter {
     private static final int SEARCH_RANGE = 60;
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
-        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes);
+        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes, request.walkSpeed);
         this.transitLayer = transitLayer;
     }
 
@@ -51,8 +51,8 @@ public class RaptorRouter {
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
         DuationToStopMapper duationToStopMapper = new DuationToStopMapper(transitLayer);
-        Collection<DurationToStop> accessTimes = duationToStopMapper.map(accessTransfers);
-        Collection<DurationToStop> egressTimes = duationToStopMapper.map(egressTransfers);
+        Collection<DurationToStop> accessTimes = duationToStopMapper.map(accessTransfers, request.walkSpeed);
+        Collection<DurationToStop> egressTimes = duationToStopMapper.map(egressTransfers, request.walkSpeed);
 
         /**
          * Prepare transit search
