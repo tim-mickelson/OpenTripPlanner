@@ -806,7 +806,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
             }
 
             LOG.info("Main graph read. |V|={} |E|={}", graph.countVertices(), graph.countEdges());
-            graph.index(indexFactory);
+            graph.index(indexFactory, true);
 
             if (level == LoadLevel.FULL) {
                 return graph;
