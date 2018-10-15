@@ -791,7 +791,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
             Graph graph = (Graph) in.readObject();
             LOG.debug("Basic graph info read.");
             if (graph.graphVersionMismatch())
-                throw new RuntimeException("Graph version mismatch detected.");
+                LOG.warn("Graph version mismatch");
             if (level == LoadLevel.BASIC)
                 return graph;
             // vertex edge lists are transient to avoid excessive recursion depth
