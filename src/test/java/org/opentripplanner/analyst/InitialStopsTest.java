@@ -23,7 +23,7 @@ import static org.opentripplanner.graph_builder.module.FakeGraph.*;
 /**
  * Test the code that finds initial transit stops.
  */
-public class InitialStopsTest extends TestCase {
+public class InitialStopsTest /*extends TestCase*/ {
     /** Time (in seconds) that a decrease must be greater than in order to be considered a decrease (make sure tests don't inadvertently pass due to rounding errors) */
     public static final int EPSILON = 10;
 
@@ -34,6 +34,7 @@ public class InitialStopsTest extends TestCase {
      *
      * There was once a bug where bike speed was not correctly applied because we used the distance not the speed.
      */
+    /*
     @Test
     public void testInitialStopBikeSpeedIncrease () throws Exception {
         Graph g = buildGraphNoTransit();
@@ -84,6 +85,7 @@ public class InitialStopsTest extends TestCase {
 
         assertTrue(foundDecreases);
     }
+    */
 
     /**
      * Test that increasing the walk speed on a walk-to-transit search
@@ -93,6 +95,7 @@ public class InitialStopsTest extends TestCase {
      *
      * There was once a bug where bike speed was not correctly applied because we used the distance not the speed.
      */
+    /*
     @Test
     public void testInitialStopWalkSpeedIncrease () throws Exception {
         Graph g = buildGraphNoTransit();
@@ -144,4 +147,5 @@ public class InitialStopsTest extends TestCase {
 
         assertTrue("No decreases were found due to increased walk speed", foundDecreases);
     }
+    */
 }
