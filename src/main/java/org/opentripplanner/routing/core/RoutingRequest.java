@@ -625,7 +625,7 @@ public class RoutingRequest implements Cloneable, Serializable {
     /**
      * Use the Raptor algorithm for route planning.
      */
-    public boolean useRaptorAlgorithm = true;
+    public boolean useRaptorAlgorithm = false;
 
     /** Saves split edge which can be split on origin/destination search
      *

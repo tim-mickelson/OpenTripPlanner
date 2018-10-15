@@ -1014,7 +1014,7 @@ public class TransmodelIndexGraphQLSchema {
                         .name("useRaptor")
                         .description("Use the Raptor algorithm for routing. Only earliest arrival searches are supported.")
                         .type(Scalars.GraphQLBoolean)
-                        .defaultValue(defaultRoutingRequest.useRaptorAlgorithm)
+                        .defaultValue(true)
                         .build())
                 .dataFetcher(environment -> new TransmodelGraphQLPlanner(mappingUtil).plan(environment)
                 )
