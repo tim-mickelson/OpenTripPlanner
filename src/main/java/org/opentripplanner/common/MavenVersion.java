@@ -45,7 +45,7 @@ public class MavenVersion implements Serializable {
             Properties props = new java.util.Properties();
             InputStream in = MavenVersion.class.getClassLoader().getResourceAsStream(FILE);
             props.load(in);
-            MavenVersion version = new MavenVersion(props.getProperty("project.version"), 
+            MavenVersion version = new MavenVersion("1.3.1.RB-SNAPSHOT",
                                                     props.getProperty("git.commit.id"),
                                                     props.getProperty("git.commit.id.describe"),
                                                     props.getProperty("git.commit.time"),
