@@ -40,6 +40,7 @@ public class ItineraryMapper {
         Stop accessToStop = transitLayer.getStopByIndex(path.accessLeg().toStop());
         Transfer accessPath = accessPaths.get(accessToStop);
         Leg accessLeg = new Leg();
+        accessLeg.stop = new ArrayList<>();
         accessLeg.startTime = createCalendar(path.accessLeg().fromTime());
         accessLeg.endTime = createCalendar(path.accessLeg().toTime());
         accessLeg.mode = "WALK";
@@ -79,6 +80,7 @@ public class ItineraryMapper {
                 Route route = tripPattern.route;
 
                 Leg transitLeg = new Leg();
+                transitLeg.stop = new ArrayList<>();
                 transitLeg.startTime = createCalendar(pathLeg.fromTime());
                 transitLeg.endTime = createCalendar(pathLeg.toTime());
                 transitLeg.mode = tripPattern.mode.toString();
@@ -114,6 +116,7 @@ public class ItineraryMapper {
                 Transfer transfer = transitLayer.getTransfer(pathLeg.fromStop(), pathLeg.toStop());
 
                 Leg transferLeg = new Leg();
+                transferLeg.stop = new ArrayList<>(); // TODO: Map intermediate stops
                 transferLeg.startTime = createCalendar(pathLeg.fromTime());
                 transferLeg.endTime = createCalendar(pathLeg.toTime());
                 transferLeg.mode = "WALK";
@@ -142,6 +145,7 @@ public class ItineraryMapper {
         Stop egressStop = transitLayer.getStopByIndex(path.egressLeg().fromStop());
         Transfer egressPath = egressPaths.get(egressStop);
         Leg egressLeg = new Leg();
+        egressLeg.stop = new ArrayList<>();
         egressLeg.startTime = createCalendar(path.egressLeg().fromTime());
 
         egressLeg.endTime = createCalendar(path.egressLeg().toTime());
