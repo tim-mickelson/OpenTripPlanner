@@ -17,8 +17,6 @@ import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvi
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.core.RoutingRequest;
-import org.opentripplanner.routing.graph.Vertex;
-import org.opentripplanner.routing.spt.GraphPath;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -32,7 +30,7 @@ public class RaptorRouter {
     private final TransitDataProvider otpRRDataProvider;
     private final TransitLayer transitLayer;
     private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
-    private static final int SEARCH_RANGE = 60;
+    private static final int SEARCH_RANGE_SECONDS = 60;
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
         this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes, request.walkSpeed);
@@ -75,7 +73,7 @@ public class RaptorRouter {
         Collection<Path2> paths = worker.route(
                 new RangeRaptorRequest(
                         departureTime,
-                        departureTime + SEARCH_RANGE,
+                        departureTime + SEARCH_RANGE_SECONDS,
                         accessTimes,
                         egressTimes,
                         60,
