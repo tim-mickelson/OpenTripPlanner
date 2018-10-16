@@ -104,6 +104,7 @@ public class TransmodelGraphQLTest extends GtfsTest {
                         "    to: {place:\"FEED:D\"}" +
                         "    numTripPatterns: 3" +
                         "    dateTime: \"2018-01-04T12:51:14.000+0100\"" +
+                        "    useRaptor: false" +
                         "  )" +
                         "  {" +
                         "    tripPatterns {" +
