@@ -294,8 +294,8 @@ public class Leg {
      */
     @XmlElement
     @JsonSerialize
-    public double getDuration() {
-        return endTime.getTimeInMillis()/1000.0 - startTime.getTimeInMillis()/1000.0;
+    public long getDuration() {
+        return Math.round(endTime.getTimeInMillis()/1000.0 - startTime.getTimeInMillis()/1000.0); //TODO: Check datatype
     }
 
     public void addAlert(Alert alert, Locale locale) {
