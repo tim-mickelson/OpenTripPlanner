@@ -6,6 +6,7 @@ import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Path2;
 import org.opentripplanner.routing.algorithm.raptor.mcrr.api.PathLeg;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
@@ -16,6 +17,8 @@ import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.vertextype.TransitVertex;
 import org.opentripplanner.util.PolylineEncoder;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -78,6 +81,7 @@ public class ItineraryMapper {
                 Route route = tripPattern.route;
 
                 Leg transitLeg = new Leg();
+                transitLeg.serviceDate = new ServiceDate(request.getDateTime()).getAsString(); // TODO: This has to be changed for multi-day searches
                 transitLeg.stop = new ArrayList<>();
                 transitLeg.startTime = createCalendar(pathLeg.fromTime());
                 transitLeg.endTime = createCalendar(pathLeg.toTime());
