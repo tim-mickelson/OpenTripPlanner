@@ -74,6 +74,7 @@ public class TransmodelGraphQLPlanner {
                 request.setRoutingContext(router.graph);
                 request.modes.setCar(false);
                 request.modes.setBicycle(false);
+                request.modes.setAirplane(false);
                 RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
                 plan = raptorRouter.route(request);
                 //TODO: Throw exceptions that are added to error messages
