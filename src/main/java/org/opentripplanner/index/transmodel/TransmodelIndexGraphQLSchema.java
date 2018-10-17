@@ -4417,10 +4417,13 @@ public class TransmodelIndexGraphQLSchema {
 
     private Optional<Stop> getParentStopPlace(Stop stopPlace) {
         String parentId = stopPlace.getMultiModalStation();
+        return Optional.empty();
+        /*
         if (parentId == null) {
             return Optional.empty();
         }
         return Optional.of(index.stationForId.get(mappingUtil.fromIdString(parentId)));
+        */
     }
 
 
