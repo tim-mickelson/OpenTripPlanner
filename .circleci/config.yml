@@ -17,6 +17,7 @@ aliases:
       /tools/docker_build_push.sh
     environment:
       CIRCLE_PROJECT_REPONAME: otp
+      IMAGE_POSTFIX: -raptor
   - &build-notify
     name: Notify babylon about build and docker image pushed
     command: |
