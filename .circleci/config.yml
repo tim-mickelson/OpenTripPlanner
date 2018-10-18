@@ -32,7 +32,6 @@ aliases:
       echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
       echo 'export CIRCLE_PROJECT_REPONAME="$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
       echo 'export GITHUB_TOKEN="$GITHUB_TOKEN"' >> $BASH_ENV
-      /tools/trigger_build.sh "entur/marduk.git" "master" "$(git log -1 --pretty=%B)"
 jobs:
   test:
     docker:
@@ -74,7 +73,7 @@ jobs:
     - checkout
     - restore_cache:
         key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -q -s /tools/m2/settings.xml
+    - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -q -s .circleci/settings.xml
     - save_cache:
         paths:
         - ~/.m2
