@@ -1,7 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.street_router;
 
 import org.opentripplanner.model.Stop;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.DurationToStop;
+import com.conveyal.r5.profile.entur.api.DurationToStop;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.vertextype.TransitStop;

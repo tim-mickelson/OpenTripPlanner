@@ -2,11 +2,11 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.DurationToStop;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TransitDataProvider;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TripScheduleInfo;
-import org.opentripplanner.routing.algorithm.raptor.mcrr.util.BitSetIterator;
+import com.conveyal.r5.profile.entur.api.DurationToStop;
+import com.conveyal.r5.profile.entur.api.Pattern;
+import com.conveyal.r5.profile.entur.api.TransitDataProvider;
+import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
+import com.conveyal.r5.profile.entur.util.BitSetIterator;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
 import org.slf4j.Logger;
@@ -166,7 +166,7 @@ public class OtpRRDataProvider implements TransitDataProvider {
         return patternsTouched;
     }
 
-    class InternalPatternIterator implements Iterator<Pattern>, org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern {
+    class InternalPatternIterator implements Iterator<Pattern>, com.conveyal.r5.profile.entur.api.Pattern {
         private int nextPatternIndex;
         private int originalPatternIndex;
         private BitSet patternsTouched;
@@ -183,7 +183,7 @@ public class OtpRRDataProvider implements TransitDataProvider {
             return nextPatternIndex >=0;
         }
 
-        @Override public org.opentripplanner.routing.algorithm.raptor.mcrr.api.Pattern next() {
+        @Override public com.conveyal.r5.profile.entur.api.Pattern next() {
             pattern = runningScheduledPatterns[nextPatternIndex];
             originalPatternIndex = originalPatternIndexForScheduledIndex[nextPatternIndex];
             nextPatternIndex = patternsTouched.nextSetBit(nextPatternIndex + 1);

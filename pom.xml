@@ -891,19 +891,13 @@
         <dependency>
             <groupId>com.conveyal</groupId>
             <artifactId>r5</artifactId>
-            <version>4.4.0</version>
+            <version>entur.2.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-simple</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-opengis</artifactId>
-            <version>${geotools.version}</version>
         </dependency>
 
         <!-- gtfs-lib is a transitive dependency to r5, which also is a snapshot dependency -->
@@ -913,14 +907,24 @@
             <!--version>0.2</version-->
             <!--classifier>20160307.194541-8</classifier-->
             <version>0.2-SNAPSHOT</version>
-            <scope>test</scope>
         </dependency>
+
+        <!-- Transitive dependency to com.conveyal:r5 needed to be manually
+            included as r5 is a snapshot  -->
         <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>2.3.0</version>
-            <scope>test</scope>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-opengis</artifactId>
+            <version>14.0</version>
         </dependency>
+
+        <!-- Transitive dependency to com.conveyal:r5 needed to be manually
+            included as r5 is a snapshot  -->
+        <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-core</artifactId>
+            <version>2.3</version>
+        </dependency>
+
     </dependencies>
 
     <!--
