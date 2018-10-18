@@ -8,6 +8,7 @@ public class ParetoSet<T extends ParetoSortable> {
 
     private final ParetoDominanceFunction[] dominateFunctions;
     private List<T> paretoSet = new ArrayList<>();
+    private final int size = 2;
 
     public ParetoSet(ParetoDominanceFunctions.Builder builder) {
         this.dominateFunctions = builder.build();
@@ -45,9 +46,8 @@ public class ParetoSet<T extends ParetoSortable> {
     }
 
     private Domainace dominate(ParetoSortable lhs, ParetoSortable rhs) {
-        final int size = lhs.paretoValues().length;
-        final int[] l = lhs.paretoValues();
-        final int[] r = rhs.paretoValues();
+        int[] l = lhs.paretoValues();
+        int[] r = rhs.paretoValues();
 
         boolean leftDominatesRight = false;
         boolean rightDominatesLeft = false;
