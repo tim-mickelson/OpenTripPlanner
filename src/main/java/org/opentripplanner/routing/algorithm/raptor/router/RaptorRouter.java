@@ -59,7 +59,7 @@ public class RaptorRouter {
         McRangeRaptorWorker worker = new McRangeRaptorWorker(
                 this.otpRRDataProvider,
                 new McWorkerState(
-                request.maxTransfers + 5,
+                request.maxTransfers,
                     transitLayer.getStopCount(),
                     MAX_DURATION_SECONDS
         ));
