@@ -1,5 +1,7 @@
 FROM relateiq/oracle-java8
 
+ENV OTP_VERSION otp-2.0.RB-SNAPSHOT-shaded.jar
+
 RUN apt-get update \
   && apt-get install -y \
      unzip \
@@ -27,7 +29,7 @@ RUN wget -nv "http://central.maven.org/maven2/net/logstash/logback/logstash-logb
 RUN wget -nv https://storage.googleapis.com/marduk-production/osm/norway-latest.osm.pbf --directory-prefix /otpdata/norway -O norway.osm.pbf
 
 # Copy OTP jar file from target
-COPY target/otp-1.3.1.RB-SNAPSHOT-shaded.jar /code/otp-shaded.jar
+COPY target/otp-${OTP_VERSION}-shaded.jar /code/otp-shaded.jar
 
 # Copy the logback xml file (which could have been mounted as a config map instead)
 COPY docker/logback.xml /code/logback.xml
