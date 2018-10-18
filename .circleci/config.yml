@@ -144,7 +144,3 @@ workflows:
         context: org-carbon
         requires:
         - deploy-docker
-    - trigger-dependants:
-        context: org-carbon
-        requires:
-        - deploy-nexus
