@@ -22,6 +22,8 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 
 public class ItineraryMapper {
@@ -189,7 +191,7 @@ public class ItineraryMapper {
         LocalDate localDate = Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Oslo"));
-        calendar.set(localDate.getYear(), localDate.getMonth().getValue(), localDate.getDayOfMonth()
+        calendar.set(localDate.getYear(), localDate.getMonth().getValue() - 1, localDate.getDayOfMonth()
                 , 0, 0, 0);
         calendar.add(Calendar.SECOND, timeinSeconds);
         return calendar;
