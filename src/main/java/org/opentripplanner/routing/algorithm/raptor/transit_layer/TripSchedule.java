@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.TripScheduleInfo;
+import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 
 /**
  * This represents the arrival and departure times of a single GTFS trip within a TripPattern.

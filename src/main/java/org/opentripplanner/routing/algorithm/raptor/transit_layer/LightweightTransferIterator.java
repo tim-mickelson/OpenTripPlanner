@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import org.opentripplanner.routing.algorithm.raptor.mcrr.api.DurationToStop;
+import com.conveyal.r5.profile.entur.api.DurationToStop;
 
 import java.util.Iterator;
 
