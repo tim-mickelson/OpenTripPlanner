@@ -60,7 +60,7 @@ public class ItineraryMapper {
         accessLeg.to.vertexType = VertexType.TRANSIT;
         accessLeg.legGeometry = PolylineEncoder.createEncodings(accessPath.coordinates);
         accessLeg.distance = distanceMMToMeters(accessPath.distance);
-        accessLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
+        accessLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps test
         itinerary.walkDistance += accessLeg.distance;
 
         if (accessLeg.distance > 0) {
