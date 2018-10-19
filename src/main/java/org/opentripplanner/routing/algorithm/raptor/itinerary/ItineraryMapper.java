@@ -50,14 +50,14 @@ public class ItineraryMapper {
         accessLeg.endTime = createCalendar(path.accessLeg().toTime());
         accessLeg.mode = "WALK";
         if (request.rctx.fromVertex instanceof TransitVertex) {
-            accessLeg.from = new Place(request.rctx.fromVertex.getLat(), request.rctx.fromVertex.getLon(), request.rctx.fromVertex.getName());
+            accessLeg.from = new Place(request.rctx.fromVertex.getLon(), request.rctx.fromVertex.getLat(), request.rctx.fromVertex.getName());
             accessLeg.from.stopId = ((TransitVertex) request.rctx.fromVertex).getStopId();
             accessLeg.from.vertexType = VertexType.TRANSIT;
         }
         else {
             accessLeg.from = new Place(request.from.lat, request.from.lng, "Coordinate");
         }
-        accessLeg.to = new Place(accessToStop.getLat(), accessToStop.getLon(), accessToStop.getName());
+        accessLeg.to = new Place(accessToStop.getLon(), accessToStop.getLat(), accessToStop.getName());
         accessLeg.to.stopId = accessToStop.getId();
         accessLeg.to.vertexType = VertexType.TRANSIT;
         accessLeg.legGeometry = PolylineEncoder.createEncodings(accessPath.coordinates);
@@ -91,10 +91,10 @@ public class ItineraryMapper {
                 transitLeg.endTime = createCalendar(pathLeg.toTime());
                 transitLeg.mode = tripPattern.mode.toString();
                 transitLeg.tripId = trip.getId();
-                transitLeg.from = new Place(boardStop.getLat(), boardStop.getLon(), boardStop.getName());
+                transitLeg.from = new Place(boardStop.getLon(), boardStop.getLat(), boardStop.getName());
                 transitLeg.from.stopId = boardStop.getId();
                 transitLeg.from.vertexType = VertexType.TRANSIT;
-                transitLeg.to = new Place(alightStop.getLat(), alightStop.getLon(), alightStop.getName());
+                transitLeg.to = new Place(alightStop.getLon(), alightStop.getLat(), alightStop.getName());
                 transitLeg.to.stopId = alightStop.getId();
                 transitLeg.to.vertexType = VertexType.TRANSIT;
                 List<Coordinate> transitLegCoordinates = extractTransitLegCoordinates(tripSchedule, tripPattern, raptorTripPattern, pathLeg);
@@ -126,10 +126,10 @@ public class ItineraryMapper {
                 transferLeg.startTime = createCalendar(pathLeg.fromTime());
                 transferLeg.endTime = createCalendar(pathLeg.toTime());
                 transferLeg.mode = "WALK";
-                transferLeg.from = new Place(transferFromStop.getLat(), transferFromStop.getLon(), transferFromStop.getName());
+                transferLeg.from = new Place(transferFromStop.getLon(), transferFromStop.getLat(), transferFromStop.getName());
                 transferLeg.from.stopId = transferFromStop.getId();
                 transferLeg.from.vertexType = VertexType.TRANSIT;
-                transferLeg.to = new Place(transferToStop.getLat(), transferToStop.getLon(), transferToStop.getName());
+                transferLeg.to = new Place(transferToStop.getLon(), transferToStop.getLat(), transferToStop.getName());
                 transferLeg.to.stopId = transferToStop.getId();
                 transferLeg.to.vertexType = VertexType.TRANSIT;
                 transferLeg.legGeometry = PolylineEncoder.createEncodings(transfer.coordinates);
@@ -156,11 +156,11 @@ public class ItineraryMapper {
 
         egressLeg.endTime = createCalendar(path.egressLeg().toTime());
         egressLeg.mode = "WALK";
-        egressLeg.from = new Place(egressStop.getLat(), egressStop.getLon(), egressStop.getName());
+        egressLeg.from = new Place(egressStop.getLon(), egressStop.getLat(), egressStop.getName());
         egressLeg.from.stopId = egressStop.getId();
         egressLeg.from.vertexType = VertexType.TRANSIT;
         if (request.rctx.toVertex instanceof TransitVertex) {
-            egressLeg.to = new Place(request.rctx.toVertex.getLat(), request.rctx.toVertex.getLon(), request.rctx.toVertex.getName());
+            egressLeg.to = new Place(request.rctx.toVertex.getLon(), request.rctx.toVertex.getLat(), request.rctx.toVertex.getName());
             egressLeg.to.stopId = ((TransitVertex) request.rctx.toVertex).getStopId();
             egressLeg.to.vertexType = VertexType.TRANSIT;
         }
