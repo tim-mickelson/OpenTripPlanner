@@ -2,20 +2,13 @@
 
 : ${GRAPH_FILE_TARGET_PATH="/code/otpdata/norway/Graph.obj"}
 : ${FILE_TMP_PATH="/tmp/graph_obj_from_gcs"}
-: ${ETCD_GRAPH_URL_ENDPOINT="http://etcd-client:2379/v2/keys/prod/otp/marduk.file?quorum=false&recursive=false&sorted=false"}
+: ${ROUTER_CONFIG="router-config.json"}
 # Notice ending slash here, it is correct
 : ${MARDUK_GCP_BASE="gs://marduk/"}
+: ${FILENAME="graphs/neon-graph/Graph.obj"}
 
-${FILENAME="graphs/neon-graph/Graph.obj"}
 
-if [[ "x" == "x$FILENAME" ]] ;
-then
-  FILENAME=$(wget --quiet http://hubot/hubot/marduk/filename -O -)
-  echo "Reading value from hubot instead of etcd as etcd cannot be connected."
-  echo "As hubot is backed by etcd, this is likely to fail..."
-  echo "This would only work if the etcd value does not exist, but that etcd is up..."
-  echo "From hubot: $FILENAME"
-fi
+echo "GRAPH_FILE_TARGET_PATH: $GRAPH_FILE_TARGET_PATH"
 
 echo "Activating marduk blobstore service account"
 /code/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file /etc/marduk/marduk-blobstore-credentials.json
@@ -36,6 +29,16 @@ else
   echo "Now sleeping 5m in the hope that this will be manually resolved in the mean time, and then restarting."
   sleep 5m
   exit 1
+fi
+
+echo "Using router config $ROUTER_CONFIG"
+if [ -s $ROUTER_CONFIG ] ;
+then
+  cp /code/$ROUTER_CONFIG /code/otpdata/norway/router-config.json
+else
+  echo "** WARNING:($ROUTER_CONFIG) is empty or not present**"
+  wget -q --header 'Content-Type: application/json' --post-data='{"source":"otp", "message":":no_entry: Could not find router config file: $ROUTER_CONFIG."}' http://hubot/hubot/say/
+  sleep 10m
 fi
 
 exec "$@"
