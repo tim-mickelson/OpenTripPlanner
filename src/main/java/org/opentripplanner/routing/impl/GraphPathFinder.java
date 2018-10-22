@@ -24,7 +24,8 @@ import org.opentripplanner.routing.algorithm.strategies.RemainingWeightHeuristic
 import org.opentripplanner.routing.algorithm.strategies.TrivialRemainingWeightHeuristic;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;
-import org.opentripplanner.routing.core.TraverseMode;
+import org.opentripplanner.routing.core.StateData;
+import org.opentripplanner.routing.core.StateMerger;
 import org.opentripplanner.routing.edgetype.LegSwitchingEdge;
 import org.opentripplanner.routing.edgetype.TransitBoardAlight;
 import org.opentripplanner.routing.error.PathNotFoundException;
@@ -52,7 +53,7 @@ import java.util.stream.Collectors;
  * provide reasonable response times when routing over large graphs (e.g. the entire Netherlands or New York State).
  * In this case it only uses the street network at the first and last legs of the trip, and all other transfers
  * between transit vehicles will occur via SimpleTransfer edges which are pre-computed by the graph builder.
- * 
+ *
  * More information is available on the OTP wiki at:
  * https://github.com/openplans/OpenTripPlanner/wiki/LargeGraphs
  *
@@ -282,6 +283,15 @@ public class GraphPathFinder {
                     if(options.arriveBy){
                         Collections.reverse(concatenatedPaths);
                     }
+
+
+                    // Joining two paths require compatible stateData between last state in first path and first state in last path.
+                    // kissAndRide / rideAndKiss searches are typically not compatible at this stage as only one of the parts allow car at this point
+                    // Copy data from first state in last path to last state in first path, but adjusting for the fact that the first path has boarded while the last path has not
+                    StateData startOfWalkStateData = walkPath.states.getFirst().stateData;
+                    newRevPath.states.getLast().stateData = StateMerger.merge(newPath.states.getLast().stateData, startOfWalkStateData);
+
+
                     GraphPath joinedPath = joinPaths(concatenatedPaths, false);
 
                     if((!options.arriveBy && joinedPath.states.getFirst().getTimeInMillis() >= options.dateTime * 1000) ||
