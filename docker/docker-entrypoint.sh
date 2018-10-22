@@ -6,14 +6,7 @@
 # Notice ending slash here, it is correct
 : ${MARDUK_GCP_BASE="gs://marduk/"}
 
-echo "GRAPH_FILE_TARGET_PATH: $GRAPH_FILE_TARGET_PATH"
-
-FROM_ETCD=$( curl --silent -X GET "$ETCD_GRAPH_URL_ENDPOINT" )
-echo "From etcd: $FROM_ETCD"
-if [[ "x" != "x$FROM_ETCD" ]] ;
-then
-  FILENAME=$( echo $FROM_ETCD | jq '.node.value' | tr -d '"')
-fi
+${FILENAME="graphs/neon-graph/Graph.obj"}
 
 if [[ "x" == "x$FILENAME" ]] ;
 then
