@@ -31,14 +31,4 @@ else
   exit 1
 fi
 
-echo "Using router config $ROUTER_CONFIG"
-if [ -s $ROUTER_CONFIG ] ;
-then
-  cp /code/$ROUTER_CONFIG /code/otpdata/norway/router-config.json
-else
-  echo "** WARNING:($ROUTER_CONFIG) is empty or not present**"
-  wget -q --header 'Content-Type: application/json' --post-data='{"source":"otp", "message":":no_entry: Could not find router config file: $ROUTER_CONFIG."}' http://hubot/hubot/say/
-  sleep 10m
-fi
-
 exec "$@"
