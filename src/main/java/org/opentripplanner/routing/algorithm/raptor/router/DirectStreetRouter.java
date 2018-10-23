@@ -16,12 +16,12 @@ import java.util.List;
 public class DirectStreetRouter {
     private final double MINIMUM_WALK_DISTANCE = 5000;
 
-    public Itinerary route(RoutingRequest request, Router router, TraverseMode traverseMode) {
+    public Itinerary route(RoutingRequest request, Router router) {
          if (SphericalDistanceLibrary.distance(request.from.getCoordinate(), request.to.getCoordinate())
                  < MINIMUM_WALK_DISTANCE) {
 
              RoutingRequest walkRequest = request.clone();
-             walkRequest.modes = new TraverseModeSet(traverseMode);
+             walkRequest.modes = new TraverseModeSet(TraverseMode.WALK);
 
              GraphPathFinder gpFinder = new GraphPathFinder(router);
              List<GraphPath> paths = gpFinder.graphPathFinderEntryPoint(walkRequest);
