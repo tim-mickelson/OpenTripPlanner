@@ -105,6 +105,8 @@ public class RaptorRouter {
             to = itineraries.get(0).legs.get(itineraries.get(0).legs.size() - 1).to;
         }
         TripPlan tripPlan = new TripPlan(from, to, request.getDateTime());
+        itineraries = itineraries.stream().sorted((i1, i2) -> i1.endTime.compareTo(i2.endTime))
+                .limit(request.numItineraries).collect(Collectors.toList());
         tripPlan.itinerary = itineraries.stream().map(p -> (Itinerary)p).collect(Collectors.toList());
 
         return tripPlan;
