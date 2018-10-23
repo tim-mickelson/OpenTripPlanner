@@ -36,8 +36,8 @@ public class ItineraryMapper {
         this.request = request;
     }
 
-    public ParetoItinerary createItinerary(RoutingRequest request, Path2 path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
-        ParetoItinerary itinerary = new ParetoItinerary();
+    public Itinerary createItinerary(RoutingRequest request, Path2 path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
+        Itinerary itinerary = new Itinerary();
 
         // Map access leg
         Stop accessToStop = transitLayer.getStopByIndex(path.accessLeg().toStop());
