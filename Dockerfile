@@ -15,6 +15,8 @@ RUN easy_install --quiet -U pip \
 
 WORKDIR /code
 
+RUN mkdir -p /code/otpdata/norway
+
 # From https://cloud.google.com/sdk/downloads
 RUN wget -nv https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-170.0.1-linux-x86_64.tar.gz \
   && echo "a09ff738ea9b3c9af906ee42e8ded48b84388574944d11406ba0cec6b2acdc89 google-cloud-sdk-170.0.1-linux-x86_64.tar.gz" | sha256sum --quiet -c - \
@@ -22,9 +24,6 @@ RUN wget -nv https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-c
 
 # Download logback logstash
 RUN wget -nv "http://central.maven.org/maven2/net/logstash/logback/logstash-logback-encoder/4.7/logstash-logback-encoder-4.7.jar" --directory-prefix /code/
-
-# Download pbf
-RUN wget -nv https://storage.googleapis.com/marduk-production/osm/norway-latest.osm.pbf --directory-prefix /otpdata/norway -O norway.osm.pbf
 
 # Copy OTP jar file from target
 COPY target/otp-*-shaded.jar /code/otp-shaded.jar
