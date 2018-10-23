@@ -19,7 +19,6 @@ import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvi
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.core.RoutingRequest;
-import org.opentripplanner.standalone.Router;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -41,14 +40,7 @@ public class RaptorRouter {
         this.transitLayer = transitLayer;
     }
 
-    public TripPlan route(RoutingRequest request, Router router) {
-
-        /**
-         * Route direct street route if applicable
-         */
-
-        DirectStreetRouter directStreetRouter = new DirectStreetRouter();
-        ParetoItinerary directStreetItinerary = new ParetoItinerary(directStreetRouter.route(request, router));
+    public TripPlan route(RoutingRequest request) {
 
         /**
          * Prepare access/egress transfers
@@ -98,15 +90,10 @@ public class RaptorRouter {
 
         List<ParetoItinerary> itineraries = new ArrayList<>();
 
-        // Add direct street path
-        if (directStreetItinerary != null) {
-            itineraries.add(directStreetItinerary);
-        }
-
-        // Add transit paths
+        // Limit paths to number of itineraries requested
         for (Path2 p : paths.stream().sorted(Comparator.comparing(p -> p.egressLeg().toTime()))
                 .collect(Collectors.toList())) {
-            itineraries.add(new ParetoItinerary(itineraryMapper.createItinerary(request, p, accessTransfers, egressTransfers)));
+            itineraries.add(itineraryMapper.createItinerary(request, p, accessTransfers, egressTransfers));
         }
 
         itineraries = filterByParetoSet(itineraries);
