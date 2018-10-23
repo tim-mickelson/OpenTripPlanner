@@ -34,6 +34,7 @@ public class RaptorRouter {
     private final TransitLayer transitLayer;
     private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
     private static final int SEARCH_RANGE_SECONDS = 60;
+    private ParetoSet<ParetoItinerary> paretoSet;
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
         this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.modes, request.walkSpeed);
@@ -96,7 +97,7 @@ public class RaptorRouter {
             itineraries.add(itineraryMapper.createItinerary(request, p, accessTransfers, egressTransfers));
         }
 
-        filterByParetoSet(itineraries);
+        itineraries = filterByParetoSet(itineraries);
 
         Place from = new Place();
         Place to = new Place();
@@ -112,7 +113,7 @@ public class RaptorRouter {
         return tripPlan;
     }
 
-    void filterByParetoSet(Collection<ParetoItinerary> itineraries) {
+    List<ParetoItinerary> filterByParetoSet(List<ParetoItinerary> itineraries) {
         ParetoSet<ParetoItinerary> paretoSet = new ParetoSet<>(ParetoItinerary.paretoDominanceFunctions());
         itineraries.stream().forEach(p -> {
             p.initParetoVector();
@@ -122,5 +123,6 @@ public class RaptorRouter {
         for (ParetoItinerary p : paretoSet.paretoSet()) {
             itineraries.add(p);
         }
+        return itineraries;
     }
 }
