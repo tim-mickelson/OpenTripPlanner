@@ -19,7 +19,6 @@ import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvi
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.core.RoutingRequest;
-import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.standalone.Router;
 
 import java.time.Instant;
@@ -49,10 +48,7 @@ public class RaptorRouter {
          */
 
         DirectStreetRouter directStreetRouter = new DirectStreetRouter();
-        ParetoItinerary directWalk = new ParetoItinerary(directStreetRouter.route(request, router, TraverseMode.WALK));
-        ParetoItinerary directBike = new ParetoItinerary(directStreetRouter.route(request, router, TraverseMode.BICYCLE));
-        ParetoItinerary directDrive = new ParetoItinerary(directStreetRouter.route(request, router, TraverseMode.CAR));
-
+        ParetoItinerary directStreetItinerary = new ParetoItinerary(directStreetRouter.route(request, router));
 
         /**
          * Prepare access/egress transfers
@@ -102,6 +98,11 @@ public class RaptorRouter {
 
         List<ParetoItinerary> itineraries = new ArrayList<>();
 
+        // Add direct street path
+        if (directStreetItinerary != null) {
+            itineraries.add(directStreetItinerary);
+        }
+
         // Add transit paths
         for (Path2 p : paths.stream().sorted(Comparator.comparing(p -> p.egressLeg().toTime()))
                 .collect(Collectors.toList())) {
@@ -120,21 +121,6 @@ public class RaptorRouter {
         itineraries = itineraries.stream().sorted((i1, i2) -> i1.endTime.compareTo(i2.endTime))
                 .limit(request.numItineraries).collect(Collectors.toList());
         tripPlan.itinerary = itineraries.stream().map(p -> (Itinerary)p).collect(Collectors.toList());
-
-        // Add direct street path
-        if (directWalk != null) {
-            tripPlan.itinerary.add(directWalk);
-        }
-
-        // Add direct street path
-        if (directBike != null) {
-            tripPlan.itinerary.add(directBike);
-        }
-
-        // Add direct street path
-        if (directDrive != null) {
-            tripPlan.itinerary.add(directDrive);
-        }
 
         return tripPlan;
     }
