@@ -19,7 +19,6 @@ import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvi
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.core.RoutingRequest;
-import org.opentripplanner.routing.spt.DominanceFunction;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
 public class RaptorRouter {
     private final TransitDataProvider otpRRDataProvider;
     private final TransitLayer transitLayer;
-    private static final int MAX_DURATION_SECONDS = 36 * 60 * 60;
+    private static final int MAX_DURATION_SECONDS = 24 * 60 * 60;
     private static final int SEARCH_RANGE_SECONDS = 60;
     private ParetoSet<ParetoItinerary> paretoSet;
 
