@@ -11,12 +11,15 @@ import com.conveyal.r5.profile.entur.api.RangeRaptorRequest;
 import com.conveyal.r5.profile.entur.api.TransitDataProvider;
 import com.conveyal.r5.profile.entur.rangeraptor.multicriteria.McRangeRaptorWorker;
 import com.conveyal.r5.profile.entur.rangeraptor.multicriteria.McWorkerState;
+import com.conveyal.r5.profile.entur.util.*;
+import org.opentripplanner.routing.algorithm.raptor.itinerary.ParetoItinerary;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
 import org.opentripplanner.routing.algorithm.raptor.street_router.DuationToStopMapper;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.core.RoutingRequest;
+import org.opentripplanner.routing.spt.DominanceFunction;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -85,13 +88,15 @@ public class RaptorRouter {
 
         ItineraryMapper itineraryMapper = new ItineraryMapper(transitLayer, request);
 
-        List<Itinerary> itineraries = new ArrayList<>();
+        List<ParetoItinerary> itineraries = new ArrayList<>();
 
         // Limit paths to number of itineraries requested
         for (Path2 p : paths.stream().sorted(Comparator.comparing(p -> p.egressLeg().toTime()))
-                .limit(request.numItineraries).collect(Collectors.toList())) {
+                .collect(Collectors.toList())) {
             itineraries.add(itineraryMapper.createItinerary(request, p, accessTransfers, egressTransfers));
         }
+
+        filterByParetoSet(itineraries);
 
         Place from = new Place();
         Place to = new Place();
@@ -100,8 +105,20 @@ public class RaptorRouter {
             to = itineraries.get(0).legs.get(itineraries.get(0).legs.size() - 1).to;
         }
         TripPlan tripPlan = new TripPlan(from, to, request.getDateTime());
-        tripPlan.itinerary = itineraries;
+        tripPlan.itinerary = itineraries.stream().map(p -> (Itinerary)p).collect(Collectors.toList());
 
         return tripPlan;
+    }
+
+    void filterByParetoSet(Collection<ParetoItinerary> itineraries) {
+        ParetoSet<ParetoItinerary> paretoSet = new ParetoSet<>(ParetoItinerary.paretoDominanceFunctions());
+        itineraries.stream().forEach(p -> {
+            p.initParetoVector();
+            paretoSet.add(p);
+        });
+        itineraries = new ArrayList<>();
+        for (ParetoItinerary p : paretoSet.paretoSet()) {
+            itineraries.add(p);
+        }
     }
 }
