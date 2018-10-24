@@ -19,14 +19,11 @@ import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.vertextype.TransitVertex;
 import org.opentripplanner.util.PolylineEncoder;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ItineraryMapper {
     private final TransitLayer transitLayer;
@@ -38,8 +35,8 @@ public class ItineraryMapper {
         this.request = request;
     }
 
-    public ParetoItinerary createItinerary(RoutingRequest request, Path2 path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
-        ParetoItinerary itinerary = new ParetoItinerary();
+    public Itinerary createItinerary(RoutingRequest request, Path2 path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
+        Itinerary itinerary = new Itinerary();
 
         // Map access leg
         Stop accessToStop = transitLayer.getStopByIndex(path.accessLeg().toStop());
@@ -186,6 +183,20 @@ public class ItineraryMapper {
         itinerary.distance = itinerary.legs.stream().mapToDouble(l -> l.distance).sum();
 
         return itinerary;
+    }
+
+    public TripPlan createTripPlan(RoutingRequest request, List<Itinerary> itineraries) {
+        Place from = new Place();
+        Place to = new Place();
+        if (!itineraries.isEmpty()) {
+            from = itineraries.get(0).legs.get(0).from;
+            to = itineraries.get(0).legs.get(itineraries.get(0).legs.size() - 1).to;
+        }
+        TripPlan tripPlan = new TripPlan(from, to, request.getDateTime());
+        itineraries = itineraries.stream().sorted((i1, i2) -> i1.endTime.compareTo(i2.endTime))
+                .limit(request.numItineraries).collect(Collectors.toList());
+        tripPlan.itinerary = itineraries;
+        return tripPlan;
     }
 
     private Calendar createCalendar(int timeinSeconds) {
