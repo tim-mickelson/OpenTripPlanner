@@ -31,6 +31,8 @@ public class RaptorGraphUpdater extends PollingGraphUpdater {
 
     private GraphUpdaterManager updaterManager;
 
+    private String url;
+
     // Here the updater can be configured using the properties in the file 'Graph.properties'.
     // The property frequencySec is already read and used by the abstract base class.
     @Override
