@@ -19,13 +19,9 @@ import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.vertextype.TransitVertex;
 import org.opentripplanner.util.PolylineEncoder;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 
 public class ItineraryMapper {
@@ -38,8 +34,8 @@ public class ItineraryMapper {
         this.request = request;
     }
 
-    public ParetoItinerary createItinerary(RoutingRequest request, Path2 path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
-        ParetoItinerary itinerary = new ParetoItinerary();
+    public Itinerary createItinerary(RoutingRequest request, Path2 path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
+        Itinerary itinerary = new Itinerary();
 
         // Map access leg
         Stop accessToStop = transitLayer.getStopByIndex(path.accessLeg().toStop());
@@ -186,6 +182,10 @@ public class ItineraryMapper {
         itinerary.distance = itinerary.legs.stream().mapToDouble(l -> l.distance).sum();
 
         return itinerary;
+    }
+
+    public TripPlan createTripPlan() {
+
     }
 
     private Calendar createCalendar(int timeinSeconds) {
