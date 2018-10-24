@@ -184,6 +184,10 @@ public class ItineraryMapper {
         return itinerary;
     }
 
+    public TripPlan createTripPlan() {
+
+    }
+
     private Calendar createCalendar(int timeinSeconds) {
         Date date = request.getDateTime();
         LocalDate localDate = Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
