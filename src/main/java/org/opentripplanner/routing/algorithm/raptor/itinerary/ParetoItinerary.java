@@ -17,6 +17,27 @@ public class ParetoItinerary extends Itinerary implements ParetoSortable {
 
     private final int[] paretoValues = new int[5];
 
+    public ParetoItinerary(Itinerary itinerary) {
+        if (itinerary != null) {
+            this.duration = itinerary.duration;
+            this.startTime = itinerary.startTime;
+            this.endTime = itinerary.endTime;
+            this.walkTime = itinerary.walkTime;
+            this.transitTime = itinerary.transitTime;
+            this.waitingTime = itinerary.waitingTime;
+            this.walkDistance = itinerary.walkDistance;
+            this.walkLimitExceeded = itinerary.walkLimitExceeded;
+            this.distance = itinerary.distance;
+            this.elevationLost = itinerary.elevationLost;
+            this.elevationGained = itinerary.elevationGained;
+            this.transfers = itinerary.transfers;
+            this.fare = itinerary.fare;
+            this.weight = itinerary.weight;
+            this.legs = itinerary.legs;
+            this.tooSloped = itinerary.tooSloped;
+        }
+    }
+
     public void initParetoVector() {
         int i = 0;
         paretoValues[i++] = this.transfers;
