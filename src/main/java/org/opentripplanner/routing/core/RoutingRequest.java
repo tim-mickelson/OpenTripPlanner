@@ -425,7 +425,7 @@ public class RoutingRequest implements Cloneable, Serializable {
 
     public int alightSlack = 0;
 
-    public int maxTransfers = 7;
+    public int maxTransfers = 8;
 
     /**
      * Extensions to the trip planner will require additional traversal options beyond the default

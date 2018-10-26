@@ -26,7 +26,7 @@ public class TransitLayerMapper {
     private TransitLayer transitLayer;
 
     private static final int RESERVED_STOPS = 2;
-    private static final int TIME_EXPANSION_NO_DAYS = 7;
+    private static final int TIME_EXPANSION_NO_DAYS = 4;
     private static final int SECONDS_OF_DAY = 60 * 60 * 24;
 
     public TransitLayer map(Graph graph) {
