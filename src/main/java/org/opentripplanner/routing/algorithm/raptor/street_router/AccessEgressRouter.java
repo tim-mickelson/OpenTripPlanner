@@ -28,7 +28,9 @@ public class AccessEgressRouter {
     private static Logger LOG = LoggerFactory.getLogger(InterleavedBidirectionalHeuristic.class);
 
     public static Map<Stop, Transfer> streetSearch (RoutingRequest rr, boolean fromTarget, long abortTime) {
-        rr.maxWalkDistance = 5000;
+        rr.maxWalkDistance = 2000;
+        rr.softWalkLimiting = false;
+        rr.softPreTransitLimiting = false;
         Map<TransitStop, Transfer> transitStopsFound = new HashMap<>();
         BinHeap<Vertex> transitQueue = new BinHeap<>();
         double maxWeightSeen = 0;
@@ -65,15 +67,6 @@ public class AccessEgressRouter {
                     transitQueue.insert(v, weight);
                     if (weight > maxWeightSeen) {
                         maxWeightSeen = weight;
-                    }
-                }
-                if (!stopReached) {
-                    stopReached = true;
-                    rr.softWalkLimiting = false;
-                    rr.softPreTransitLimiting = false;
-                    if (s.walkDistance > rr.maxWalkDistance) {
-                        // Add 300 meters in order to search for nearby stops
-                        rr.maxWalkDistance = s.walkDistance + 300;
                     }
                 }
                 if (!initialStop) continue;
