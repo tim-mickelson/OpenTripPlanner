@@ -120,7 +120,7 @@ public class RoutingRequest implements Cloneable, Serializable {
     /**
      * The maximum distance (in meters) the user is willing to walk for access/egress legs.
      */
-    public double maxPreTransitWalkDistance = Double.MAX_VALUE;
+    public double maxPreTransitWalkDistance = 2000;
 
     /**
      * The maximum time (in seconds) of pre-transit travel when using drive-to-transit (park and
