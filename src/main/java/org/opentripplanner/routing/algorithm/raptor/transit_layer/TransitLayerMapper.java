@@ -87,7 +87,8 @@ public class TransitLayerMapper {
             transitLayer.tripPatternByIndex[patternIndex] = tripPattern;
             transitLayer.tripByIndex[patternIndex] = new ArrayList<>();
             TripPattern newTripPattern = new TripPattern();
-            newTripPattern.transitModesSet = tripPattern.mode;
+            newTripPattern.transitMode = tripPattern.mode;
+            newTripPattern.transitSubMode = tripPattern.getTransportSubmode();
             newTripPattern.containsServices = new BitSet();
             int[] stopPattern = new int[tripPattern.stopPattern.size];
             for (int i = 0; i < tripPattern.stopPattern.size; i++) {

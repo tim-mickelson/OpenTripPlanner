@@ -7,17 +7,14 @@ import com.conveyal.r5.profile.entur.api.Pattern;
 import com.conveyal.r5.profile.entur.api.TransitDataProvider;
 import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 import com.conveyal.r5.profile.entur.util.BitSetIterator;
+import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.IntStream;
 
 public class OtpRRDataProvider implements TransitDataProvider {
@@ -46,6 +43,8 @@ public class OtpRRDataProvider implements TransitDataProvider {
     /** Allowed transit modes */
     private final TraverseModeSet transitModes;
 
+    private final HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes;
+
     private final List<LightweightTransferIterator> transfers;
 
     private final int walkSpeedMillimetersPerSecond;
@@ -55,11 +54,12 @@ public class OtpRRDataProvider implements TransitDataProvider {
         @Override public DurationToStop next() { return null; }
     };
 
-    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, int dayRange, TraverseModeSet transitModes, double walkSpeed) {
+    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, int dayRange, TraverseModeSet transitModes, HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
         this.transitLayer = transitLayer;
         this.servicesActivePerDay  = transitLayer.getActiveServicesForDates(date, dayRange);
         this.servicesActive = aggregateServicesActive();
         this.transitModes = transitModes;
+        this.transportSubmodes = transportSubmodes;
         this.walkSpeedMillimetersPerSecond = (int)(walkSpeed * 1000f);
         this.transfers = createTransfers(transitLayer.transfersForStop(), walkSpeedMillimetersPerSecond);
     }
@@ -116,13 +116,16 @@ public class OtpRRDataProvider implements TransitDataProvider {
         for (TripPattern pattern : transitLayer.getTripPatterns()) {
             patternIndex++;
 
-            TraverseMode mode = pattern.transitModesSet;
+            TraverseMode mode = pattern.transitMode;
             if (pattern.containsServices.intersects(servicesActive) && transitModes.contains(mode)) {
-                // at least one trip on this pattern is relevant, based on the profile request's date and modes
-                if (pattern.hasSchedules) { // NB not else b/c we still support combined frequency and schedule tripPatterns.
-                    scheduledPatterns.add(patternIndex);
-                    scheduledIndexForOriginalPatternIndex[patternIndex] = scheduledIndex++;
-                }
+
+                Set<TransmodelTransportSubmode> allowedSubmodesForMode = transportSubmodes.get(pattern.transitMode);
+                if (transportSubmodes.isEmpty() || (allowedSubmodesForMode != null && allowedSubmodesForMode.contains(pattern.transitSubMode)))
+                    // at least one trip on this pattern is relevant, based on the profile request's date and modes
+                    if (pattern.hasSchedules) { // NB not else b/c we still support combined frequency and schedule tripPatterns.
+                        scheduledPatterns.add(patternIndex);
+                        scheduledIndexForOriginalPatternIndex[patternIndex] = scheduledIndex++;
+                    }
             }
         }
 
