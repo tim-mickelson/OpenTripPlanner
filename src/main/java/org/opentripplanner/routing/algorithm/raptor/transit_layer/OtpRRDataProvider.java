@@ -7,6 +7,7 @@ import com.conveyal.r5.profile.entur.api.Pattern;
 import com.conveyal.r5.profile.entur.api.TransitDataProvider;
 import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 import com.conveyal.r5.profile.entur.util.BitSetIterator;
+import org.apache.commons.collections.CollectionUtils;
 import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
@@ -120,7 +121,7 @@ public class OtpRRDataProvider implements TransitDataProvider {
             if (pattern.containsServices.intersects(servicesActive) && transitModes.contains(mode)) {
 
                 Set<TransmodelTransportSubmode> allowedSubmodesForMode = transportSubmodes.get(pattern.transitMode);
-                if (transportSubmodes.isEmpty() || (allowedSubmodesForMode != null && allowedSubmodesForMode.contains(pattern.transitSubMode)))
+                if (transportSubmodes.isEmpty() || (CollectionUtils.isEmpty(allowedSubmodesForMode) || allowedSubmodesForMode.contains(pattern.transitSubMode)))
                     // at least one trip on this pattern is relevant, based on the profile request's date and modes
                     if (pattern.hasSchedules) { // NB not else b/c we still support combined frequency and schedule tripPatterns.
                         scheduledPatterns.add(patternIndex);
