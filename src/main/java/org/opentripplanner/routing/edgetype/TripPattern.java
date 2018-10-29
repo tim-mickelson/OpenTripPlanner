@@ -22,17 +22,13 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import com.vividsolutions.jts.geom.LineString;
-import org.opentripplanner.model.AgencyAndId;
-import org.opentripplanner.model.Route;
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.*;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.api.resource.CoordinateArrayListSequence;
 import org.opentripplanner.common.MavenVersion;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.PackedCoordinateSequence;
 import org.opentripplanner.gtfs.GtfsLibrary;
-import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.ServiceDay;
 import org.opentripplanner.routing.core.State;
@@ -232,6 +228,15 @@ public class TripPattern implements Cloneable, Serializable {
 
     public List<Stop> getStops() {
         return Arrays.asList(stopPattern.stops);
+    }
+
+    public TransmodelTransportSubmode getTransportSubmode() {
+        if (!trips.isEmpty()) {
+            return trips.get(0).getTransportSubmode();
+        }
+        else {
+            return TransmodelTransportSubmode.UNKNOWN;
+        }
     }
 
     public int getStopIndex(Stop stop) {

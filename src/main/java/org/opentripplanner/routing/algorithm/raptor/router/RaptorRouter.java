@@ -35,7 +35,7 @@ public class RaptorRouter {
     private static final int SEARCH_RANGE_SECONDS = 60;
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
-        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), 4, request.modes, request.walkSpeed);
+        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), 4, request.modes, request.transportSubmodes, request.walkSpeed);
         this.transitLayer = transitLayer;
     }
 
