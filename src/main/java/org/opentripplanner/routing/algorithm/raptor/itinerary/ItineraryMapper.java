@@ -50,7 +50,7 @@ public class ItineraryMapper {
             accessLeg.from.vertexType = VertexType.TRANSIT;
         }
         else {
-            accessLeg.from = new Place(request.from.lat, request.from.lng, "Coordinate");
+            accessLeg.from = new Place(request.from.lng, request.from.lat, "Coordinate");
         }
         accessLeg.to = new Place(accessToStop.getLon(), accessToStop.getLat(), accessToStop.getName());
         accessLeg.to.stopId = accessToStop.getId();
@@ -160,7 +160,7 @@ public class ItineraryMapper {
             egressLeg.to.vertexType = VertexType.TRANSIT;
         }
         else {
-            egressLeg.to = new Place(request.to.lat, request.to.lng, "Coordinate");
+            egressLeg.to = new Place(request.to.lng, request.to.lat, "Coordinate");
         }
         egressLeg.legGeometry = PolylineEncoder.createEncodings(egressPath.coordinates);
         egressLeg.distance = distanceMMToMeters(egressPath.distance);
