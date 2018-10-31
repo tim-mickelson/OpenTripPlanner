@@ -1,8 +1,8 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
+import com.conveyal.r5.profile.entur.api.StopArrival;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import com.conveyal.r5.profile.entur.api.DurationToStop;
 import com.conveyal.r5.profile.entur.api.Pattern;
 import com.conveyal.r5.profile.entur.api.TransitDataProvider;
 import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
@@ -50,9 +50,9 @@ public class OtpRRDataProvider implements TransitDataProvider {
 
     private final int walkSpeedMillimetersPerSecond;
 
-    private static final Iterator<DurationToStop> EMPTY_TRANSFER_ITERATOR = new Iterator<DurationToStop>() {
+    private static final Iterator<StopArrival> EMPTY_TRANSFER_ITERATOR = new Iterator<StopArrival>() {
         @Override public boolean hasNext() { return false; }
-        @Override public DurationToStop next() { return null; }
+        @Override public StopArrival next() { return null; }
     };
 
     public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, int dayRange, TraverseModeSet transitModes, HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
@@ -143,7 +143,7 @@ public class OtpRRDataProvider implements TransitDataProvider {
     }
 
     @Override
-    public Iterator<DurationToStop> getTransfers(int fromStop) {
+    public Iterator<StopArrival> getTransfers(int fromStop) {
         LightweightTransferIterator it = transfers.get(fromStop);
 
         if(it == null) return EMPTY_TRANSFER_ITERATOR;
