@@ -1,7 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.street_router;
 
 import org.opentripplanner.model.Stop;
-import com.conveyal.r5.profile.entur.api.DurationToStop;
+import com.conveyal.r5.profile.entur.api.StopArrival;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.vertextype.TransitStop;
@@ -18,13 +18,13 @@ public class DuationToStopMapper {
         this.transitLayer = transitLayer;
     }
 
-    public Collection<DurationToStop> map(Map<Stop, Transfer> input, double walkSpeed) {
+    public Collection<StopArrival> map(Map<Stop, Transfer> input, double walkSpeed) {
         List result = new ArrayList();
         for (Map.Entry<Stop, Transfer> entry : input.entrySet()) {
             Stop stop = entry.getKey();
             int duration = (int)Math.floor((entry.getValue()).distance / 1000.0 / walkSpeed); //TODO: Avoid hard coding walk speed
             int stopIndex = transitLayer.getIndexByStop(stop);
-            DurationToStop arrivalTimeAtStop = new DurationToStop() {
+            StopArrival arrivalTimeAtStop = new StopArrival() {
                 @Override
                 public int stop() {
                     return stopIndex;

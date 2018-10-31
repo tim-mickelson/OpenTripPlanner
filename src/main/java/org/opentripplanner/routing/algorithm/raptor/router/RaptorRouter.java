@@ -5,13 +5,13 @@ import org.opentripplanner.api.model.Place;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
-import com.conveyal.r5.profile.entur.api.DurationToStop;
+import com.conveyal.r5.profile.entur.api.StopArrival;
 import com.conveyal.r5.profile.entur.api.Path2;
 import com.conveyal.r5.profile.entur.api.RangeRaptorRequest;
 import com.conveyal.r5.profile.entur.api.TransitDataProvider;
 import com.conveyal.r5.profile.entur.rangeraptor.multicriteria.McRangeRaptorWorker;
 import com.conveyal.r5.profile.entur.rangeraptor.multicriteria.McWorkerState;
-import com.conveyal.r5.profile.entur.util.*;
+import com.conveyal.r5.profile.entur.util.paretoset.*;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ParetoItinerary;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
 import org.opentripplanner.routing.algorithm.raptor.street_router.DuationToStopMapper;
@@ -51,8 +51,8 @@ public class RaptorRouter {
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
         DuationToStopMapper duationToStopMapper = new DuationToStopMapper(transitLayer);
-        Collection<DurationToStop> accessTimes = duationToStopMapper.map(accessTransfers, request.walkSpeed);
-        Collection<DurationToStop> egressTimes = duationToStopMapper.map(egressTransfers, request.walkSpeed);
+        Collection<StopArrival> accessTimes = duationToStopMapper.map(accessTransfers, request.walkSpeed);
+        Collection<StopArrival> egressTimes = duationToStopMapper.map(egressTransfers, request.walkSpeed);
 
         /**
          * Prepare transit search
@@ -106,7 +106,7 @@ public class RaptorRouter {
             paretoSet.add(p);
         });
         itineraries.clear();
-        for (ParetoItinerary p : paretoSet.paretoSet()) {
+        for (ParetoItinerary p : paretoSet) {
             itineraries.add(p);
         }
     }

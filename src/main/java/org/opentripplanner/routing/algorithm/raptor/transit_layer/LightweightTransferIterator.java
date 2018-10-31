@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import com.conveyal.r5.profile.entur.api.DurationToStop;
+import com.conveyal.r5.profile.entur.api.StopArrival;
 
 import java.util.Iterator;
 
@@ -10,7 +10,7 @@ import java.util.Iterator;
  * the iterator and all instances of the DurationToStop. The DurationToStop is
  * only valid for the duration of on step
  */
-class LightweightTransferIterator implements Iterator<DurationToStop>, DurationToStop {
+class LightweightTransferIterator implements Iterator<StopArrival>, StopArrival {
     private final int[] durationToStops;
     private int index;
 
@@ -29,7 +29,7 @@ class LightweightTransferIterator implements Iterator<DurationToStop>, DurationT
     }
 
     @Override
-    public DurationToStop next() {
+    public StopArrival next() {
         return this;
     }
 
