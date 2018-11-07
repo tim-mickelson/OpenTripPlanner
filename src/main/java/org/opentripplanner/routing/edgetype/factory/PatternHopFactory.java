@@ -348,7 +348,7 @@ public class PatternHopFactory {
 
         /* Assign 0-based numeric codes to all GTFS service IDs. */
         for (AgencyAndId serviceId : _transitService.getAllServiceIds()) {
-            // TODO: FIX Service code collision for multiple feeds.
+            // TODO: FIX ServiceForDate code collision for multiple feeds.
             graph.serviceCodes.put(serviceId, graph.serviceCodes.size());
         }
 

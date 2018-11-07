@@ -1,20 +1,15 @@
 package org.opentripplanner.routing.algorithm.raptor.router;
 
+import com.conveyal.r5.profile.entur.RangeRaptorService;
+import com.conveyal.r5.profile.entur.api.*;
 import org.opentripplanner.api.model.Itinerary;
-import org.opentripplanner.api.model.Place;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
-import com.conveyal.r5.profile.entur.api.StopArrival;
-import com.conveyal.r5.profile.entur.api.Path2;
-import com.conveyal.r5.profile.entur.api.RangeRaptorRequest;
-import com.conveyal.r5.profile.entur.api.TransitDataProvider;
-import com.conveyal.r5.profile.entur.rangeraptor.multicriteria.McRangeRaptorWorker;
-import com.conveyal.r5.profile.entur.rangeraptor.multicriteria.McWorkerState;
 import com.conveyal.r5.profile.entur.util.paretoset.*;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ParetoItinerary;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
-import org.opentripplanner.routing.algorithm.raptor.street_router.DuationToStopMapper;
+import org.opentripplanner.routing.algorithm.raptor.street_router.StopArrivalMapper;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
@@ -31,7 +26,6 @@ import java.util.stream.Collectors;
 public class RaptorRouter {
     private final TransitDataProvider otpRRDataProvider;
     private final TransitLayer transitLayer;
-    private static final int MAX_DURATION_SECONDS = 4 * 24 * 60 * 60;
     private static final int SEARCH_RANGE_SECONDS = 60;
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
@@ -50,36 +44,36 @@ public class RaptorRouter {
         Map<Stop, Transfer> egressTransfers =
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
-        DuationToStopMapper duationToStopMapper = new DuationToStopMapper(transitLayer);
-        Collection<StopArrival> accessTimes = duationToStopMapper.map(accessTransfers, request.walkSpeed);
-        Collection<StopArrival> egressTimes = duationToStopMapper.map(egressTransfers, request.walkSpeed);
+        StopArrivalMapper stopArrivalMapper = new StopArrivalMapper(transitLayer);
+        Collection<StopArrival> accessTimes = stopArrivalMapper.map(accessTransfers, request.walkSpeed);
+        Collection<StopArrival> egressTimes = stopArrivalMapper.map(egressTransfers, request.walkSpeed);
 
         /**
          * Prepare transit search
          */
 
-        McRangeRaptorWorker worker = new McRangeRaptorWorker(
-                this.otpRRDataProvider,
-                new McWorkerState(
-                request.maxTransfers,
-                    transitLayer.getStopCount(),
-                    MAX_DURATION_SECONDS
-        ));
+        RangeRaptorService rangeRaptorService = new RangeRaptorService(new TuningParameters() {
+            @Override
+            public int maxNumberOfTransfers() {
+                return 8;
+            }
+        });
+
+        int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
+
+        RangeRaptorRequest rangeRaptorRequest = new RangeRaptorRequest.Builder(departureTime, departureTime + SEARCH_RANGE_SECONDS)
+        .addAccessStops(accessTimes)
+        .addEgressStops(egressTimes)
+        .departureStepInSeconds(60)
+        .boardSlackInSeconds(60)
+        .build();
+
 
         /**
          * Route transit
          */
 
-        int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
-
-        Collection<Path2> paths = worker.route(
-                new RangeRaptorRequest(
-                        departureTime,
-                        departureTime + SEARCH_RANGE_SECONDS,
-                        accessTimes,
-                        egressTimes,
-                        60,
-                        60));
+        Collection<Path2> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
 
         /**
          * Create itineraries

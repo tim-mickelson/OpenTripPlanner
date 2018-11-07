@@ -159,7 +159,7 @@ public class NEDDownloader implements NEDTileSource {
 
                 RTcall.setTargetEndpointAddress(new java.net.URL(RTendpointURL));
 
-                // Service method
+                // ServiceForDate method
                 RTcall.setOperationName(new QName("edc.usgs.gov", "processAOI"));
 
                 String response = (String) RTcall.invoke(new Object[] { payload });

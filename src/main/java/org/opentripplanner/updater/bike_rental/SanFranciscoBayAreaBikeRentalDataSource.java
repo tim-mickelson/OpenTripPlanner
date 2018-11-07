@@ -40,7 +40,7 @@ public class SanFranciscoBayAreaBikeRentalDataSource extends GenericJsonBikeRent
 
     public BikeRentalStation makeStation(JsonNode stationNode) {
 
-        if (!stationNode.path("statusValue").asText().equals("In Service")) {
+        if (!stationNode.path("statusValue").asText().equals("In ServiceForDate")) {
             return null;
         }
 

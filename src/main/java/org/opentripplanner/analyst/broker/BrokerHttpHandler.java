@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
-* A Grizzly Async Http Service (uses reponse suspend/resume)
+* A Grizzly Async Http ServiceForDate (uses reponse suspend/resume)
  * https://blogs.oracle.com/oleksiys/entry/grizzly_2_0_httpserver_api1
  *
  * When resuming a response object, "The only reliable way to check the socket status is to try to read or

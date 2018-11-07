@@ -55,8 +55,8 @@ public class ItineraryMapper {
         accessLeg.to = new Place(accessToStop.getLon(), accessToStop.getLat(), accessToStop.getName());
         accessLeg.to.stopId = accessToStop.getId();
         accessLeg.to.vertexType = VertexType.TRANSIT;
-        accessLeg.legGeometry = PolylineEncoder.createEncodings(accessPath.coordinates);
-        accessLeg.distance = distanceMMToMeters(accessPath.distance);
+        accessLeg.legGeometry = PolylineEncoder.createEncodings(accessPath.getCoordinates());
+        accessLeg.distance = distanceMMToMeters(accessPath.getDistance());
         accessLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps test
         itinerary.walkDistance += accessLeg.distance;
 
@@ -67,6 +67,9 @@ public class ItineraryMapper {
         // Increment counters
         itinerary.walkTime += path.accessLeg().toTime() - path.accessLeg().fromTime();
 
+        // TODO: Add back this code when PathLeg interface contains object references
+
+        /*
         for (PathLeg pathLeg : path.legs()) {
             // Map transit leg
             if (pathLeg.isTransit()) {
@@ -127,8 +130,8 @@ public class ItineraryMapper {
                 transferLeg.to = new Place(transferToStop.getLon(), transferToStop.getLat(), transferToStop.getName());
                 transferLeg.to.stopId = transferToStop.getId();
                 transferLeg.to.vertexType = VertexType.TRANSIT;
-                transferLeg.legGeometry = PolylineEncoder.createEncodings(transfer.coordinates);
-                transferLeg.distance = distanceMMToMeters(transfer.distance);
+                transferLeg.legGeometry = PolylineEncoder.createEncodings(transfer.getCoordinates());
+                transferLeg.distance = distanceMMToMeters(transfer.getDistance());
                 transferLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
                 itinerary.walkDistance += transferLeg.distance;
 
@@ -141,6 +144,7 @@ public class ItineraryMapper {
                 itinerary.walkTime += pathLeg.toTime() - pathLeg.fromTime();
             }
         }
+        */
 
         // Map egress leg
         Stop egressStop = transitLayer.getStopByIndex(path.egressLeg().fromStop());
@@ -162,8 +166,8 @@ public class ItineraryMapper {
         else {
             egressLeg.to = new Place(request.to.lng, request.to.lat, "Coordinate");
         }
-        egressLeg.legGeometry = PolylineEncoder.createEncodings(egressPath.coordinates);
-        egressLeg.distance = distanceMMToMeters(egressPath.distance);
+        egressLeg.legGeometry = PolylineEncoder.createEncodings(egressPath.getCoordinates());
+        egressLeg.distance = distanceMMToMeters(egressPath.getDistance());
         egressLeg.walkSteps = new ArrayList<>(); //TODO: Add walk steps
         itinerary.walkDistance = egressLeg.distance;
         if (egressLeg.distance > 0) {
@@ -216,14 +220,14 @@ public class ItineraryMapper {
         List<Coordinate> transitLegCoordinates = new ArrayList<>();
         boolean boarded = false;
         for (int j = 0; j < tripPattern.stopPattern.stops.length; j++) {
-            if (!boarded && tripSchedule.departures[j] == pathLeg.fromTime() && raptorTripPattern.stopPattern[j] == pathLeg.fromStop()) {
+            if (!boarded && tripSchedule.departure(j) == pathLeg.fromTime() && raptorTripPattern.getStopPattern()[j] == pathLeg.fromStop()) {
                 boarded = true;
             }
             if (boarded) {
                 transitLegCoordinates.add(new Coordinate(tripPattern.stopPattern.stops[j].getLon(),
                         tripPattern.stopPattern.stops[j].getLat()));
             }
-            if (boarded && tripSchedule.arrivals[j] == pathLeg.toTime() && raptorTripPattern.stopPattern[j] == pathLeg.toStop()) {
+            if (boarded && tripSchedule.arrival(j) == pathLeg.toTime() && raptorTripPattern.getStopPattern()[j] == pathLeg.toStop()) {
                 break;
             }
         }

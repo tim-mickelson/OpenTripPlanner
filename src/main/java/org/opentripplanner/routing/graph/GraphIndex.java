@@ -714,7 +714,7 @@ public class GraphIndex {
         return modesForStop(stop).anyMatch(modes::contains);
     }
 
-    /** An OBA Service Date is a local date without timezone, only year month and day. */
+    /** An OBA ServiceForDate Date is a local date without timezone, only year month and day. */
     public BitSet servicesRunning (ServiceDate date) {
         BitSet services = new BitSet(calendarService.getServiceIds().size());
         for (AgencyAndId serviceId : calendarService.getServiceIdsOnDate(date)) {

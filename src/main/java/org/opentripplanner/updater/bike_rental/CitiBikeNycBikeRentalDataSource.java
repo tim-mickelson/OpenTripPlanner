@@ -41,7 +41,7 @@ public class CitiBikeNycBikeRentalDataSource extends GenericJsonBikeRentalDataSo
 
     public BikeRentalStation makeStation(JsonNode stationNode) {
 
-        if (!stationNode.path("statusValue").asText().equals("In Service")) {
+        if (!stationNode.path("statusValue").asText().equals("In ServiceForDate")) {
             return null;
         }
 

@@ -1,6 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
+import org.opentripplanner.model.Trip;
 
 /**
  * This represents the arrival and departure times of a single GTFS trip within a TripPattern.
@@ -9,22 +10,26 @@ import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
  */
 public class TripSchedule implements TripScheduleInfo {
 
-    public String tripId;
-
     /**
      * Arrival times in seconds from midnight by stop index
      */
-    public int[] arrivals;
+    private final int[] arrivals;
+
     /**
      * Departure times in seconds from midnight by stop index
      */
-    public int[] departures;
+    private final int[] departures;
 
-    public int serviceCode;
+    private final Trip originalTrip;
 
-    public int dayOffset;
+    private final int serviceCode;
 
-    public Integer headwaySeconds;
+    TripSchedule (int[] arrivals, int[] departures, Trip originalTrip, int serviceCode) {
+        this.arrivals = arrivals;
+        this.departures = departures;
+        this.originalTrip = originalTrip;
+        this.serviceCode = serviceCode;
+    }
 
     @Override
     public int arrival(int stopPosInPattern) {
@@ -34,5 +39,21 @@ public class TripSchedule implements TripScheduleInfo {
     @Override
     public int departure(int stopPosInPattern) {
         return departures[stopPosInPattern];
+    }
+
+    public void setArrival(int stopPosInPattern, int value) {
+        arrivals[stopPosInPattern] = value;
+    }
+
+    public void setDeparture(int stopPosInPattern, int value) {
+        departures[stopPosInPattern] = value;
+    }
+
+    public Trip getOriginalTrip() {
+        return originalTrip;
+    }
+
+    public int getServiceCode() {
+        return serviceCode;
     }
 }

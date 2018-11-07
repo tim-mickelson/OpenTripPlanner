@@ -41,7 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This updater only includes GTFS-Realtime Service Alert feeds.
+ * This updater only includes GTFS-Realtime ServiceForDate Alert feeds.
  * @author novalis
  *
  */
