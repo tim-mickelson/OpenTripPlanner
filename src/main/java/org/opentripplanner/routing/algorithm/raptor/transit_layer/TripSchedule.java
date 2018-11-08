@@ -41,6 +41,11 @@ public class TripSchedule implements TripScheduleInfo {
         return departures[stopPosInPattern];
     }
 
+    @Override
+    public String debugInfo() {
+        return null;
+    }
+
     public void setArrival(int stopPosInPattern, int value) {
         arrivals[stopPosInPattern] = value;
     }

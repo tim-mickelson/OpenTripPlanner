@@ -19,18 +19,13 @@ public class TripPatternForDate implements TripPatternInfo {
     }
 
     @Override
-    public int originalPatternIndex() {
-        return 0;
-    }
-
-    @Override
     public int currentPatternStop(int i) {
         return this.tripPattern.getStopPattern()[i];
     }
 
     @Override
-    public int currentPatternStopsSize() {
-        return this.tripPattern.getStopPattern().length;
+    public int numberOfStopsInPattern() {
+        return tripPattern.getStopPattern().length;
     }
 
     @Override
@@ -39,7 +34,7 @@ public class TripPatternForDate implements TripPatternInfo {
     }
 
     @Override
-    public int getTripScheduleSize() {
+    public int numberOfTripSchedules() {
         return tripSchedules.size();
     }
 }
