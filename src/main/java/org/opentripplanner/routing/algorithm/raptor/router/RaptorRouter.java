@@ -14,6 +14,8 @@ import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvi
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.core.RoutingRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -27,9 +29,12 @@ public class RaptorRouter {
     private final TransitDataProvider otpRRDataProvider;
     private final TransitLayer transitLayer;
     private static final int SEARCH_RANGE_SECONDS = 60;
+    private static final Logger LOG = LoggerFactory.getLogger(RaptorRouter.class);
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
+        double startTime = System.currentTimeMillis();
         this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), 4, request.modes, request.transportSubmodes, request.walkSpeed);
+        LOG.info("Filtering tripPatterns took {} ms", System.currentTimeMillis() - startTime);
         this.transitLayer = transitLayer;
     }
 
@@ -38,6 +43,8 @@ public class RaptorRouter {
         /**
          * Prepare access/egress transfers
          */
+
+        double startTimeAccessEgress = System.currentTimeMillis();
 
         Map<Stop, Transfer> accessTransfers =
             AccessEgressRouter.streetSearch(request, false, Integer.MAX_VALUE);
@@ -48,14 +55,18 @@ public class RaptorRouter {
         Collection<StopArrival> accessTimes = stopArrivalMapper.map(accessTransfers, request.walkSpeed);
         Collection<StopArrival> egressTimes = stopArrivalMapper.map(egressTransfers, request.walkSpeed);
 
+        LOG.info("Access/egress routing took {} ms", System.currentTimeMillis() - startTimeAccessEgress);
+
         /**
          * Prepare transit search
          */
 
+        double startTimeRouting = System.currentTimeMillis();
+
         RangeRaptorService rangeRaptorService = new RangeRaptorService(new TuningParameters() {
             @Override
             public int maxNumberOfTransfers() {
-                return 8;
+                return 12;
             }
         });
 
@@ -66,6 +77,7 @@ public class RaptorRouter {
         .addEgressStops(egressTimes)
         .departureStepInSeconds(60)
         .boardSlackInSeconds(60)
+        .profile(RaptorProfiles.MULTI_CRITERIA)
         .build();
 
 
@@ -75,9 +87,13 @@ public class RaptorRouter {
 
         Collection<Path2> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
 
+        LOG.info("Main routing took {} ms", System.currentTimeMillis() - startTimeRouting);
+
         /**
          * Create itineraries
          */
+
+        double startItineraries = System.currentTimeMillis();
 
         ItineraryMapper itineraryMapper = new ItineraryMapper(transitLayer, request);
 
@@ -88,6 +104,8 @@ public class RaptorRouter {
         filterByParetoSet(itineraries);
 
         TripPlan tripPlan = itineraryMapper.createTripPlan(request, itineraries);
+
+        LOG.info("Creating itineraries took {} ms", System.currentTimeMillis() - startItineraries);
 
         return tripPlan;
     }
