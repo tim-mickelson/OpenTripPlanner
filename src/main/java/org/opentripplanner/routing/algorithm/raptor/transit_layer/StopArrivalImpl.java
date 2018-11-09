@@ -25,6 +25,6 @@ public class StopArrivalImpl implements StopArrival {
 
     @Override
     public int cost() {
-        return transfer.cost(); // TODO: Fix
+        return transfer.cost();
     }
 }

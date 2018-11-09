@@ -25,9 +25,7 @@ public class Transfer {
     }
 
     public int stop() { return stop; }
-
-    public int durationInSeconds() { return distance; } // TODO: Calculate duration
-
+    
     public int cost() {
         return cost;
     }
