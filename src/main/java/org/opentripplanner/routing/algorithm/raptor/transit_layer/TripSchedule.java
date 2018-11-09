@@ -27,6 +27,18 @@ public class TripSchedule implements TripScheduleInfo {
 
     private final int serviceCode;
 
+    private int dayOffset = 0;
+
+    private final static int SECONDS_OF_DAY = 86400;
+
+    TripSchedule(TripSchedule tripSchedule) {
+        this.arrivals = tripSchedule.arrivals;
+        this.departures = tripSchedule.departures;
+        this.originalTrip = tripSchedule.originalTrip;
+        this.serviceCode = tripSchedule.serviceCode;
+        this.originalTripPattern = tripSchedule.originalTripPattern;
+    }
+
     TripSchedule (int[] arrivals, int[] departures, Trip originalTrip, TripPattern originalTripPattern, int serviceCode) {
         this.arrivals = arrivals;
         this.departures = departures;
@@ -37,7 +49,7 @@ public class TripSchedule implements TripScheduleInfo {
 
     @Override
     public int arrival(int stopPosInPattern) {
-        return arrivals[stopPosInPattern];
+        return arrivals[stopPosInPattern] + this.dayOffset * SECONDS_OF_DAY;
     }
 
     @Override
@@ -68,5 +80,9 @@ public class TripSchedule implements TripScheduleInfo {
 
     public int getServiceCode() {
         return serviceCode;
+    }
+
+    public void setDayOffset(int dayOffset) {
+        this.dayOffset = dayOffset;
     }
 }

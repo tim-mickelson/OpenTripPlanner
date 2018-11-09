@@ -25,7 +25,7 @@ public class Transfer {
     }
 
     public int stop() { return stop; }
-    
+
     public int cost() {
         return cost;
     }
@@ -33,5 +33,4 @@ public class Transfer {
     public int getDistance() {
         return distance;
     }
-
 }

@@ -12,7 +12,6 @@ public class TransitLayer {
     /** Transit data required for routing */
     public TripPattern[] tripPatterns;
     public Map<LocalDate, List<TripPatternForDate>> tripPatternsForDate;
-    public List<TripPattern>[] tripPatternForStop;
     public List<Transfer>[] transferByStop;
 
     /** Maps to original graph to retrieve additional data */

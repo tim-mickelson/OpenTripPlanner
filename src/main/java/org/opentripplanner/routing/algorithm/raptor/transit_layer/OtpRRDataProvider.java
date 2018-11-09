@@ -61,31 +61,24 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
         return transitLayer.getStopCount();
     }
 
-    private void setActiveTripPatterns(LocalDate date, TraverseModeSet transitModes, HashMap<TraverseMode,
+    private List<TripPatternForDate> setActiveTripPatterns(LocalDate date, TraverseModeSet transitModes, HashMap<TraverseMode,
             Set<TransmodelTransportSubmode>> transportSubmodes) {
 
-
-
-        // Filter active trip patterns by date and mode
-        List<TripPatternForDate> activeTripPatterns = transitLayer.getTripPatternsForDate(date).stream()
+        return transitLayer.getTripPatternsForDate(date).stream()
                 .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode())) // TODO: Fix submode per main mode
                 .collect(toList());
+    }
 
-        LOG.info("Time spent since start: {} ms", System.currentTimeMillis() - startTime);
+    private void setTripPatternsPerStop(List<TripPatternForDate> tripPatternsForDate) {
 
         this.activeTripPatternsPerStop = Stream.generate(ArrayList<TripPatternForDate>::new)
                 .limit(numberOfStops()).collect(Collectors.toList());
 
-        LOG.info("Time spent since start: {} ms", System.currentTimeMillis() - startTime);
-
-        // Sort trip patterns per stop
-        for (TripPatternForDate tripPatternForDate : activeTripPatterns) {
+        for (TripPatternForDate tripPatternForDate : tripPatternsForDate) {
             for (int i : tripPatternForDate.getTripPattern().getStopPattern()) {
                 this.activeTripPatternsPerStop.get(i).add(tripPatternForDate);
             }
         }
-
-        LOG.info("Time spent since start: {} ms", System.currentTimeMillis() - startTime);
     }
 
     private void calculateTransferDuration(double walkSpeed) {
