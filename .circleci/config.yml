@@ -115,6 +115,11 @@ workflows:
     jobs:
     - test:
         context: org-carbon
+        filters:
+          branches:
+            only:
+            - entur_raptor
+            - rutebanken_develop
     - deploy-nexus:
         context: org-carbon
         requires:
