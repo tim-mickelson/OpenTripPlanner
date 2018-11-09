@@ -80,6 +80,7 @@ public class TransitLayerMapper {
                     new int[stopPattern.length],
                     new int[stopPattern.length],
                     tripTimes.trip,
+                    tripPattern,
                     tripTimes.serviceCode
                 );
 

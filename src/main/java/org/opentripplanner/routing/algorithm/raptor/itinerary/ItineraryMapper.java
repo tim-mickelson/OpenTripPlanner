@@ -1,5 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.itinerary;
 
+import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 import com.vividsolutions.jts.geom.Coordinate;
 import org.opentripplanner.api.model.*;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
@@ -33,7 +34,7 @@ public class ItineraryMapper {
         this.request = request;
     }
 
-    public Itinerary createItinerary(RoutingRequest request, Path2 path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
+    public Itinerary createItinerary(RoutingRequest request, Path2<TripSchedule> path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
         Itinerary itinerary = new Itinerary();
 
         // Map access leg
@@ -69,17 +70,16 @@ public class ItineraryMapper {
 
         // TODO: Add back this code when PathLeg interface contains object references
 
-        /*
-        for (PathLeg pathLeg : path.legs()) {
+
+        for (PathLeg<TripSchedule> pathLeg : path.legs()) {
             // Map transit leg
             if (pathLeg.isTransit()) {
                 Stop boardStop = transitLayer.getStopByIndex(pathLeg.fromStop());
                 Stop alightStop = transitLayer.getStopByIndex(pathLeg.toStop());
 
-                org.opentripplanner.routing.algorithm.raptor.transit_layer.TripPattern raptorTripPattern = transitLayer.getTripPatterns().get(pathLeg.pattern());
-                TripSchedule tripSchedule = transitLayer.tripPatterns.get(pathLeg.pattern()).tripSchedules.get(pathLeg.trip());
-                Trip trip = transitLayer.tripByIndex[pathLeg.pattern()].get(pathLeg.trip());
-                TripPattern tripPattern = transitLayer.getTripPatternByIndex(pathLeg.pattern());
+
+                Trip trip = pathLeg.trip().getOriginalTrip();
+                TripPattern tripPattern = pathLeg.trip().getOriginalTripPattern();
                 Route route = tripPattern.route;
 
                 Leg transitLeg = new Leg();
@@ -95,7 +95,7 @@ public class ItineraryMapper {
                 transitLeg.to = new Place(alightStop.getLon(), alightStop.getLat(), alightStop.getName());
                 transitLeg.to.stopId = alightStop.getId();
                 transitLeg.to.vertexType = VertexType.TRANSIT;
-                List<Coordinate> transitLegCoordinates = extractTransitLegCoordinates(tripSchedule, tripPattern, raptorTripPattern, pathLeg);
+                List<Coordinate> transitLegCoordinates = extractTransitLegCoordinates(pathLeg, alightStop, boardStop);
                 transitLeg.legGeometry = PolylineEncoder.createEncodings(transitLegCoordinates);
                 transitLeg.distance = getDistanceFromCoordinates(transitLegCoordinates);
                 transitLeg.route = route.getLongName();
@@ -144,7 +144,7 @@ public class ItineraryMapper {
                 itinerary.walkTime += pathLeg.toTime() - pathLeg.fromTime();
             }
         }
-        */
+
 
         // Map egress leg
         Stop egressStop = transitLayer.getStopByIndex(path.egressLeg().fromStop());
@@ -216,18 +216,20 @@ public class ItineraryMapper {
         return (double) (distanceMm / 1000);
     }
 
-    private List<Coordinate> extractTransitLegCoordinates(TripSchedule tripSchedule, TripPattern tripPattern, org.opentripplanner.routing.algorithm.raptor.transit_layer.TripPattern raptorTripPattern, PathLeg pathLeg) {
+    private List<Coordinate> extractTransitLegCoordinates(PathLeg<TripSchedule> pathLeg, Stop boardStop, Stop alightStop) {
         List<Coordinate> transitLegCoordinates = new ArrayList<>();
+        TripPattern tripPattern = pathLeg.trip().getOriginalTripPattern();
+        TripSchedule tripSchedule = pathLeg.trip();
         boolean boarded = false;
         for (int j = 0; j < tripPattern.stopPattern.stops.length; j++) {
-            if (!boarded && tripSchedule.departure(j) == pathLeg.fromTime() && raptorTripPattern.getStopPattern()[j] == pathLeg.fromStop()) {
+            if (!boarded && tripSchedule.departure(j) == pathLeg.fromTime() && tripPattern.getStop(j) == boardStop) {
                 boarded = true;
             }
             if (boarded) {
                 transitLegCoordinates.add(new Coordinate(tripPattern.stopPattern.stops[j].getLon(),
                         tripPattern.stopPattern.stops[j].getLat()));
             }
-            if (boarded && tripSchedule.arrival(j) == pathLeg.toTime() && raptorTripPattern.getStopPattern()[j] == pathLeg.toStop()) {
+            if (boarded && tripSchedule.arrival(j) == pathLeg.toTime() && tripPattern.getStop(j) == alightStop) {
                 break;
             }
         }

@@ -2,6 +2,7 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 import org.opentripplanner.model.Trip;
+import org.opentripplanner.routing.edgetype.TripPattern;
 
 /**
  * This represents the arrival and departure times of a single GTFS trip within a TripPattern.
@@ -22,13 +23,16 @@ public class TripSchedule implements TripScheduleInfo {
 
     private final Trip originalTrip;
 
+    private final TripPattern originalTripPattern;
+
     private final int serviceCode;
 
-    TripSchedule (int[] arrivals, int[] departures, Trip originalTrip, int serviceCode) {
+    TripSchedule (int[] arrivals, int[] departures, Trip originalTrip, TripPattern originalTripPattern, int serviceCode) {
         this.arrivals = arrivals;
         this.departures = departures;
         this.originalTrip = originalTrip;
         this.serviceCode = serviceCode;
+        this.originalTripPattern = originalTripPattern;
     }
 
     @Override
@@ -56,6 +60,10 @@ public class TripSchedule implements TripScheduleInfo {
 
     public Trip getOriginalTrip() {
         return originalTrip;
+    }
+
+    public TripPattern getOriginalTripPattern() {
+        return originalTripPattern;
     }
 
     public int getServiceCode() {

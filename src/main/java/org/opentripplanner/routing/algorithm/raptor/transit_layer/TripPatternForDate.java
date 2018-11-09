@@ -5,7 +5,7 @@ import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 
 import java.util.List;
 
-public class TripPatternForDate implements TripPatternInfo {
+public class TripPatternForDate implements TripPatternInfo<TripSchedule> {
     private final TripPattern tripPattern;
     private final List<TripSchedule> tripSchedules;
 
@@ -29,7 +29,7 @@ public class TripPatternForDate implements TripPatternInfo {
     }
 
     @Override
-    public TripScheduleInfo getTripSchedule(int i) {
+    public TripSchedule getTripSchedule(int i) {
         return tripSchedules.get(i);
     }
 

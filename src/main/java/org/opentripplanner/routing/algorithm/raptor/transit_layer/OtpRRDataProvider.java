@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
-public class OtpRRDataProvider implements TransitDataProvider {
+public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
 
     private static final Logger LOG = LoggerFactory.getLogger(OtpRRDataProvider.class);
 
@@ -43,8 +43,8 @@ public class OtpRRDataProvider implements TransitDataProvider {
 
     /** Gets all the unique trip patterns touching a set of stops */
     @Override
-    public Iterator<TripPatternInfo> patternIterator(UnsignedIntIterator stops) {
-        Set<TripPatternInfo> activeTripPatternsForGivenStops = new HashSet<>();
+    public Iterator<TripPatternInfo<TripSchedule>> patternIterator(UnsignedIntIterator stops) {
+        Set<TripPatternInfo<TripSchedule>> activeTripPatternsForGivenStops = new HashSet<>();
         int stopIndex = stops.next();
         while (stopIndex > 0) {
             activeTripPatternsForGivenStops.addAll(activeTripPatternsPerStop.get(stopIndex));

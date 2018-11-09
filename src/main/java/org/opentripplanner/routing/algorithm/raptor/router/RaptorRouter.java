@@ -13,6 +13,7 @@ import org.opentripplanner.routing.algorithm.raptor.street_router.StopArrivalMap
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
  * Does a complete transit search, including access and egress legs.
  */
 public class RaptorRouter {
-    private final TransitDataProvider otpRRDataProvider;
+    private final TransitDataProvider<TripSchedule> otpRRDataProvider;
     private final TransitLayer transitLayer;
     private static final int SEARCH_RANGE_SECONDS = 60;
     private static final Logger LOG = LoggerFactory.getLogger(RaptorRouter.class);
@@ -63,7 +64,7 @@ public class RaptorRouter {
 
         double startTimeRouting = System.currentTimeMillis();
 
-        RangeRaptorService rangeRaptorService = new RangeRaptorService(new TuningParameters() {
+        RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {
             @Override
             public int maxNumberOfTransfers() {
                 return 12;
@@ -85,7 +86,7 @@ public class RaptorRouter {
          * Route transit
          */
 
-        Collection<Path2> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
+        Collection<Path2<TripSchedule>> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
 
         LOG.info("Main routing took {} ms", System.currentTimeMillis() - startTimeRouting);
 
