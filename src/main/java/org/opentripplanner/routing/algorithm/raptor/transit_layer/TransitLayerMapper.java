@@ -54,11 +54,12 @@ public class TransitLayerMapper {
     /** Map trip tripPatterns and trips to Raptor classes */
     private void mapTripPatterns() {
         List<org.opentripplanner.routing.edgetype.TripPattern> originalTripPatterns = new ArrayList<>(graph.index.patternForId.values());
-        transitLayer.tripPatternForStop = new ArrayList[transitLayer.stopsByIndex.length];
-        Arrays.setAll(transitLayer.tripPatternForStop, a -> new ArrayList<>());
+        List<TripPattern>[] tripPatternForStop = new ArrayList[transitLayer.stopsByIndex.length];
+        Arrays.setAll(tripPatternForStop, a -> new ArrayList<>());
 
         Multimap<Integer, TripPattern> patternsByServiceCode = HashMultimap.create();
 
+        int patternId = 0;
         for (org.opentripplanner.routing.edgetype.TripPattern tripPattern : originalTripPatterns) {
             List<TripSchedule> tripSchedules = new ArrayList<>();
             int[] stopPattern = new int[tripPattern.stopPattern.size];
@@ -68,11 +69,11 @@ public class TransitLayerMapper {
                     .collect(Collectors.toList());
 
             TripPattern newTripPattern = new TripPattern(
+                    patternId++,
                     tripSchedules,
                     tripPattern.mode,
                     tripPattern.getTransportSubmode(),
-                    stopPattern,
-                    tripPattern
+                    stopPattern
             );
 
             for (TripTimes tripTimes : sortedTripTimes) {
@@ -96,7 +97,7 @@ public class TransitLayerMapper {
             for (int i = 0; i < tripPattern.stopPattern.size; i++) {
                 int stopIndex = transitLayer.indexByStop.get(tripPattern.getStop(i));
                 newTripPattern.getStopPattern()[i] = stopIndex;
-                transitLayer.tripPatternForStop[stopIndex].add(newTripPattern);
+                tripPatternForStop[stopIndex].add(newTripPattern);
             }
         }
 
@@ -138,6 +139,11 @@ public class TransitLayerMapper {
 
             transitLayer.tripPatternsForDate.put(serviceEntry.getKey(), tripPatternsForDate);
         }
+
+        // Sort by TripPattern for easier merging in OtpRRDataProvider
+        transitLayer.tripPatternsForDate.entrySet().stream()
+                .forEach(t -> t.getValue()
+                        .sort((p1, p2) -> Integer.compare(p1.getTripPattern().getId(), p2.getTripPattern().getId())));
     }
 
     /** Copy pre-calculated transfers from the original graph */

@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 public class TripPatternForDates implements TripPatternInfo<TripSchedule> {
     private final TripPattern tripPattern;
     private final List<List<TripSchedule>> tripSchedules;
+    private static final int SECONDS_OF_DAY = 86400;
+
 
     TripPatternForDates(TripPattern tripPattern, List<List<TripSchedule>> tripSchedulesPerDay) {
         this.tripPattern = tripPattern;
@@ -34,13 +36,13 @@ public class TripPatternForDates implements TripPatternInfo<TripSchedule> {
     @Override
     public TripSchedule getTripSchedule(int i) {
         int index = i;
-        int offset = 0;
+        int dayOffset = 0;
         for (List<TripSchedule> tripScheduleList : tripSchedules ) {
             if (i < tripScheduleList.size()) {
-                return new TripScheduleWithOffset(tripScheduleList.get(index), offset);
+                return new TripScheduleWithOffset(tripScheduleList.get(index), dayOffset * SECONDS_OF_DAY);
             }
             index -= tripScheduleList.size();
-            offset++;
+            dayOffset++;
         }
         throw new IndexOutOfBoundsException("Index out of bound: " + i);
     }
