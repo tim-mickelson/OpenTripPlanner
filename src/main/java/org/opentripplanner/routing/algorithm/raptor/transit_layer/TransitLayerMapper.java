@@ -159,7 +159,7 @@ public class TransitLayerMapper {
                             Arrays.asList(edge.getGeometry().getCoordinates()));
 
                     transitLayer.transferByStopPair.put(new OrderedIndexPair(i, stopIndex), transfer);
-                    transitLayer.transferByStop[stopIndex].add(transfer);
+                    transitLayer.transferByStop[i].add(transfer);
                 }
             }
         }

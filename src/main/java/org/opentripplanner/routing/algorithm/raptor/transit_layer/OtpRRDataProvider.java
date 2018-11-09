@@ -76,8 +76,21 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
     }
 
     private void calculateTransferDuration(double walkSpeed) {
+        /*
         this.transfers = Arrays.stream(transitLayer.getTransferByStop())
                 .map(t ->  t.stream().map(s -> new StopArrivalImpl(s, walkSpeed)).collect(Collectors.<StopArrival>toList()))
                 .collect(toList());
+        */
+
+        this.transfers = new ArrayList<>();
+
+        for (int i = 0; i < transitLayer.getTransferByStop().length; i++) {
+            List<Transfer> transfers = transitLayer.getTransferByStop()[i];
+            List<StopArrival> stopArrivals = new ArrayList<>();
+            for (Transfer transfer : transfers) {
+                stopArrivals.add(new StopArrivalImpl(transfer, walkSpeed));
+            }
+            this.transfers.add(stopArrivals);
+        }
     }
 }

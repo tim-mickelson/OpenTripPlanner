@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class RaptorRouter {
     private final TransitDataProvider<TripSchedule> otpRRDataProvider;
     private final TransitLayer transitLayer;
-    private static final int SEARCH_RANGE_SECONDS = 60;
+    private static final int SEARCH_RANGE_SECONDS = 60 * 40;
     private static final Logger LOG = LoggerFactory.getLogger(RaptorRouter.class);
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
@@ -64,12 +64,7 @@ public class RaptorRouter {
 
         double startTimeRouting = System.currentTimeMillis();
 
-        RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {
-            @Override
-            public int maxNumberOfTransfers() {
-                return 12;
-            }
-        });
+        RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {});
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
