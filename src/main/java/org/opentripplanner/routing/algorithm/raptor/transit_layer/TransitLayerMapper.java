@@ -154,7 +154,7 @@ public class TransitLayerMapper {
 
                     Transfer transfer = new Transfer(
                             stopIndex,
-                            (int)distance * 1000, // Convert to mm
+                            (int)distance,
                             0, // TODO: Calculate cost
                             Arrays.asList(edge.getGeometry().getCoordinates()));
 

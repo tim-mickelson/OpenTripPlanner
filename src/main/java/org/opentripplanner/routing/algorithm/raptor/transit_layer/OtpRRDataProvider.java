@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -27,6 +28,8 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
 
     /** Transfers by stop index */
     private List<List<StopArrival>> transfers;
+
+    double startTime = System.currentTimeMillis();
 
     public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, int dayRange, TraverseModeSet transitModes,
                              HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
@@ -58,39 +61,36 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
         return transitLayer.getStopCount();
     }
 
-    private void setActiveTripPatterns(LocalDate date, TraverseModeSet transitModes, HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes) {
+    private void setActiveTripPatterns(LocalDate date, TraverseModeSet transitModes, HashMap<TraverseMode,
+            Set<TransmodelTransportSubmode>> transportSubmodes) {
+
+
+
+        // Filter active trip patterns by date and mode
         List<TripPatternForDate> activeTripPatterns = transitLayer.getTripPatternsForDate(date).stream()
                 .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode())) // TODO: Fix submode per main mode
                 .collect(toList());
 
-        this.activeTripPatternsPerStop = new ArrayList<>();
-        for (int i = 0; i < numberOfStops(); i++) {
-            this.activeTripPatternsPerStop.add(new ArrayList<>());
-        }
+        LOG.info("Time spent since start: {} ms", System.currentTimeMillis() - startTime);
 
+        this.activeTripPatternsPerStop = Stream.generate(ArrayList<TripPatternForDate>::new)
+                .limit(numberOfStops()).collect(Collectors.toList());
+
+        LOG.info("Time spent since start: {} ms", System.currentTimeMillis() - startTime);
+
+        // Sort trip patterns per stop
         for (TripPatternForDate tripPatternForDate : activeTripPatterns) {
             for (int i : tripPatternForDate.getTripPattern().getStopPattern()) {
                 this.activeTripPatternsPerStop.get(i).add(tripPatternForDate);
             }
         }
+
+        LOG.info("Time spent since start: {} ms", System.currentTimeMillis() - startTime);
     }
 
     private void calculateTransferDuration(double walkSpeed) {
-        /*
         this.transfers = Arrays.stream(transitLayer.getTransferByStop())
                 .map(t ->  t.stream().map(s -> new StopArrivalImpl(s, walkSpeed)).collect(Collectors.<StopArrival>toList()))
                 .collect(toList());
-        */
-
-        this.transfers = new ArrayList<>();
-
-        for (int i = 0; i < transitLayer.getTransferByStop().length; i++) {
-            List<Transfer> transfers = transitLayer.getTransferByStop()[i];
-            List<StopArrival> stopArrivals = new ArrayList<>();
-            for (Transfer transfer : transfers) {
-                stopArrivals.add(new StopArrivalImpl(transfer, walkSpeed));
-            }
-            this.transfers.add(stopArrivals);
-        }
     }
 }

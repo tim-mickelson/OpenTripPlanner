@@ -10,7 +10,7 @@ public class StopArrivalImpl implements StopArrival {
 
     StopArrivalImpl(Transfer transfer, double walkSpeed) {
         this.transfer = transfer;
-        this.duration = (int) Math.round(transfer.getDistance() / 1000.0 / walkSpeed); // TODO: Fix calculation
+        this.duration = (int) Math.round(transfer.getDistance() / walkSpeed);
     }
 
     @Override

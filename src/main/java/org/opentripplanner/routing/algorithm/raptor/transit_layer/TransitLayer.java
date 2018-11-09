@@ -10,7 +10,6 @@ import java.util.Map;
 public class TransitLayer {
 
     /** Transit data required for routing */
-
     public TripPattern[] tripPatterns;
     public Map<LocalDate, List<TripPatternForDate>> tripPatternsForDate;
     public List<TripPattern>[] tripPatternForStop;
@@ -20,12 +19,6 @@ public class TransitLayer {
     public Stop[] stopsByIndex; // Index 0 and 1 are reserved for access/egress
     public Map<Stop, Integer> indexByStop;
     public Map<OrderedIndexPair, Transfer> transferByStopPair;
-
-    public List<TripPattern> getPatternsForStop(int stop) {
-        return tripPatternForStop[stop];
-    }
-
-    public Collection<TripPatternForDate> getPatternsForDate(LocalDate date) { return tripPatternsForDate.get(date); }
 
     public int getStopCount() { return stopsByIndex.length; }
 
@@ -39,10 +32,6 @@ public class TransitLayer {
 
     public Transfer getTransfer(int fromIndex, int toIndex) {
         return transferByStopPair.get(new OrderedIndexPair(fromIndex, toIndex));
-    }
-
-    public List<Transfer> transfersForStop(int stopIndex ) {
-        return transferByStop[stopIndex];
     }
 
     public Collection<TripPatternForDate> getTripPatternsForDate(LocalDate date) {
