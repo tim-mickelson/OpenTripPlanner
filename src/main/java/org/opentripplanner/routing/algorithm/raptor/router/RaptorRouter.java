@@ -107,8 +107,10 @@ public class RaptorRouter {
     }
 
     void filterByParetoSet(Collection<Itinerary> itineraries) {
-        ParetoSet<ParetoItinerary> paretoSet = new ParetoSet<>(ParetoItinerary.paretoDominanceFunctions());
-        List<ParetoItinerary> paretoItineraries = itineraries.stream().map(i -> new ParetoItinerary(i)).collect(Collectors.toList());
+        ParetoSet<ParetoItinerary> paretoSet = new ParetoSet<>(
+                ParetoFunction.createParetoFunctions().lessThen().lessThen().lessThen().lessThen().build());
+        List<ParetoItinerary> paretoItineraries = itineraries.stream()
+                .map(i -> new ParetoItinerary(i)).collect(Collectors.toList());
         paretoItineraries.stream().forEach(p -> {
             p.initParetoVector();
             paretoSet.add(p);

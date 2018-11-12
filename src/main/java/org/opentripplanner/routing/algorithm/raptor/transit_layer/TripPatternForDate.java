@@ -4,6 +4,7 @@ import com.conveyal.r5.profile.entur.api.TripPatternInfo;
 import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 
 import java.util.List;
+import java.util.Objects;
 
 public class TripPatternForDate implements TripPatternInfo<TripSchedule> {
     private final TripPattern tripPattern;
@@ -36,5 +37,18 @@ public class TripPatternForDate implements TripPatternInfo<TripSchedule> {
     @Override
     public int numberOfTripSchedules() {
         return tripSchedules.size();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tripPattern, tripSchedules);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TripPatternForDate that = (TripPatternForDate) o;
+        return this.getTripPattern().getId() == that.getTripPattern().getId();
     }
 }
