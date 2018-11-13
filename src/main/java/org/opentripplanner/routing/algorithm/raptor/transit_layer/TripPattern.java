@@ -1,23 +1,44 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import com.conveyal.r5.profile.entur.api.Pattern;
 import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.routing.core.TraverseMode;
 
-import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
 public class TripPattern {
-    public List<TripSchedule> tripSchedules = new ArrayList<>();
+    private final int id;
 
-    public TraverseMode transitMode;
+    private final List<TripSchedule> tripSchedules;
 
-    public TransmodelTransportSubmode transitSubMode;
+    private final TraverseMode transitMode;
 
-    public int[] stopPattern;
+    private final TransmodelTransportSubmode transitSubMode;
 
-    public BitSet containsServices;
+    private final int[] stopPattern;
 
-    public boolean hasSchedules;
+    public TripPattern(int id, List<TripSchedule> tripSchedules, TraverseMode transitMode, TransmodelTransportSubmode transitSubMode, int[] stopPattern) {
+        this.id = id;
+        this.tripSchedules = tripSchedules;
+        this.transitMode = transitMode;
+        this.transitSubMode = transitSubMode;
+        this.stopPattern = stopPattern;
+    }
+
+    public int getId() { return id; }
+
+    public List<TripSchedule> getTripSchedules() {
+        return tripSchedules;
+    }
+
+    public TraverseMode getTransitMode() {
+        return transitMode;
+    }
+
+    public TransmodelTransportSubmode getTransitSubMode() {
+        return transitSubMode;
+    }
+
+    public int[] getStopPattern() {
+        return stopPattern;
+    }
 }

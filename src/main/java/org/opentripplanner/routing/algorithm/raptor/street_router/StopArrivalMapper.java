@@ -11,10 +11,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class DuationToStopMapper {
+public class StopArrivalMapper {
     private TransitLayer transitLayer;
 
-    public DuationToStopMapper(TransitLayer transitLayer) {
+    public StopArrivalMapper(TransitLayer transitLayer) {
         this.transitLayer = transitLayer;
     }
 
@@ -22,7 +22,7 @@ public class DuationToStopMapper {
         List result = new ArrayList();
         for (Map.Entry<Stop, Transfer> entry : input.entrySet()) {
             Stop stop = entry.getKey();
-            int duration = (int)Math.floor((entry.getValue()).distance / 1000.0 / walkSpeed); //TODO: Avoid hard coding walk speed
+            int duration = (int)Math.floor((entry.getValue()).getDistance() / 1000.0 / walkSpeed); //TODO: Avoid hard coding walk speed
             int stopIndex = transitLayer.getIndexByStop(stop);
             StopArrival arrivalTimeAtStop = new StopArrival() {
                 @Override

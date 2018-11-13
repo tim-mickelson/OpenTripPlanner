@@ -98,8 +98,7 @@ public class AccessEgressRouter {
     }
 
     private static Transfer createTransfer(State state, boolean fromTarget) {
-        Transfer transfer = new Transfer();
-        transfer.distance = (int)state.getWalkDistance() * 1000;
+        State originalState = state;
         List<Coordinate> points = new ArrayList<>();
         do {
             if (state.backEdge != null && state.backEdge.getGeometry() != null) {
@@ -112,7 +111,13 @@ public class AccessEgressRouter {
             state = state.getBackState();
         } while (state != null);
         Collections.reverse(points);
-        transfer.coordinates = points;
+
+        Transfer transfer = new Transfer(
+                0,
+                (int)originalState.getWalkDistance() * 1000,
+                0,
+                points);
+
         return transfer;
     }
 }
