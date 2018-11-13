@@ -26,16 +26,11 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
     /** Transfers by stop index */
     private List<List<StopArrival>> transfers;
 
-    double startTime = System.currentTimeMillis();
-
     public OtpRRDataProvider(TransitLayer transitLayer, LocalDate startDate, int dayRange, TraverseModeSet transitModes,
                              HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
         this.transitLayer = transitLayer;
-        List<List<TripPatternForDate>> tripPatternForDates = new ArrayList<>();
-        for (LocalDate currentDate = startDate; currentDate.isBefore(startDate.plusDays(dayRange)); currentDate = currentDate.plusDays(1)) {
-            tripPatternForDates.add(setActiveTripPatterns(currentDate, transitModes, transportSubmodes));
-        }
-        List<TripPatternForDates> tripPatternForDateList = timeExpandTripPatterns(tripPatternForDates);
+        List<List<TripPatternForDate>> tripPatternForDates = getTripPatternsForDateRange(startDate, dayRange, transitModes, transportSubmodes);
+        List<TripPatternForDates> tripPatternForDateList = MergeTripPatternForDates.merge(tripPatternForDates);
         setTripPatternsPerStop(tripPatternForDateList);
         calculateTransferDuration(walkSpeed);
     }
@@ -71,6 +66,14 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
                 .collect(toList());
     }
 
+    private List<List<TripPatternForDate>> getTripPatternsForDateRange(LocalDate startDate, int dayRange, TraverseModeSet transitModes, HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes) {
+        List<List<TripPatternForDate>> tripPatternForDates = new ArrayList<>();
+        for (LocalDate currentDate = startDate; currentDate.isBefore(startDate.plusDays(dayRange)); currentDate = currentDate.plusDays(1)) {
+            tripPatternForDates.add(setActiveTripPatterns(currentDate, transitModes, transportSubmodes));
+        }
+        return tripPatternForDates;
+    }
+
     private void setTripPatternsPerStop(List<TripPatternForDates> tripPatternsForDate) {
 
         this.activeTripPatternsPerStop = Stream.generate(ArrayList<TripPatternForDates>::new)
@@ -87,13 +90,5 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
         this.transfers = Arrays.stream(transitLayer.getTransferByStop())
                 .map(t ->  t.stream().map(s -> new StopArrivalImpl(s, walkSpeed)).collect(Collectors.<StopArrival>toList()))
                 .collect(toList());
-    }
-
-    private List<TripPatternForDates> timeExpandTripPatterns(List<List<TripPatternForDate>> tripPatternForDateList) {
-        List<TripPatternForDates> tripPatternForDates = new ArrayList<>();
-        for (List<TripPatternForDate> currentTripPatternsForDate : tripPatternForDateList) {
-            tripPatternForDates = MergeTripPatternForDates.merge(tripPatternForDates, currentTripPatternsForDate);
-        }
-        return tripPatternForDates;
     }
 }

@@ -3,8 +3,23 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class merges several a list of TripPatterns for several consecutive dates into a single list of
+ * TripPatternsForDates. The merge-method assumes that the lists are already sorted by TripPattern. The purpose of
+ * doing this is so that TripSchedules for several dates are combined by TripPattern instead of having their own
+ * TripPattern. This is to improve performance for searching, as each TripPattern is searched only once per round.
+ */
+
 public class MergeTripPatternForDates {
-    public static List<TripPatternForDates> merge(List<TripPatternForDates> left, List<TripPatternForDate> right) {
+    public static List<TripPatternForDates> merge(List<List<TripPatternForDate>> tripPatternForDateList) {
+        List<TripPatternForDates> tripPatternForDates = new ArrayList<>();
+        for (List<TripPatternForDate> currentTripPatternsForDate : tripPatternForDateList) {
+            tripPatternForDates = mergeSingleList(tripPatternForDates, currentTripPatternsForDate);
+        }
+        return tripPatternForDates;
+    }
+
+    private static List<TripPatternForDates> mergeSingleList(List<TripPatternForDates> left, List<TripPatternForDate> right) {
         List<TripPatternForDates> combinedList = new ArrayList<>();
 
         int dayOffset = !left.isEmpty() ? left.get(0).getTripSchedules().size() : 0;

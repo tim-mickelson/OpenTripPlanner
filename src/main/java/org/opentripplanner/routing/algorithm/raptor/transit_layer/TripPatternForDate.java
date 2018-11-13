@@ -6,6 +6,11 @@ import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A TripPattern with its TripSchedules filtered by validity on a particular date. This is to avoid having to do any
+ * filtering by date during the search itself.
+ */
+
 public class TripPatternForDate implements TripPatternInfo<TripSchedule> {
     private final TripPattern tripPattern;
     private final List<TripSchedule> tripSchedules;

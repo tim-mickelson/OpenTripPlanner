@@ -4,6 +4,11 @@ import com.conveyal.r5.profile.entur.api.TripPatternInfo;
 
 import java.util.List;
 
+/**
+ * A collection of all the TripSchedules active on a range of consecutive days. The outer list of tripSchedules
+ * refers to days in order.
+ */
+
 public class TripPatternForDates implements TripPatternInfo<TripSchedule> {
     private final TripPattern tripPattern;
     private final List<List<TripSchedule>> tripSchedules;
