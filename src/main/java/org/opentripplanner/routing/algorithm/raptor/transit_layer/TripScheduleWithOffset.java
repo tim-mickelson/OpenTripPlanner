@@ -41,7 +41,7 @@ public class TripScheduleWithOffset implements TripSchedule {
 
     @Override
     public TripPattern getOriginalTripPattern() {
-        return this.getOriginalTripPattern();
+        return this.tripSchedule.getOriginalTripPattern();
     }
 
     @Override
