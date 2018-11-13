@@ -14,6 +14,11 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * This is the data provider for the Range Raptor search engine. It uses data from the TransitLayer, but filters it by
+ * dates and modes per request. Transfers durations are pre-calculated per request based on walk speed.
+ */
+
 public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
 
     private static final Logger LOG = LoggerFactory.getLogger(OtpRRDataProvider.class);

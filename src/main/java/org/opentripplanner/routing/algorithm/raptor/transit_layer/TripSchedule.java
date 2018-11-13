@@ -5,9 +5,7 @@ import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.edgetype.TripPattern;
 
 /**
- * This represents the arrival and departure times of a single GTFS trip within a TripPattern.
- * If this is a frequency trip, it also records the different headways throughout the day, and when those headways
- * begin and end.
+ * This represents a single trip within a TripPattern
  */
 public class TripSchedule implements TripScheduleInfo {
 
@@ -27,10 +25,6 @@ public class TripSchedule implements TripScheduleInfo {
 
     private final int serviceCode;
 
-    private int dayOffset = 0;
-
-    private final static int SECONDS_OF_DAY = 86400;
-
     TripSchedule(TripSchedule tripSchedule) {
         this.arrivals = tripSchedule.arrivals;
         this.departures = tripSchedule.departures;
@@ -48,9 +42,7 @@ public class TripSchedule implements TripScheduleInfo {
     }
 
     @Override
-    public int arrival(int stopPosInPattern) {
-        return arrivals[stopPosInPattern] + this.dayOffset * SECONDS_OF_DAY;
-    }
+    public int arrival(int stopPosInPattern) { return arrivals[stopPosInPattern]; }
 
     @Override
     public int departure(int stopPosInPattern) {
@@ -80,9 +72,5 @@ public class TripSchedule implements TripScheduleInfo {
 
     public int getServiceCode() {
         return serviceCode;
-    }
-
-    public void setDayOffset(int dayOffset) {
-        this.dayOffset = dayOffset;
     }
 }
