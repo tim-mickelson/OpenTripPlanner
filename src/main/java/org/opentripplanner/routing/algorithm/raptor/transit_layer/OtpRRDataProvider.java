@@ -1,13 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import com.conveyal.r5.profile.entur.api.StopArrival;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
-import com.conveyal.r5.profile.entur.api.Pattern;
-import com.conveyal.r5.profile.entur.api.TransitDataProvider;
-import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
-import com.conveyal.r5.profile.entur.util.BitSetIterator;
-import org.apache.commons.collections.CollectionUtils;
+import com.conveyal.r5.profile.entur.api.*;
 import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
@@ -16,223 +9,91 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class OtpRRDataProvider implements TransitDataProvider {
+import static java.util.stream.Collectors.toList;
+
+/**
+ * This is the data provider for the Range Raptor search engine. It uses data from the TransitLayer, but filters it by
+ * dates and modes per request. Transfers durations are pre-calculated per request based on walk speed.
+ */
+
+public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
 
     private static final Logger LOG = LoggerFactory.getLogger(OtpRRDataProvider.class);
 
-    private static boolean PRINT_REFILTERING_PATTERNS_INFO = true;
-
     private TransitLayer transitLayer;
 
-    /** Array mapping from original pattern indices to the filtered scheduled indices */
-    private int[] scheduledIndexForOriginalPatternIndex;
+    /** Active trip patterns by stop index */
+    private List<List<TripPatternForDates>> activeTripPatternsPerStop;
 
-    /** Schedule-based trip tripPatterns running on a given day */
-    private TripPattern[] runningScheduledPatterns;
+    /** Transfers by stop index */
+    private List<List<StopArrival>> transfers;
 
-    /** Map from internal, filtered pattern indices back to original pattern indices for scheduled tripPatterns */
-    private int[] originalPatternIndexForScheduledIndex;
-
-    /** Services active on the date range of the search */
-    private final BitSet servicesActive;
-
-    /** Services active per day of the date range of the search */
-    private final BitSet[] servicesActivePerDay;
-
-    /** Allowed transit modes */
-    private final TraverseModeSet transitModes;
-
-    private final HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes;
-
-    private final List<LightweightTransferIterator> transfers;
-
-    private final int walkSpeedMillimetersPerSecond;
-
-    private static final Iterator<StopArrival> EMPTY_TRANSFER_ITERATOR = new Iterator<StopArrival>() {
-        @Override public boolean hasNext() { return false; }
-        @Override public StopArrival next() { return null; }
-    };
-
-    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, int dayRange, TraverseModeSet transitModes, HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
+    public OtpRRDataProvider(TransitLayer transitLayer, LocalDate startDate, int dayRange, TraverseModeSet transitModes,
+                             HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
         this.transitLayer = transitLayer;
-        this.servicesActivePerDay  = transitLayer.getActiveServicesForDates(date, dayRange);
-        this.servicesActive = aggregateServicesActive();
-        this.transitModes = transitModes;
-        this.transportSubmodes = transportSubmodes;
-        this.walkSpeedMillimetersPerSecond = (int)(walkSpeed * 1000f);
-        this.transfers = createTransfers(transitLayer.transfersForStop(), walkSpeedMillimetersPerSecond);
+        List<List<TripPatternForDate>> tripPatternForDates = getTripPatternsForDateRange(startDate, dayRange, transitModes, transportSubmodes);
+        List<TripPatternForDates> tripPatternForDateList = MergeTripPatternForDates.merge(tripPatternForDates);
+        setTripPatternsPerStop(tripPatternForDateList);
+        calculateTransferDuration(walkSpeed);
     }
 
-    private BitSet aggregateServicesActive() {
-        BitSet servicesActiveAggregated = new BitSet();
-        for (BitSet activeForDay : this.servicesActivePerDay) {
-            servicesActiveAggregated.or(activeForDay);
+    /** Gets all the transfers starting at a given stop */
+    @Override
+    public Iterator<StopArrival> getTransfers(int stopIndex) {
+        return transfers.get(stopIndex).iterator();
+    }
+
+    /** Gets all the unique trip patterns touching a set of stops */
+    @Override
+    public Iterator<TripPatternInfo<TripSchedule>> patternIterator(UnsignedIntIterator stops) {
+        Set<TripPatternInfo<TripSchedule>> activeTripPatternsForGivenStops = new HashSet<>();
+        int stopIndex = stops.next();
+        while (stopIndex > 0) {
+            activeTripPatternsForGivenStops.addAll(activeTripPatternsPerStop.get(stopIndex));
+            stopIndex = stops.next();
         }
-        return servicesActiveAggregated;
+        return activeTripPatternsForGivenStops.iterator();
     }
 
-    private static List<LightweightTransferIterator> createTransfers(List<TIntList> transfers, int walkSpeedMillimetersPerSecond) {
+    @Override
+    public int numberOfStops() {
+        return transitLayer.getStopCount();
+    }
 
-        List<LightweightTransferIterator> list = new ArrayList<>();
+    private List<TripPatternForDate> setActiveTripPatterns(LocalDate date, TraverseModeSet transitModes, HashMap<TraverseMode,
+            Set<TransmodelTransportSubmode>> transportSubmodes) {
 
-        for (int i = 0; i < transfers.size(); i++) {
-            list.add(transfersAt(transfers.get(i), walkSpeedMillimetersPerSecond));
+        return transitLayer.getTripPatternsForDate(date).stream()
+                .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode())) // TODO: Fix submode per main mode
+                .collect(toList());
+    }
+
+    private List<List<TripPatternForDate>> getTripPatternsForDateRange(LocalDate startDate, int dayRange, TraverseModeSet transitModes, HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes) {
+        List<List<TripPatternForDate>> tripPatternForDates = new ArrayList<>();
+        for (LocalDate currentDate = startDate; currentDate.isBefore(startDate.plusDays(dayRange)); currentDate = currentDate.plusDays(1)) {
+            tripPatternForDates.add(setActiveTripPatterns(currentDate, transitModes, transportSubmodes));
         }
-        return list;
+        return tripPatternForDates;
     }
 
-    private static LightweightTransferIterator transfersAt(TIntList m, int walkSpeedMillimetersPerSecond) {
-        if(m == null) return null;
+    private void setTripPatternsPerStop(List<TripPatternForDates> tripPatternsForDate) {
 
-        int[] stopTimes = new int[m.size()];
+        this.activeTripPatternsPerStop = Stream.generate(ArrayList<TripPatternForDates>::new)
+                .limit(numberOfStops()).collect(Collectors.toList());
 
-        for(int i=0; i<m.size();) {
-            stopTimes[i] = m.get(i);
-            ++i;
-            stopTimes[i] = m.get(i) / walkSpeedMillimetersPerSecond;
-            ++i;
-        }
-        return new LightweightTransferIterator(stopTimes);
-    }
-
-    public TransitLayer getTransitLayer() {
-        return this.transitLayer;
-    }
-
-    public TIntList getPatternsForStop(int stop) {
-        return transitLayer.getPatternsForStop(stop);
-    }
-
-    /** Prefilter the tripPatterns to only ones that are running */
-    public void init() {
-        TIntList scheduledPatterns = new TIntArrayList();
-        scheduledIndexForOriginalPatternIndex = new int[transitLayer.getTripPatterns().size()];
-        Arrays.fill(scheduledIndexForOriginalPatternIndex, -1);
-
-        int patternIndex = -1; // first increment lands at 0
-        int scheduledIndex = 0;
-
-        for (TripPattern pattern : transitLayer.getTripPatterns()) {
-            patternIndex++;
-
-            TraverseMode mode = pattern.transitMode;
-            if (pattern.containsServices.intersects(servicesActive) && transitModes.contains(mode)) {
-
-                Set<TransmodelTransportSubmode> allowedSubmodesForMode = transportSubmodes.get(pattern.transitMode);
-                if (transportSubmodes.isEmpty() || (CollectionUtils.isEmpty(allowedSubmodesForMode) || allowedSubmodesForMode.contains(pattern.transitSubMode)))
-                    // at least one trip on this pattern is relevant, based on the profile request's date and modes
-                    if (pattern.hasSchedules) { // NB not else b/c we still support combined frequency and schedule tripPatterns.
-                        scheduledPatterns.add(patternIndex);
-                        scheduledIndexForOriginalPatternIndex[patternIndex] = scheduledIndex++;
-                    }
+        for (TripPatternForDates tripPatternForDateList : tripPatternsForDate) {
+            for (int i : tripPatternForDateList.getTripPattern().getStopPattern()) {
+                this.activeTripPatternsPerStop.get(i).add(tripPatternForDateList);
             }
         }
-
-        originalPatternIndexForScheduledIndex = scheduledPatterns.toArray();
-
-        runningScheduledPatterns = IntStream.of(originalPatternIndexForScheduledIndex)
-                .mapToObj(transitLayer.tripPatterns::get).toArray(TripPattern[]::new);
-
-        if (PRINT_REFILTERING_PATTERNS_INFO) {
-            LOG.info("Prefiltering tripPatterns based on date active reduced {} tripPatterns to {} scheduled tripPatterns",
-                    transitLayer.getTripPatterns().size(), scheduledPatterns.size());
-            PRINT_REFILTERING_PATTERNS_INFO = false;
-        }
     }
 
-    @Override
-    public Iterator<StopArrival> getTransfers(int fromStop) {
-        LightweightTransferIterator it = transfers.get(fromStop);
-
-        if(it == null) return EMPTY_TRANSFER_ITERATOR;
-
-        it.reset();
-
-        return it;
+    private void calculateTransferDuration(double walkSpeed) {
+        this.transfers = Arrays.stream(transitLayer.getTransferByStop())
+                .map(t ->  t.stream().map(s -> new StopArrivalImpl(s, walkSpeed)).collect(Collectors.<StopArrival>toList()))
+                .collect(toList());
     }
-
-    @Override public Iterator<Pattern> patternIterator(BitSetIterator stops) {
-        return new InternalPatternIterator(getPatternsTouchedForStops(stops));
-    }
-
-    @Override
-    public boolean isTripScheduleInService(TripScheduleInfo trip) {
-        TripSchedule t = (TripSchedule)trip;
-        return t.headwaySeconds == null && servicesActivePerDay[t.dayOffset].get(t.serviceCode);
-    }
-
-    private BitSet getPatternsTouchedForStops(BitSetIterator stops) {
-        BitSet patternsTouched = new BitSet();
-
-        for (int stop = stops.next(); stop >= 0; stop = stops.next()) {
-
-            getPatternsForStop(stop).forEach(originalPattern -> {
-                int filteredPattern = scheduledIndexForOriginalPatternIndex[originalPattern];
-
-                if (filteredPattern < 0) {
-                    return true; // this pattern does not exist in the local subset of tripPatterns, continue iteration
-                }
-
-                patternsTouched.set(filteredPattern);
-                return true; // continue iteration
-            });
-        }
-        return patternsTouched;
-    }
-
-    class InternalPatternIterator implements Iterator<Pattern>, com.conveyal.r5.profile.entur.api.Pattern {
-        private int nextPatternIndex;
-        private int originalPatternIndex;
-        private BitSet patternsTouched;
-        private TripPattern pattern;
-
-        InternalPatternIterator(BitSet patternsTouched) {
-            this.patternsTouched = patternsTouched;
-            this.nextPatternIndex = 0;
-        }
-
-        /*  PatternIterator interface implementation */
-
-        @Override public boolean hasNext() {
-            return nextPatternIndex >=0;
-        }
-
-        @Override public com.conveyal.r5.profile.entur.api.Pattern next() {
-            pattern = runningScheduledPatterns[nextPatternIndex];
-            originalPatternIndex = originalPatternIndexForScheduledIndex[nextPatternIndex];
-            nextPatternIndex = patternsTouched.nextSetBit(nextPatternIndex + 1);
-            return this;
-        }
-
-
-        /*  Pattern interface implementation */
-
-        @Override public int originalPatternIndex() {
-            return originalPatternIndex;
-        }
-
-        @Override
-        public int currentPatternStop(int stopPositionInPattern) {
-            return pattern.stopPattern[stopPositionInPattern];
-        }
-
-        @Override
-        public int currentPatternStopsSize() {
-            return pattern.stopPattern.length;
-        }
-
-        @Override
-        public TripScheduleInfo getTripSchedule(int index) {
-            return pattern.tripSchedules.get(index);
-        }
-
-        @Override
-        public int getTripScheduleSize() {
-            return pattern.tripSchedules.size();
-        }
-    }
-
-
 }

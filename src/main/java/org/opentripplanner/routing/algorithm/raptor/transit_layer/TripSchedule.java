@@ -1,38 +1,16 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
+import org.opentripplanner.model.Trip;
+import org.opentripplanner.routing.edgetype.TripPattern;
 
 /**
- * This represents the arrival and departure times of a single GTFS trip within a TripPattern.
- * If this is a frequency trip, it also records the different headways throughout the day, and when those headways
- * begin and end.
+ * Extension of TripScheduleInfo passed through Range Raptor searches to be able to retrieve the original trip
+ * from the path when creating itineraries.
  */
-public class TripSchedule implements TripScheduleInfo {
 
-    public String tripId;
-
-    /**
-     * Arrival times in seconds from midnight by stop index
-     */
-    public int[] arrivals;
-    /**
-     * Departure times in seconds from midnight by stop index
-     */
-    public int[] departures;
-
-    public int serviceCode;
-
-    public int dayOffset;
-
-    public Integer headwaySeconds;
-
-    @Override
-    public int arrival(int stopPosInPattern) {
-        return arrivals[stopPosInPattern];
-    }
-
-    @Override
-    public int departure(int stopPosInPattern) {
-        return departures[stopPosInPattern];
-    }
+public interface TripSchedule extends TripScheduleInfo {
+    public Trip getOriginalTrip();
+    public TripPattern getOriginalTripPattern();
+    public int getServiceCode();
 }
