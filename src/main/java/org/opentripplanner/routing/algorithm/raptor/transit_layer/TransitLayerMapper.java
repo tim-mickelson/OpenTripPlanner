@@ -29,16 +29,15 @@ public class TransitLayerMapper {
 
     private Graph graph;
     private TransitLayer transitLayer;
-    private int REALTIME_NO_DAYS = 7;
 
     private static final int RESERVED_STOPS = 2;
 
-    public TransitLayer map(Graph graph, LocalDate date) {
+    public TransitLayer map(Graph graph) {
         this.graph = graph;
         this.transitLayer = new TransitLayer();
         LOG.info("Mapping transitLayer from Graph...");
         createStopMaps();
-        mapTripPatterns(date);
+        mapTripPatterns();
         mapTransfers();
         LOG.info("Mapping complete.");
         return this.transitLayer;
@@ -57,7 +56,7 @@ public class TransitLayerMapper {
     }
 
     /** Map trip tripPatterns and trips to Raptor classes */
-    private void mapTripPatterns(LocalDate currentDate) {
+    private void mapTripPatterns() {
         List<org.opentripplanner.routing.edgetype.TripPattern> originalTripPatterns = new ArrayList<>(graph.index.patternForId.values());
         List<TripPattern>[] tripPatternForStop = new ArrayList[transitLayer.stopsByIndex.length];
         Arrays.setAll(tripPatternForStop, a -> new ArrayList<>());
@@ -66,7 +65,7 @@ public class TransitLayerMapper {
 
         int patternId = 0;
         for (org.opentripplanner.routing.edgetype.TripPattern tripPattern : originalTripPatterns) {
-            List<TripScheduleImpl> tripSchedules = new ArrayList<>();
+            List<TripSchedule> tripSchedules = new ArrayList<>();
             int[] stopPattern = new int[tripPattern.stopPattern.size];
 
             List<TripTimes> sortedTripTimes = tripPattern.scheduledTimetable.tripTimes.stream()
@@ -130,7 +129,7 @@ public class TransitLayerMapper {
             List<TripPatternForDate> tripPatternsForDate = new ArrayList();
 
             for (TripPattern tripPattern : filteredPatterns) {
-                List<TripScheduleImpl> tripSchedules = new ArrayList<>(tripPattern.getTripSchedules());
+                List<TripSchedule> tripSchedules = new ArrayList<TripSchedule>(tripPattern.getTripSchedules());
 
                 tripSchedules = tripSchedules.stream().filter(t -> servicesForDate.contains(t.getServiceCode()))
                         .collect(Collectors.toList());

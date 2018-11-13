@@ -12,4 +12,5 @@ import org.opentripplanner.routing.edgetype.TripPattern;
 public interface TripSchedule extends TripScheduleInfo {
     public Trip getOriginalTrip();
     public TripPattern getOriginalTripPattern();
+    public int getServiceCode();
 }

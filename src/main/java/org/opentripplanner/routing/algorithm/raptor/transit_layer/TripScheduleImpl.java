@@ -7,7 +7,7 @@ import org.opentripplanner.routing.edgetype.TripPattern;
 /**
  * This represents a single trip within a TripPattern
  */
-public class TripScheduleImpl implements TripScheduleInfo {
+public class TripScheduleImpl implements TripSchedule {
 
     /**
      * Arrival times in seconds from midnight by stop index
