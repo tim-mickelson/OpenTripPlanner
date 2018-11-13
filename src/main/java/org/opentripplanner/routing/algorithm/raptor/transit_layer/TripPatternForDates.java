@@ -1,12 +1,8 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import com.conveyal.r5.profile.entur.api.TripPatternInfo;
-import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TripPatternForDates implements TripPatternInfo<TripSchedule> {
     private final TripPattern tripPattern;
@@ -14,7 +10,7 @@ public class TripPatternForDates implements TripPatternInfo<TripSchedule> {
     private static final int SECONDS_OF_DAY = 86400;
 
 
-    TripPatternForDates(TripPattern tripPattern, List<List<TripSchedule>> tripSchedulesPerDay) {
+    public TripPatternForDates(TripPattern tripPattern, List<List<TripSchedule>> tripSchedulesPerDay) {
         this.tripPattern = tripPattern;
         this.tripSchedules = tripSchedulesPerDay;
     }
@@ -33,15 +29,16 @@ public class TripPatternForDates implements TripPatternInfo<TripSchedule> {
         return tripPattern.getStopPattern().length;
     }
 
+    public List<List<TripSchedule>> getTripSchedules() { return this.tripSchedules; }
+
     @Override
     public TripSchedule getTripSchedule(int i) {
-        int index = i;
         int dayOffset = 0;
         for (List<TripSchedule> tripScheduleList : tripSchedules ) {
             if (i < tripScheduleList.size()) {
-                return new TripScheduleWithOffset(tripScheduleList.get(index), dayOffset * SECONDS_OF_DAY);
+                return new TripScheduleWithOffset(tripScheduleList.get(i), dayOffset * SECONDS_OF_DAY);
             }
-            index -= tripScheduleList.size();
+            i -= tripScheduleList.size();
             dayOffset++;
         }
         throw new IndexOutOfBoundsException("Index out of bound: " + i);
@@ -49,6 +46,6 @@ public class TripPatternForDates implements TripPatternInfo<TripSchedule> {
 
     @Override
     public int numberOfTripSchedules() {
-        return tripSchedules.size();
+        return tripSchedules.stream().mapToInt(t -> t.size()).sum();
     }
 }

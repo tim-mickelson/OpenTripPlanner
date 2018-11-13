@@ -34,6 +34,10 @@ public class TripPatternForDate implements TripPatternInfo<TripSchedule> {
         return tripSchedules.get(i);
     }
 
+    public List<TripSchedule> getTripSchedules() {
+        return this.tripSchedules;
+    }
+
     @Override
     public int numberOfTripSchedules() {
         return tripSchedules.size();
