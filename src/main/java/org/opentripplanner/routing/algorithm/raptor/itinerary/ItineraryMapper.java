@@ -11,6 +11,7 @@ import com.conveyal.r5.profile.entur.api.Path2;
 import com.conveyal.r5.profile.entur.api.PathLeg;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripScheduleImpl;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.edgetype.TripPattern;
@@ -33,7 +34,7 @@ public class ItineraryMapper {
         this.request = request;
     }
 
-    public Itinerary createItinerary(RoutingRequest request, Path2<TripScheduleImpl> path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
+    public Itinerary createItinerary(RoutingRequest request, Path2<TripSchedule> path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
         Itinerary itinerary = new Itinerary();
 
         // Map access leg
@@ -70,7 +71,7 @@ public class ItineraryMapper {
         // TODO: Add back this code when PathLeg interface contains object references
 
 
-        for (PathLeg<TripScheduleImpl> pathLeg : path.legs()) {
+        for (PathLeg<TripSchedule> pathLeg : path.legs()) {
             // Map transit leg
             if (pathLeg.isTransit()) {
                 Stop boardStop = transitLayer.getStopByIndex(pathLeg.fromStop());
@@ -215,10 +216,10 @@ public class ItineraryMapper {
         return (double) (distanceMm / 1000);
     }
 
-    private List<Coordinate> extractTransitLegCoordinates(PathLeg<TripScheduleImpl> pathLeg, Stop boardStop, Stop alightStop) {
+    private List<Coordinate> extractTransitLegCoordinates(PathLeg<TripSchedule> pathLeg, Stop boardStop, Stop alightStop) {
         List<Coordinate> transitLegCoordinates = new ArrayList<>();
         TripPattern tripPattern = pathLeg.trip().getOriginalTripPattern();
-        TripScheduleImpl tripSchedule = pathLeg.trip();
+        TripSchedule tripSchedule = pathLeg.trip();
         boolean boarded = false;
         for (int j = 0; j < tripPattern.stopPattern.stops.length; j++) {
             if (!boarded && tripSchedule.departure(j) == pathLeg.fromTime() && tripPattern.getStop(j) == boardStop) {

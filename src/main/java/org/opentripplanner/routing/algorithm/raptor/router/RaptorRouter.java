@@ -61,7 +61,7 @@ public class RaptorRouter {
 
         double startTimeRouting = System.currentTimeMillis();
 
-        RangeRaptorService<TripScheduleImpl> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {});
+        RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {});
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
@@ -78,7 +78,7 @@ public class RaptorRouter {
          * Route transit
          */
 
-        Collection<Path2<TripScheduleImpl>> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
+        Collection<Path2<TripSchedule>> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
 
         LOG.info("Main routing took {} ms", System.currentTimeMillis() - startTimeRouting);
 
@@ -113,8 +113,6 @@ public class RaptorRouter {
             paretoSet.add(p);
         });
         itineraries.clear();
-        for (ParetoItinerary p : paretoSet) {
-            itineraries.add(p);
-        }
+        itineraries.addAll(paretoSet);
     }
 }
