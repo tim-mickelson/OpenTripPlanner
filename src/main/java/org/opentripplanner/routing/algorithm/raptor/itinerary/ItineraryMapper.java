@@ -1,6 +1,5 @@
 package org.opentripplanner.routing.algorithm.raptor.itinerary;
 
-import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 import com.vividsolutions.jts.geom.Coordinate;
 import org.opentripplanner.api.model.*;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
@@ -12,7 +11,7 @@ import com.conveyal.r5.profile.entur.api.Path2;
 import com.conveyal.r5.profile.entur.api.PathLeg;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripScheduleImpl;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.vertextype.TransitVertex;
@@ -34,7 +33,7 @@ public class ItineraryMapper {
         this.request = request;
     }
 
-    public Itinerary createItinerary(RoutingRequest request, Path2<TripSchedule> path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
+    public Itinerary createItinerary(RoutingRequest request, Path2<TripScheduleImpl> path, Map<Stop, Transfer> accessPaths, Map<Stop, Transfer> egressPaths) {
         Itinerary itinerary = new Itinerary();
 
         // Map access leg
@@ -71,7 +70,7 @@ public class ItineraryMapper {
         // TODO: Add back this code when PathLeg interface contains object references
 
 
-        for (PathLeg<TripSchedule> pathLeg : path.legs()) {
+        for (PathLeg<TripScheduleImpl> pathLeg : path.legs()) {
             // Map transit leg
             if (pathLeg.isTransit()) {
                 Stop boardStop = transitLayer.getStopByIndex(pathLeg.fromStop());
@@ -205,7 +204,7 @@ public class ItineraryMapper {
         Date date = request.getDateTime();
         LocalDate localDate = Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
 
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Oslo"));
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Oslo")); // TODO: Get time zone from request
         calendar.set(localDate.getYear(), localDate.getMonth().getValue() - 1, localDate.getDayOfMonth()
                 , 0, 0, 0);
         calendar.add(Calendar.SECOND, timeinSeconds);
@@ -216,10 +215,10 @@ public class ItineraryMapper {
         return (double) (distanceMm / 1000);
     }
 
-    private List<Coordinate> extractTransitLegCoordinates(PathLeg<TripSchedule> pathLeg, Stop boardStop, Stop alightStop) {
+    private List<Coordinate> extractTransitLegCoordinates(PathLeg<TripScheduleImpl> pathLeg, Stop boardStop, Stop alightStop) {
         List<Coordinate> transitLegCoordinates = new ArrayList<>();
         TripPattern tripPattern = pathLeg.trip().getOriginalTripPattern();
-        TripSchedule tripSchedule = pathLeg.trip();
+        TripScheduleImpl tripSchedule = pathLeg.trip();
         boolean boarded = false;
         for (int j = 0; j < tripPattern.stopPattern.stops.length; j++) {
             if (!boarded && tripSchedule.departure(j) == pathLeg.fromTime() && tripPattern.getStop(j) == boardStop) {

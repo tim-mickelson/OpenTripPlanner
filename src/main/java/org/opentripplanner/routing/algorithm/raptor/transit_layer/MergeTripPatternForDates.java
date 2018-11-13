@@ -64,7 +64,7 @@ public class MergeTripPatternForDates {
     }
 
     private static TripPatternForDates combine(int dayOffset, TripPatternForDate tripPatternForDate) {
-        List<List<TripSchedule>> tripSchedulesList = new ArrayList<>();
+        List<List<TripScheduleImpl>> tripSchedulesList = new ArrayList<>();
         for (int i = 0; i < dayOffset; i++) {
             tripSchedulesList.add(new ArrayList<>());
         }

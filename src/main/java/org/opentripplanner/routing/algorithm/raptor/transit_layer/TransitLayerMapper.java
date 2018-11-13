@@ -2,9 +2,7 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.geotools.xml.xsi.XSISimpleTypes;
 import org.opentripplanner.model.AgencyAndId;
-import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
@@ -19,21 +17,28 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Maps the TransitLayer object from the OTP Graph object. The ServiceDay hierarchy is reversed, with service days at
+ * the top level, which contains TripPatternForDate objects that contain only TripSchedules running on that particular
+ * date. This makes it faster to filter out TripSchedules when doing Range Raptor searches.
+ */
+
 public class TransitLayerMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(TransitLayerMapper.class);
 
     private Graph graph;
     private TransitLayer transitLayer;
+    private int REALTIME_NO_DAYS = 7;
 
     private static final int RESERVED_STOPS = 2;
 
-    public TransitLayer map(Graph graph) {
+    public TransitLayer map(Graph graph, LocalDate date) {
         this.graph = graph;
         this.transitLayer = new TransitLayer();
         LOG.info("Mapping transitLayer from Graph...");
         createStopMaps();
-        mapTripPatterns();
+        mapTripPatterns(date);
         mapTransfers();
         LOG.info("Mapping complete.");
         return this.transitLayer;
@@ -52,7 +57,7 @@ public class TransitLayerMapper {
     }
 
     /** Map trip tripPatterns and trips to Raptor classes */
-    private void mapTripPatterns() {
+    private void mapTripPatterns(LocalDate currentDate) {
         List<org.opentripplanner.routing.edgetype.TripPattern> originalTripPatterns = new ArrayList<>(graph.index.patternForId.values());
         List<TripPattern>[] tripPatternForStop = new ArrayList[transitLayer.stopsByIndex.length];
         Arrays.setAll(tripPatternForStop, a -> new ArrayList<>());
@@ -61,7 +66,7 @@ public class TransitLayerMapper {
 
         int patternId = 0;
         for (org.opentripplanner.routing.edgetype.TripPattern tripPattern : originalTripPatterns) {
-            List<TripSchedule> tripSchedules = new ArrayList<>();
+            List<TripScheduleImpl> tripSchedules = new ArrayList<>();
             int[] stopPattern = new int[tripPattern.stopPattern.size];
 
             List<TripTimes> sortedTripTimes = tripPattern.scheduledTimetable.tripTimes.stream()
@@ -77,7 +82,7 @@ public class TransitLayerMapper {
             );
 
             for (TripTimes tripTimes : sortedTripTimes) {
-                TripSchedule tripSchedule = new TripSchedule(
+                TripScheduleImpl tripSchedule = new TripScheduleImpl(
                     new int[stopPattern.length],
                     new int[stopPattern.length],
                     tripTimes.trip,
@@ -125,7 +130,7 @@ public class TransitLayerMapper {
             List<TripPatternForDate> tripPatternsForDate = new ArrayList();
 
             for (TripPattern tripPattern : filteredPatterns) {
-                List<TripSchedule> tripSchedules = new ArrayList<>(tripPattern.getTripSchedules());
+                List<TripScheduleImpl> tripSchedules = new ArrayList<>(tripPattern.getTripSchedules());
 
                 tripSchedules = tripSchedules.stream().filter(t -> servicesForDate.contains(t.getServiceCode()))
                         .collect(Collectors.toList());

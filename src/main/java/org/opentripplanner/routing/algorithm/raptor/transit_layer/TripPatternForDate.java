@@ -1,7 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import com.conveyal.r5.profile.entur.api.TripPatternInfo;
-import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,11 +10,11 @@ import java.util.Objects;
  * filtering by date during the search itself.
  */
 
-public class TripPatternForDate implements TripPatternInfo<TripSchedule> {
+public class TripPatternForDate implements TripPatternInfo<TripScheduleImpl> {
     private final TripPattern tripPattern;
-    private final List<TripSchedule> tripSchedules;
+    private final List<TripScheduleImpl> tripSchedules;
 
-    TripPatternForDate(TripPattern tripPattern, List<TripSchedule> tripSchedules) {
+    TripPatternForDate(TripPattern tripPattern, List<TripScheduleImpl> tripSchedules) {
         this.tripPattern = tripPattern;
         this.tripSchedules = tripSchedules;
     }
@@ -35,11 +34,11 @@ public class TripPatternForDate implements TripPatternInfo<TripSchedule> {
     }
 
     @Override
-    public TripSchedule getTripSchedule(int i) {
+    public TripScheduleImpl getTripSchedule(int i) {
         return tripSchedules.get(i);
     }
 
-    public List<TripSchedule> getTripSchedules() {
+    public List<TripScheduleImpl> getTripSchedules() {
         return this.tripSchedules;
     }
 

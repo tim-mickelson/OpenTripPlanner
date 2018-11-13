@@ -10,10 +10,7 @@ import com.conveyal.r5.profile.entur.util.paretoset.*;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ParetoItinerary;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
 import org.opentripplanner.routing.algorithm.raptor.street_router.StopArrivalMapper;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.OtpRRDataProvider;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
-import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripSchedule;
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.*;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +61,7 @@ public class RaptorRouter {
 
         double startTimeRouting = System.currentTimeMillis();
 
-        RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {});
+        RangeRaptorService<TripScheduleImpl> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {});
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
@@ -81,7 +78,7 @@ public class RaptorRouter {
          * Route transit
          */
 
-        Collection<Path2<TripSchedule>> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
+        Collection<Path2<TripScheduleImpl>> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
 
         LOG.info("Main routing took {} ms", System.currentTimeMillis() - startTimeRouting);
 

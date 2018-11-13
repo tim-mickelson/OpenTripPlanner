@@ -8,7 +8,7 @@ import java.util.List;
 public class TripPattern {
     private final int id;
 
-    private final List<TripSchedule> tripSchedules;
+    private final List<TripScheduleImpl> tripSchedules;
 
     private final TraverseMode transitMode;
 
@@ -16,7 +16,7 @@ public class TripPattern {
 
     private final int[] stopPattern;
 
-    public TripPattern(int id, List<TripSchedule> tripSchedules, TraverseMode transitMode, TransmodelTransportSubmode transitSubMode, int[] stopPattern) {
+    public TripPattern(int id, List<TripScheduleImpl> tripSchedules, TraverseMode transitMode, TransmodelTransportSubmode transitSubMode, int[] stopPattern) {
         this.id = id;
         this.tripSchedules = tripSchedules;
         this.transitMode = transitMode;
@@ -26,7 +26,7 @@ public class TripPattern {
 
     public int getId() { return id; }
 
-    public List<TripSchedule> getTripSchedules() {
+    public List<TripScheduleImpl> getTripSchedules() {
         return tripSchedules;
     }
 

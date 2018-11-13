@@ -2,75 +2,12 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.routing.edgetype.TripPattern;
 
 /**
- * This represents a single trip within a TripPattern
+ * Extension of TripScheduleInfo passed through Range Raptor searches to be able to retrieve the original trip
+ * from the path when creating itineraries.
  */
-public class TripSchedule implements TripScheduleInfo {
 
-    /**
-     * Arrival times in seconds from midnight by stop index
-     */
-    private final int[] arrivals;
-
-    /**
-     * Departure times in seconds from midnight by stop index
-     */
-    private final int[] departures;
-
-    private final Trip originalTrip;
-
-    private final TripPattern originalTripPattern;
-
-    private final int serviceCode;
-
-    TripSchedule(TripSchedule tripSchedule) {
-        this.arrivals = tripSchedule.arrivals;
-        this.departures = tripSchedule.departures;
-        this.originalTrip = tripSchedule.originalTrip;
-        this.serviceCode = tripSchedule.serviceCode;
-        this.originalTripPattern = tripSchedule.originalTripPattern;
-    }
-
-    TripSchedule (int[] arrivals, int[] departures, Trip originalTrip, TripPattern originalTripPattern, int serviceCode) {
-        this.arrivals = arrivals;
-        this.departures = departures;
-        this.originalTrip = originalTrip;
-        this.serviceCode = serviceCode;
-        this.originalTripPattern = originalTripPattern;
-    }
-
-    @Override
-    public int arrival(int stopPosInPattern) { return arrivals[stopPosInPattern]; }
-
-    @Override
-    public int departure(int stopPosInPattern) {
-        return departures[stopPosInPattern];
-    }
-
-    @Override
-    public String debugInfo() {
-        return null;
-    }
-
-    public void setArrival(int stopPosInPattern, int value) {
-        arrivals[stopPosInPattern] = value;
-    }
-
-    public void setDeparture(int stopPosInPattern, int value) {
-        departures[stopPosInPattern] = value;
-    }
-
-    public Trip getOriginalTrip() {
-        return originalTrip;
-    }
-
-    public TripPattern getOriginalTripPattern() {
-        return originalTripPattern;
-    }
-
-    public int getServiceCode() {
-        return serviceCode;
-    }
+public interface TripSchedule extends TripScheduleInfo {
+    public Trip getOriginalTrip();
 }
