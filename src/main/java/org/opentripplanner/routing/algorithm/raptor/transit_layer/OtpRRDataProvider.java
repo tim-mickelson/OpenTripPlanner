@@ -34,7 +34,8 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
     public OtpRRDataProvider(TransitLayer transitLayer, LocalDate date, int dayRange, TraverseModeSet transitModes,
                              HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
         this.transitLayer = transitLayer;
-        setActiveTripPatterns(date, transitModes, transportSubmodes);
+        List<TripPatternForDate> tripPatternForDates = setActiveTripPatterns(date, transitModes, transportSubmodes);
+        setTripPatternsPerStop(tripPatternForDates);
         calculateTransferDuration(walkSpeed);
     }
 
