@@ -670,7 +670,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
         this.transitLayer = transitLayerMapper.map(this);
         if (createTransitLayer) {
-            this.transitLayer = transitLayerMapper.map(this, true);
+            this.transitLayer = transitLayerMapper.map(this);
         }
     }
     
