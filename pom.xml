@@ -10,7 +10,7 @@
 
     <groupId>org.opentripplanner</groupId>
     <artifactId>otp</artifactId>
-    <version>2.0.RB-SNAPSHOT</version>
+    <version>1.3.1.RB-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <licenses>
@@ -74,10 +74,10 @@
     </developers>
 
     <scm>
-      <connection>scm:git:ssh://git@github.com/rutebanken/OpenTripPlanner.git</connection>
-      <developerConnection>scm:git:ssh://git@github.com/rutebanken/OpenTripPlanner.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
+        <connection>scm:git:ssh://git@github.com/rutebanken/OpenTripPlanner.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/rutebanken/OpenTripPlanner.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <geotools.version>20.1</geotools.version>
@@ -266,7 +266,7 @@
                         </goals>
                     </execution>
                 </executions>
-                </plugin>
+            </plugin>
 
             <!--  <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -275,14 +275,14 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id> -->
-                        <!-- We sign in the verify phase, which means it will happen for install and deploy but not package. -->
-                        <!-- <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>-->
+            <!-- We sign in the verify phase, which means it will happen for install and deploy but not package. -->
+            <!-- <phase>verify</phase>
+            <goals>
+                <goal>sign</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -681,13 +681,13 @@
 
         <!-- Jackson modules. -->
         <dependency>
-           <groupId>com.fasterxml.jackson.core</groupId>
-           <artifactId>jackson-core</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
-           <groupId>com.fasterxml.jackson.core</groupId>
-           <artifactId>jackson-databind</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
         <!-- Jackson modules to serialize Jersey response objects to JSON. -->
