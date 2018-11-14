@@ -10,7 +10,7 @@
 
     <groupId>org.opentripplanner</groupId>
     <artifactId>otp</artifactId>
-    <version>2.0.RB-SNAPSHOT</version>
+    <version>1.3.1.RB-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <licenses>
@@ -74,10 +74,10 @@
     </developers>
 
     <scm>
-      <connection>scm:git:ssh://git@github.com/rutebanken/OpenTripPlanner.git</connection>
-      <developerConnection>scm:git:ssh://git@github.com/rutebanken/OpenTripPlanner.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
+        <connection>scm:git:ssh://git@github.com/rutebanken/OpenTripPlanner.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/rutebanken/OpenTripPlanner.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <geotools.version>10.5</geotools.version>
@@ -88,17 +88,12 @@
     </properties>
 
     <distributionManagement>
-      <repository>
-          <id>rutebanken-repository</id>
-          <name>Rutebanken Repository</name>
-          <url>scpexe://localhost:2223/usr/share/nginx/html</url>
-      </repository>
-      <snapshotRepository>
-          <id>Nexus</id>
-          <url>https://nexus.rutebanken.org/content/repositories/snapshots</url>
-      </snapshotRepository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>entur2-snapshots</name>
+            <url>https://entur2.jfrog.io/entur2/libs-snapshot-local</url>
+        </snapshotRepository>
     </distributionManagement>
-
     <build>
 
         <!-- "Wagon" necessary for uploading/deploying artifacts to the Conveyal Maven repo on Amazon S3. -->
@@ -271,7 +266,7 @@
                         </goals>
                     </execution>
                 </executions>
-                </plugin>
+            </plugin>
 
             <!--  <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -280,19 +275,20 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id> -->
-                        <!-- We sign in the verify phase, which means it will happen for install and deploy but not package. -->
-                        <!-- <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>-->
+            <!-- We sign in the verify phase, which means it will happen for install and deploy but not package. -->
+            <!-- <phase>verify</phase>
+            <goals>
+                <goal>sign</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12</version>
+                <version>2.20</version>
                 <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
                     <argLine>-Xmx2G</argLine>
                     <!-- Jenkins needs XML test reports to determine whether the build is stable. -->
                     <disableXmlReport>false</disableXmlReport>
@@ -659,13 +655,13 @@
 
         <!-- Jackson modules. -->
         <dependency>
-           <groupId>com.fasterxml.jackson.core</groupId>
-           <artifactId>jackson-core</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
-           <groupId>com.fasterxml.jackson.core</groupId>
-           <artifactId>jackson-databind</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
         <!-- Jackson modules to serialize Jersey response objects to JSON. -->
