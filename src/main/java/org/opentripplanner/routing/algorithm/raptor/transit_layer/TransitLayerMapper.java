@@ -58,8 +58,6 @@ public class TransitLayerMapper {
     /** Map trip tripPatterns and trips to Raptor classes */
     private void mapTripPatterns() {
         List<org.opentripplanner.routing.edgetype.TripPattern> originalTripPatterns = new ArrayList<>(graph.index.patternForId.values());
-        List<TripPattern>[] tripPatternForStop = new ArrayList[transitLayer.stopsByIndex.length];
-        Arrays.setAll(tripPatternForStop, a -> new ArrayList<>());
 
         Multimap<Integer, TripPattern> patternsByServiceCode = HashMultimap.create();
 
@@ -101,7 +99,6 @@ public class TransitLayerMapper {
             for (int i = 0; i < tripPattern.stopPattern.size; i++) {
                 int stopIndex = transitLayer.indexByStop.get(tripPattern.getStop(i));
                 newTripPattern.getStopPattern()[i] = stopIndex;
-                tripPatternForStop[stopIndex].add(newTripPattern);
             }
         }
 
