@@ -222,14 +222,14 @@ public class ItineraryMapper {
         TripSchedule tripSchedule = pathLeg.trip();
         boolean boarded = false;
         for (int j = 0; j < tripPattern.stopPattern.stops.length; j++) {
-            if (!boarded && tripSchedule.departure(j) == pathLeg.fromTime() && tripPattern.getStop(j) == boardStop) {
+            if (!boarded && tripSchedule.departure(j) == pathLeg.fromTime()) {
                 boarded = true;
             }
             if (boarded) {
                 transitLegCoordinates.add(new Coordinate(tripPattern.stopPattern.stops[j].getLon(),
                         tripPattern.stopPattern.stops[j].getLat()));
             }
-            if (boarded && tripSchedule.arrival(j) == pathLeg.toTime() && tripPattern.getStop(j) == alightStop) {
+            if (boarded && tripSchedule.arrival(j) == pathLeg.toTime()) {
                 break;
             }
         }
