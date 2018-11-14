@@ -16,7 +16,8 @@ aliases:
     echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
     /tools/docker_build_push.sh
   environment:
-    CIRCLE_PROJECT_REPONAME: otp
+    CIRCLE_PROJECT_REPONAME: otp-raptor
+    IMAGE_POSTFIX: -raptor
 - &build-notify
   name: Notify babylon about build and docker image pushed
   command: |
@@ -24,7 +25,7 @@ aliases:
     echo 'export BUILD_STATUS_API_KEY="$BUILD_STATUS_API_KEY"' >> $BASH_ENV
     /tools/build_notify.sh
   environment:
-    CIRCLE_PROJECT_REPONAME: otp
+    CIRCLE_PROJECT_REPONAME: otp-raptor
 - &post_build
   name: Trigger downstream builds
   command: |
