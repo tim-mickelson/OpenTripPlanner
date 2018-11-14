@@ -650,7 +650,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
      * serialization. 
      * TODO: do we really need a factory for different street vertex indexes?
      */
-    public void index (StreetVertexIndexFactory indexFactory) {
+    public void index(StreetVertexIndexFactory indexFactory, boolean createTransitLayer) {
         streetIndex = indexFactory.newIndex(this);
         LOG.debug("street index built.");
         LOG.debug("Rebuilding edge and vertex indices.");
@@ -669,6 +669,9 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         LOG.info("Creating transit layer for Raptor routing.");
         TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
         this.transitLayer = transitLayerMapper.map(this);
+        if (createTransitLayer) {
+            this.transitLayer = transitLayerMapper.map(this, true);
+        }
     }
     
     public static Graph load(InputStream in) {

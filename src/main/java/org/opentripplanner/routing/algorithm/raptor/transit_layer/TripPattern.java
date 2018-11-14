@@ -16,12 +16,15 @@ public class TripPattern {
 
     private final int[] stopPattern;
 
-    public TripPattern(int id, List<TripSchedule> tripSchedules, TraverseMode transitMode, TransmodelTransportSubmode transitSubMode, int[] stopPattern) {
+    private final org.opentripplanner.routing.edgetype.TripPattern originalTripPattern;
+
+    public TripPattern(int id, List<TripSchedule> tripSchedules, TraverseMode transitMode, TransmodelTransportSubmode transitSubMode, int[] stopPattern, org.opentripplanner.routing.edgetype.TripPattern originalTripPattern) {
         this.id = id;
         this.tripSchedules = tripSchedules;
         this.transitMode = transitMode;
         this.transitSubMode = transitSubMode;
         this.stopPattern = stopPattern;
+        this.originalTripPattern = originalTripPattern;
     }
 
     public int getId() { return id; }
@@ -37,6 +40,8 @@ public class TripPattern {
     public TransmodelTransportSubmode getTransitSubMode() {
         return transitSubMode;
     }
+
+    public org.opentripplanner.routing.edgetype.TripPattern getOriginalTripPattern() { return this.originalTripPattern; }
 
     public int[] getStopPattern() {
         return stopPattern;
