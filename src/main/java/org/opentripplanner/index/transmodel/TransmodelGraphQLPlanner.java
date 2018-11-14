@@ -74,8 +74,12 @@ public class TransmodelGraphQLPlanner {
                 request.setRoutingContext(router.graph);
                 request.modes.setCar(false);
                 request.modes.setBicycle(false);
-                RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
-                plan = raptorRouter.route(request);
+                if (!request.modes.isTransit()) {
+                    plan = new TripPlan();
+                } else {
+                    RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
+                    plan = raptorRouter.route(request);
+                }
                 //TODO: Throw exceptions that are added to error messages
             } else {
                 List<GraphPath> paths = gpFinder.graphPathFinderEntryPoint(request);
