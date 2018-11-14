@@ -867,7 +867,7 @@
             <artifactId>r5</artifactId>
             <!--<version>0.1</version>-->
             <!--<classifier>20160307.111216-85</classifier>-->
-            <version>entur.1.0.0-SNAPSHOT</version>
+            <version>entur.1.0.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-simple</artifactId>
