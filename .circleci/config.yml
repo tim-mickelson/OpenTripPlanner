@@ -149,3 +149,7 @@ workflows:
         context: org-carbon
         requires:
         - deploy-nexus
+        filters:
+          branches:
+            only:
+            - rutebanken_develop
