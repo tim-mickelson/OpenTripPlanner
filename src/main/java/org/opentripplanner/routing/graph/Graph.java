@@ -767,7 +767,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         LOG.info("Creating transit layer for Raptor routing.");
         TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
         if (createTransitLayer) {
-            this.transitLayer = transitLayerMapper.map(this);
+            this.transitLayer = transitLayerMapper.map(this, true);
         }
     }
 
