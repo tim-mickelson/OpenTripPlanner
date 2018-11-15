@@ -109,8 +109,7 @@ public class TransitLayerMapper {
                     tripSchedules,
                     tripPattern.mode,
                     tripPattern.getTransportSubmode(),
-                    stopPattern,
-                    tripPattern
+                    stopPattern
             );
 
             if (!ignoreRealtime) {
