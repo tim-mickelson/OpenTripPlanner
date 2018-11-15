@@ -51,7 +51,6 @@ import org.opentripplanner.common.TurnRestriction;
 import org.opentripplanner.common.geometry.GraphUtils;
 import org.opentripplanner.graph_builder.annotation.GraphBuilderAnnotation;
 import org.opentripplanner.graph_builder.annotation.NoFutureDates;
-import org.opentripplanner.kryo.HashBiMapSerializer;
 import org.opentripplanner.model.GraphBundle;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
@@ -638,19 +637,51 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     /* (de) serialization */
 
-    public static Graph load(File file) throws IOException {
+    public enum LoadLevel {
+        BASIC, FULL, DEBUG;
+    }
+
+    public static Graph load(File file, LoadLevel level) throws IOException, ClassNotFoundException {
         LOG.info("Reading graph " + file.getAbsolutePath() + " ...");
-        return load(new FileInputStream(file));
+        // cannot use getClassLoader() in static context
+        ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
+        return load(in, level);
+    }
+
+    public static Graph load(ClassLoader classLoader, File file, LoadLevel level)
+            throws IOException, ClassNotFoundException {
+        LOG.info("Reading graph " + file.getAbsolutePath() + " with alternate classloader ...");
+        ObjectInputStream in = new GraphObjectInputStream(new BufferedInputStream(
+                new FileInputStream(file)), classLoader);
+        return load(in, level);
+    }
+
+    public static Graph load(InputStream is, LoadLevel level) throws ClassNotFoundException,
+            IOException {
+        return load(new ObjectInputStream(is), level);
     }
 
     /**
+     * Default load. Uses DefaultStreetVertexIndexFactory.
+     * @param in
+     * @param level
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public static Graph load(ObjectInputStream in, LoadLevel level) throws IOException,
+            ClassNotFoundException {
+        return load(in, level, new DefaultStreetVertexIndexFactory());
+    }
+    
+    /** 
      * Perform indexing on vertices, edges, and timetables, and create transient data structures.
      * This used to be done in readObject methods upon deserialization, but stand-alone mode now
      * allows passing graphs from graphbuilder to server in memory, without a round trip through
      * serialization. 
      * TODO: do we really need a factory for different street vertex indexes?
      */
-    public void index(StreetVertexIndexFactory indexFactory, boolean createTransitLayer) {
+    public void index (StreetVertexIndexFactory indexFactory, boolean createTransitLayer) {
         streetIndex = indexFactory.newIndex(this);
         LOG.debug("street index built.");
         LOG.debug("Rebuilding edge and vertex indices.");
@@ -668,7 +699,6 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         /** Create transit layer for Raptor routing */
         LOG.info("Creating transit layer for Raptor routing.");
         TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
-        this.transitLayer = transitLayerMapper.map(this);
         if (createTransitLayer) {
             this.transitLayer = transitLayerMapper.map(this);
         }
