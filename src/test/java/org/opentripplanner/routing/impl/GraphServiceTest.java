@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import junit.framework.TestCase;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opentripplanner.graph_builder.module.EmbedConfig;
 import org.opentripplanner.routing.edgetype.StreetEdge;
@@ -53,7 +54,7 @@ public class GraphServiceTest extends TestCase {
         // Create an empty graph and it's serialized form
         emptyGraph = new Graph();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        emptyGraph.save(baos);
+        emptyGraph.save(new ObjectOutputStream(baos));
         emptyGraphData = baos.toByteArray();
 
         // Create a small graph with 2 vertices and one edge and it's serialized form
@@ -134,7 +135,8 @@ public class GraphServiceTest extends TestCase {
 
     }
 
-    /* Ignored because of Kryo serialization
+    /*
+    @Ignore
     @Test
     public final void testGraphServiceFile() throws IOException {
 
@@ -199,9 +201,8 @@ public class GraphServiceTest extends TestCase {
         assertTrue(evicted);
         assertEquals(0, graphService.getRouterIds().size());
     }
-    */
 
-    /* Ignored because of Kryo serialization
+    @Ignore
     @Test
     public final void testGraphServiceAutoscan() throws IOException {
 
@@ -246,8 +247,7 @@ public class GraphServiceTest extends TestCase {
         assertEquals("A", graphService.getRouter().graph.routerId);
         assertEquals("A", graphService.getRouter("A").graph.routerId);
 
-    }
-    */
+    }*/
 
     @Test
     public final void testGraphServiceMemoryRouterConfig () throws IOException {

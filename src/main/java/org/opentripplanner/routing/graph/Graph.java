@@ -673,15 +673,15 @@ public class Graph implements Serializable, AddBuilderAnnotation {
             ClassNotFoundException {
         return load(in, level, new DefaultStreetVertexIndexFactory());
     }
-    
-    /** 
+
+    /**
      * Perform indexing on vertices, edges, and timetables, and create transient data structures.
      * This used to be done in readObject methods upon deserialization, but stand-alone mode now
      * allows passing graphs from graphbuilder to server in memory, without a round trip through
      * serialization. 
      * TODO: do we really need a factory for different street vertex indexes?
      */
-    public void index (StreetVertexIndexFactory indexFactory, boolean createTransitLayer) {
+    public void index(StreetVertexIndexFactory indexFactory, boolean createTransitLayer) {
         streetIndex = indexFactory.newIndex(this);
         LOG.debug("street index built.");
         LOG.debug("Rebuilding edge and vertex indices.");
@@ -1024,6 +1024,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
      *
      * This speeds up calculation, but problem is that median needs to have all of latitudes/longitudes
      * in memory, this can become problematic in large installations. It works without a problem on New York State.
+     * @see GraphEnvelope
      */
     public void calculateTransitCenter() {
         if (hasTransit) {
