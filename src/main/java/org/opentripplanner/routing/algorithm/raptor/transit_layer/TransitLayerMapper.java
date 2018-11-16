@@ -30,8 +30,6 @@ public class TransitLayerMapper {
     private Graph graph;
     private TransitLayer transitLayer;
 
-    private static final int RESERVED_STOPS = 2;
-
     public TransitLayer map(Graph graph) {
         this.graph = graph;
         this.transitLayer = new TransitLayer();
@@ -46,12 +44,12 @@ public class TransitLayerMapper {
     /** Create maps between stop indices used by Raptor and stop objects in original graph */
     private void createStopMaps() {
         ArrayList<Stop> stops = new ArrayList<>(graph.index.stopForId.values());
-        transitLayer.stopsByIndex = new Stop[stops.size() + RESERVED_STOPS];
+        transitLayer.stopsByIndex = new Stop[stops.size()];
         transitLayer.indexByStop = new HashMap<>();
         for (int i = 0; i < stops.size(); i++) {
             Stop currentStop = stops.get(i);
-            transitLayer.stopsByIndex[i + RESERVED_STOPS] = currentStop;
-            transitLayer.indexByStop.put(currentStop, i + RESERVED_STOPS);
+            transitLayer.stopsByIndex[i] = currentStop;
+            transitLayer.indexByStop.put(currentStop, i);
         }
     }
 
@@ -153,7 +151,6 @@ public class TransitLayerMapper {
         transitLayer.transferByStop = new ArrayList[transitLayer.stopsByIndex.length];
         Arrays.setAll(transitLayer.transferByStop, a -> new ArrayList<>());
         for (int i = 0; i < transitLayer.stopsByIndex.length; i++) {
-            if (i < RESERVED_STOPS) continue;
             for (Edge edge : graph.index.stopVertexForStop.get(transitLayer.stopsByIndex[i]).getOutgoing()) {
                 if (edge instanceof SimpleTransfer) {
                     int stopIndex = transitLayer.indexByStop.get(((TransitStop)edge.getToVertex()).getStop());
