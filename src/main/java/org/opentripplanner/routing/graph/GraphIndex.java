@@ -256,7 +256,6 @@ public class GraphIndex {
         );
 
         indexSchema = new IndexGraphQLSchema(this).indexSchema;
-        getLuceneIndex();
         LOG.info("Done indexing graph.");
     }
 

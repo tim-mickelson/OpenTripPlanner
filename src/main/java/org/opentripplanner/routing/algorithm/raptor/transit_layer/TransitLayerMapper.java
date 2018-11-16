@@ -93,8 +93,6 @@ public class TransitLayerMapper {
             }
         }
 
-        TimetableSnapshot timetableSnapShot = graph.timetableSnapshotSource.getTimetableSnapshot();
-
         Multimap<Integer, TripPattern> patternsByServiceCode = HashMultimap.create();
 
         Set<TripPatternAndDate> excludeFromCalendar = new HashSet<>();
@@ -112,10 +110,12 @@ public class TransitLayerMapper {
                     stopPattern
             );
 
-            if (!ignoreRealtime) {
+            if (!ignoreRealtime && graph.timetableSnapshotSource != null) {
+                TimetableSnapshot timetableSnapshot = graph.timetableSnapshotSource.getTimetableSnapshot();
+
                 for (int day = 0; day < REALTIME_NO_OF_DAYS; day++) {
                     ServiceDate serviceDate = new ServiceDate(today.getYear(), today.getMonthValue(), today.getDayOfMonth());
-                    Timetable timetable = timetableSnapShot.resolve(tripPattern, serviceDate);
+                    Timetable timetable = timetableSnapshot.resolve(tripPattern, serviceDate);
                     if (timetable != tripPattern.scheduledTimetable) {
                         excludeFromCalendar.add(new TripPatternAndDate(newTripPattern, today.plusDays(day)));
 
