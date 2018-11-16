@@ -83,7 +83,7 @@ public class PlannerResource extends RoutingResource {
 
         request.modes.setMode(TraverseMode.AIRPLANE, false);
 
-        RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
+        RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayerPlanned);
         TripPlan plan = raptorRouter.route(request);
 
         response.setPlan(plan);

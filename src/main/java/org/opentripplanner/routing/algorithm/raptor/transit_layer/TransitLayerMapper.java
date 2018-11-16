@@ -97,6 +97,10 @@ public class TransitLayerMapper {
 
         Set<TripPatternAndDate> excludeFromCalendar = new HashSet<>();
 
+        if (graph.timetableSnapshotSource == null || graph.timetableSnapshotSource.getTimetableSnapshot() == null) {
+            LOG.info("No timetablesnapshot available");
+        }
+
         int patternId = 0;
         for (org.opentripplanner.routing.edgetype.TripPattern tripPattern : originalTripPatterns) {
             List<TripSchedule> tripSchedules = new ArrayList<>();
@@ -110,7 +114,7 @@ public class TransitLayerMapper {
                     stopPattern
             );
 
-            if (!ignoreRealtime && graph.timetableSnapshotSource != null) {
+            if (!ignoreRealtime && graph.timetableSnapshotSource != null && graph.timetableSnapshotSource.getTimetableSnapshot() != null) {
                 TimetableSnapshot timetableSnapshot = graph.timetableSnapshotSource.getTimetableSnapshot();
 
                 for (int day = 0; day < REALTIME_NO_OF_DAYS; day++) {
@@ -170,6 +174,8 @@ public class TransitLayerMapper {
 
         transitLayer.tripPatternsForDate = new HashMap<>();
 
+        boolean realTimeUpdated = false;
+
         for (Map.Entry<LocalDate, Collection<Integer>> serviceEntry : serviceCodesByLocalDates.asMap().entrySet()) {
             Set<Integer> servicesForDate = new HashSet<>(serviceEntry.getValue());
             List<TripPattern> filteredPatterns = serviceEntry.getValue().stream().map(s -> patternsByServiceCode.get(s))
@@ -178,12 +184,14 @@ public class TransitLayerMapper {
             List<TripPatternForDate> tripPatternsForDate = new ArrayList();
 
             for (TripPattern tripPattern : filteredPatterns) {
-                List<TripSchedule> tripSchedules = new ArrayList<>(tripPattern.getTripSchedules());
-
+                List<TripSchedule> tripSchedules = tripPattern.getTripSchedules();
                 if (!ignoreRealtime && excludeFromCalendar.contains(new TripPatternAndDate(tripPattern, serviceEntry.getKey()))) {
                     // Filter trips by real time service code
                     int realTimeServiceCode = (realTimeServiceCodeIndex + (int)ChronoUnit.DAYS.between(today, serviceEntry.getKey()));
                     tripSchedules = tripSchedules.stream().filter(t -> t.getServiceCode() == realTimeServiceCode).collect(Collectors.toList());
+                    List<TripSchedule> regularTripSchedules = tripPattern.getTripSchedules().stream().filter(t -> servicesForDate.contains(t.getServiceCode()))
+                            .collect(Collectors.toList());
+                    realTimeUpdated = true;
                 } else {
                     // Filter trips by regular service code
                     tripSchedules = tripSchedules.stream().filter(t -> servicesForDate.contains(t.getServiceCode()))
@@ -198,6 +206,10 @@ public class TransitLayerMapper {
             }
 
             transitLayer.tripPatternsForDate.put(serviceEntry.getKey(), tripPatternsForDate);
+        }
+
+        if (realTimeUpdated) {
+            LOG.info("Real time data updated.");
         }
 
         // Sort by TripPattern for easier merging in OtpRRDataProvider

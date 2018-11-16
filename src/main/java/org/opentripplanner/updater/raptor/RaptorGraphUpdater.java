@@ -73,7 +73,7 @@ public class RaptorGraphUpdater extends PollingGraphUpdater {
             LOG.info("Raptor {} runnable is run on the "
                             + "graph writer scheduler.", this.hashCode());
             TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
-            graph.transitLayer = transitLayerMapper.map(graph, true);
+            graph.transitLayerRealTime = transitLayerMapper.map(graph, false);
         }
     }
 }

@@ -252,7 +252,10 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     public Map<AgencyAndId, Stop> multiModalStopById = new HashMap<>();
 
     /** Data model for Raptor routing */
-    public transient TransitLayer transitLayer;
+    public transient TransitLayer transitLayerPlanned;
+
+    /** Data model for Raptor routing (including real-time updates */
+    public transient TransitLayer transitLayerRealTime;
 
     private SynchronisedSimpleStreetSplitter synchronisedSimpleStreetSplitter;
 
@@ -742,7 +745,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         LOG.info("Creating transit layer for Raptor routing.");
         TransitLayerMapper transitLayerMapper = new TransitLayerMapper();
         if (createTransitLayer) {
-            this.transitLayer = transitLayerMapper.map(this, true);
+            this.transitLayerPlanned = transitLayerMapper.map(this, true);
         }
     }
 
