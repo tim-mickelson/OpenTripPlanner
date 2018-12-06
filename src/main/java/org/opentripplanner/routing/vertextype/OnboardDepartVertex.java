@@ -48,4 +48,11 @@ public class OnboardDepartVertex extends Vertex implements TemporaryVertex {
     public boolean isEndVertex() {
         return false;
     }
+
+    @Override
+    public void dispose() {
+        for (Object temp : getOutgoing()) {
+            ((TemporaryEdge) temp).dispose();
+        }
+    }
 }

@@ -25,6 +25,7 @@ import com.google.common.collect.*;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
 import gnu.trove.impl.hash.TPrimitiveHash;
 import gnu.trove.list.TDoubleList;
@@ -61,6 +62,7 @@ import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.edgetype.EdgeWithCleanup;
 import org.opentripplanner.routing.edgetype.StreetEdge;
 import org.opentripplanner.routing.edgetype.TripPattern;
+import org.opentripplanner.routing.flex.FlexIndex;
 import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
 import org.opentripplanner.routing.services.StreetVertexIndexFactory;
 import org.opentripplanner.routing.services.StreetVertexIndexService;
@@ -144,6 +146,8 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     public transient StreetVertexIndexService streetIndex;
 
     public transient GraphIndex index;
+
+    public transient FlexIndex flexIndex;
 
     private transient GeometryIndex geomIndex;
 
@@ -248,6 +252,13 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     /** Parent stops **/
     public Map<AgencyAndId, Stop> parentStopById = new HashMap<>();
+
+    /** Whether to use flex modes */
+    public boolean useFlexService = false;
+
+    /** Areas for flex service */
+    public Map<AgencyAndId, Geometry> areasById = new HashMap<>();
+
 
     /** Multimodal stops **/
     public Map<AgencyAndId, Stop> multiModalStopById = new HashMap<>();
@@ -734,6 +745,10 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         }
         // TODO: Move this ^ stuff into the graph index
         this.index = new GraphIndex(this);
+        if (useFlexService ) {
+            this.flexIndex = new FlexIndex();
+            flexIndex.init(this);
+        }
     }
     
     public static Graph load(InputStream in) {
@@ -934,6 +949,10 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         this.feedInfoForId.put(info.getId().toString(), info);
     }
 
+    public void addArea(String feedId, String areaId, Polygon area) {
+        this.areasById.put(new AgencyAndId(feedId, areaId), area);
+    }
+
     /**
      * Returns the time zone for the first agency in this graph. This is used to interpret times in API requests. The JVM default time zone cannot be
      * used because we support multiple graphs on one server via the routerId. Ideally we would want to interpret times in the time zone of the
@@ -1114,5 +1133,14 @@ public class Graph implements Serializable, AddBuilderAnnotation {
             synchronisedSimpleStreetSplitter = new SynchronisedSimpleStreetSplitter(this);
         }
         return synchronisedSimpleStreetSplitter;
+    }
+
+    public void setUseFlexService(boolean useFlexService) {
+        // when passing in graph from memory, router config had not loaded when "index()" called
+        if (useFlexService && !this.useFlexService) {
+            this.flexIndex = new FlexIndex();
+            flexIndex.init(this);
+        }
+        this.useFlexService = useFlexService;
     }
 }

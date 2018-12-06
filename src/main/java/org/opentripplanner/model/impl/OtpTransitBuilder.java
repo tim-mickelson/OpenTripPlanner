@@ -17,32 +17,9 @@ package org.opentripplanner.model.impl;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import org.opentripplanner.model.Agency;
-import org.opentripplanner.model.AgencyAndId;
-import org.opentripplanner.model.Branding;
-import org.opentripplanner.model.FareAttribute;
-import org.opentripplanner.model.FareRule;
-import org.opentripplanner.model.FeedInfo;
-import org.opentripplanner.model.Frequency;
-import org.opentripplanner.model.IdentityBean;
-import org.opentripplanner.model.Notice;
-import org.opentripplanner.model.NoticeAssignment;
-import org.opentripplanner.model.Operator;
-import org.opentripplanner.model.Pathway;
-import org.opentripplanner.model.Route;
-import org.opentripplanner.model.ServiceCalendar;
-import org.opentripplanner.model.ServiceCalendarDate;
-import org.opentripplanner.model.ShapePoint;
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.StopPattern;
-import org.opentripplanner.model.StopTime;
-import org.opentripplanner.model.TariffZone;
-import org.opentripplanner.model.Transfer;
-import org.opentripplanner.model.Trip;
-import org.opentripplanner.model.OtpTransitService;
+import org.opentripplanner.model.*;
 import org.opentripplanner.netex.mapping.AgencyAndIdFactory;
 import org.opentripplanner.routing.edgetype.TripPattern;
-import org.opentripplanner.model.Parking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +35,8 @@ public class OtpTransitBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(OtpTransitBuilder.class);
 
     private final List<Agency> agencies = new ArrayList<>();
+
+    private final List<Area> areas = new ArrayList<>();
 
     private final List<ServiceCalendarDate> calendarDates = new ArrayList<>();
 
@@ -116,6 +95,10 @@ public class OtpTransitBuilder {
 
     public Agency findAgencyById(String id) {
         return agencies.stream().filter(a -> a.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    public List<Area> getAreas() {
+        return areas;
     }
 
     public List<ServiceCalendarDate> getCalendarDates() {
@@ -227,7 +210,7 @@ public class OtpTransitBuilder {
     }
 
     public OtpTransitService build() {
-        createNoneExistingIds();
+        createNoneExistentIds();
 
         return new OtpTransitServiceImpl(this);
     }
@@ -315,19 +298,29 @@ public class OtpTransitBuilder {
         LOG.info(groupOfStopPlacesNotInUse.size() + " groupsOfStopPlaces removed (expired and not in use)");
     }
 
-    private void createNoneExistingIds() {
-        generateNoneExistingIds(feedInfos);
+    private void createNoneExistentIds() {
+        generateNoneExistentIds(feedInfos);
     }
 
-    static <T extends IdentityBean<Integer>> void generateNoneExistingIds(Collection<T> entities) {
+    static <T extends IdentityBean<String>> void generateNoneExistentIds(List<T> entities) {
         int maxId = 0;
+
+
         for (T it : entities) {
-            maxId = zeroOrNull(it.getId()) ? maxId : Math.max(maxId, it.getId());
+            try {
+                if(it.getId() != null) {
+                    maxId = Math.max(maxId, Integer.parseInt(it.getId()));
+                }
+            } catch (NumberFormatException ignore) {}
         }
+
         for (T it : entities) {
-            if(zeroOrNull(it.getId())) {
-                it.setId(++maxId);
+            try {
+                if(it.getId() == null || Integer.parseInt(it.getId()) == 0) {
+                    it.setId(Integer.toString(++maxId));
+                }
             }
+            catch (NumberFormatException ignore) { }
         }
     }
 

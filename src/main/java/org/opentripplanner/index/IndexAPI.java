@@ -21,6 +21,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+import org.opentripplanner.index.model.*;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.FeedInfo;
@@ -30,14 +32,6 @@ import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.gtfs.GtfsLibrary;
-import org.opentripplanner.index.model.PatternDetail;
-import org.opentripplanner.index.model.PatternShort;
-import org.opentripplanner.index.model.RouteShort;
-import org.opentripplanner.index.model.StopClusterDetail;
-import org.opentripplanner.index.model.StopShort;
-import org.opentripplanner.index.model.StopTimesInPattern;
-import org.opentripplanner.index.model.TripShort;
-import org.opentripplanner.index.model.TripTimeShort;
 import org.opentripplanner.profile.StopCluster;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
 import org.opentripplanner.routing.edgetype.Timetable;
@@ -605,6 +599,26 @@ public class IndexAPI {
         } else {
             return Response.status(Status.NOT_FOUND).entity(MSG_404).build();
         }
+    }
+
+    /** Return all area IDs. */
+    @GET
+    @Path("/areas")
+    public Response getAllAreas() {
+        List<AgencyAndId> ids = new ArrayList<>(index.areasById.keySet());
+        return Response.status(Status.OK).entity(ids).build();
+    }
+
+    /** Return a specific area given an ID in Agency:ID format. */
+    @GET
+    @Path("/areas/{id}")
+    public Response getAreaIdByFeedId(@PathParam("id") String areaIdString) {
+        AgencyAndId id = GtfsLibrary.convertIdFromString(areaIdString);
+        Geometry area = index.areasById.get(id);
+        if (area == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        return Response.status(Status.OK).entity(new AreaShort(id, area)).build();
     }
 
     @POST

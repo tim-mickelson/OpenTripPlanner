@@ -32,6 +32,10 @@ public class TripTimeShort {
     public AgencyAndId tripId;
     public String blockId;
     public String headsign;
+    public int continuousPickup;
+    public int continuousDropOff;
+    public double serviceAreaRadius;
+    public String serviceArea;
     public boolean isRecordedStop;
     public boolean isCancelledStop;
 
@@ -64,6 +68,10 @@ public class TripTimeShort {
         realtimeState      = tt.getRealTimeState();
         blockId            = tt.trip.getBlockId();
         headsign           = tt.getHeadsign(i);
+        continuousPickup   = tt.getContinuousPickup(i);
+        continuousDropOff  = tt.getContinuousDropOff(i);
+        serviceAreaRadius  = tt.getServiceAreaRadius(i);
+        serviceArea        = tt.getServiceArea(i);
     }
 
     public TripTimeShort(TripTimes tt, int i, Stop stop, ServiceDay sd) {

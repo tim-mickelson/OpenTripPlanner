@@ -56,6 +56,8 @@ public class OtpTransitDaoMapper {
             routeMapper, fareAttributeMapper
     );
 
+    private final AreaMapper areaMapper = new AreaMapper();
+
     public static OtpTransitBuilder mapGtfsDaoToBuilder(
             org.onebusaway.gtfs.services.GtfsRelationalDao data
     ) {
@@ -81,6 +83,7 @@ public class OtpTransitDaoMapper {
                 StopTime::getTrip);
         builder.getTransfers().addAll(transferMapper.map(data.getAllTransfers()));
         builder.getTrips().addAll(tripMapper.map(data.getAllTrips()));
+        builder.getAreas().addAll(areaMapper.map(data.getAllAreas()));
 
         return builder;
     }

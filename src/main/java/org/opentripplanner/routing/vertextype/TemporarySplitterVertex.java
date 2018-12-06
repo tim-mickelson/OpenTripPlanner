@@ -45,6 +45,13 @@ public class TemporarySplitterVertex extends SplitterVertex implements Temporary
         return endVertex;
     }
 
+    @Override
+    public void dispose() {
+        for (Object temp : endVertex ? getIncoming() : getOutgoing()) {
+            ((TemporaryEdge) temp).dispose();
+        }
+    }
+
     public boolean isWheelchairAccessible() {
         return wheelchairAccessible;
     }

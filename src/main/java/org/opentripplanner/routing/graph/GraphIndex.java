@@ -9,6 +9,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
 import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -136,6 +137,7 @@ public class GraphIndex {
     final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<TransitStop>();
     public final Map<Stop, StopCluster> stopClusterForStop = Maps.newHashMap();
     public final Map<String, StopCluster> stopClusterForId = Maps.newHashMap();
+    public final Map<AgencyAndId, Geometry> areasById = Maps.newHashMap();
     private Map<AgencyAndId, Notice> noticeMap = new HashMap<>();
     private Map<AgencyAndId, List<Notice>> noticeAssignmentMap = new HashMap<>();
 
@@ -257,6 +259,14 @@ public class GraphIndex {
 
         indexSchema = new IndexGraphQLSchema(this).indexSchema;
         getLuceneIndex();
+
+        LOG.info("Initializing areas....");
+        if (graph.areasById != null) {
+            for (AgencyAndId id : graph.areasById.keySet()) {
+                areasById.put(id, graph.areasById.get(id));
+            }
+        }
+
         LOG.info("Done indexing graph.");
     }
 
@@ -1284,5 +1294,12 @@ public class GraphIndex {
 
     public Collection<Notice> getNoticesForElement(AgencyAndId id) {
         return this.noticeAssignmentMap.containsKey(id) ? this.noticeAssignmentMap.get(id) : new ArrayList<>();
+    }
+
+    // Heuristic for deciding if trip is call-n-ride, only used for transfer and banning rules
+    public boolean tripIsCallAndRide(AgencyAndId tripId) {
+        Trip trip = tripForId.get(tripId);
+        TripPattern pattern = patternForTrip.get(trip);
+        return pattern.geometry == null;
     }
 }

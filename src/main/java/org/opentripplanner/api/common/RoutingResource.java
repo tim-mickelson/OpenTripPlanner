@@ -378,6 +378,62 @@ public abstract class RoutingResource {
     private Boolean disableAlertFiltering;
 
     /**
+     * An additional penalty added for flag stop boarding/alighting. The value is in OTP's
+     * internal weight units, which are roughly equivalent to seconds.  Set this to a high
+     * value to discourage flag stop usage.
+     */
+    @QueryParam("flagStopExtraPenalty")
+    protected Integer flagStopExtraPenalty;
+
+    /**
+     * An additional penalty added for deviated-route boarding/alighting. The value is in OTP's
+     * internal weight units, which are roughly equivalent to seconds.  Set this to a high
+     * value to discourage deviated-route pickups/dropoffs.
+     */
+    @QueryParam("deviatedRouteExtraPenalty")
+    protected Integer deviatedRouteExtraPenalty;
+
+    /**
+     * A multiplier for call-and-ride costs, relative to equal lengths of time using transit. For
+     * example, if this is set to 2, OTP will prefer fixed-route transit over call-and-ride if all
+     * else is equal, unless fixed-route transit takes over 2X as long.
+     */
+    @QueryParam("callAndRideReluctance")
+    protected Double callAndRideReluctance;
+
+    /*
+     * Controls the size of "Place.flagStopArea" in the API output. Place.flagStopArea is a guide
+     * for downstream systems, e.g. UIs, to the bus route geometry directly around a flag stop
+     * board/alight location. The APIs will return up to flagStopBufferSize meters ahead or behind
+     * the board/alight location. The actual length may be less if the board/alight location is
+     * near the beginning or end of a route.
+     */
+    @QueryParam("flagStopBufferSize")
+    protected Double flagStopBufferSize;
+
+    /**
+     * Whether to use reservation-based services
+     */
+    @QueryParam("useReservationServices")
+    protected Boolean useReservationServices = true;
+
+    /**
+     * Whether to use eligibility-based services
+     */
+    @QueryParam("useEligibilityServices")
+    protected Boolean useEligibilityServices = true;
+
+    /**
+     * Whether to ignore DRT time limits.
+     *
+     * According to the GTFS-flex spec, demand-response transit (DRT) service must be reserved
+     * at least `drt_advance_book_min` minutes in advance. OTP not allow DRT service to be used
+     * inside that time window, unless this parameter is set to true.
+     */
+    @QueryParam("ignoreDrtAdvanceBookMin")
+    protected Boolean ignoreDrtAdvanceBookMin;
+
+    /**
      * If true, the Graph's ellipsoidToGeoidDifference is applied to all elevations returned by this query.
      */
     @QueryParam("geoidElevation")
@@ -425,6 +481,10 @@ public abstract class RoutingResource {
         if (maxWalkDistance != null) {
             request.setMaxWalkDistance(maxWalkDistance);
             request.maxTransferWalkDistance = maxWalkDistance;
+            if (maxWalkDistance == 0.0) {
+                request.excludeWalking = true;
+
+            }
         }
 
         if (maxPreTransitTime != null)
@@ -519,7 +579,7 @@ public abstract class RoutingResource {
 
         if (bannedStopsHard != null)
             request.setBannedStopsHard(bannedStopsHard);
-        
+
         // The "Least transfers" optimization is accomplished via an increased transfer penalty.
         // See comment on RoutingRequest.transferPentalty.
         if (transferPenalty != null) request.transferPenalty = transferPenalty;
@@ -584,6 +644,27 @@ public abstract class RoutingResource {
         if (disableRemainingWeightHeuristic != null)
             request.disableRemainingWeightHeuristic = disableRemainingWeightHeuristic;
 
+        if (flagStopExtraPenalty != null)
+            request.flagStopExtraPenalty = flagStopExtraPenalty;
+
+        if (deviatedRouteExtraPenalty != null)
+            request.deviatedRouteExtraPenalty = deviatedRouteExtraPenalty;
+
+        if (callAndRideReluctance != null)
+            request.callAndRideReluctance = callAndRideReluctance;
+
+        if (flagStopBufferSize != null)
+            request.flagStopBufferSize = flagStopBufferSize;
+
+        if (useReservationServices != null)
+            request.useReservationServices = useReservationServices;
+
+        if (useEligibilityServices != null)
+            request.useEligibilityServices = useEligibilityServices;
+
+        if (ignoreDrtAdvanceBookMin != null)
+            request.ignoreDrtAdvanceBookMin = ignoreDrtAdvanceBookMin;
+
         if (maxHours != null)
             request.maxHours = maxHours;
 
@@ -602,6 +683,7 @@ public abstract class RoutingResource {
         //getLocale function returns defaultLocale if locale is null
         request.locale = ResourceBundleSingleton.INSTANCE.getLocale(locale);
         return request;
+
     }
 
     /**
@@ -636,5 +718,4 @@ public abstract class RoutingResource {
         }
         return bannedTripMap;
     }
-
 }

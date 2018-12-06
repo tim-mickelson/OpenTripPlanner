@@ -16,6 +16,7 @@
  */
 package org.opentripplanner.model;
 
+import org.onebusaway.gtfs.model.Area;
 import org.opentripplanner.util.TimeToStringConverter;
 
 
@@ -49,6 +50,18 @@ public final class StopTime extends IdentityBean<AgencyAndId> implements Compara
 
     private double shapeDistTraveled = MISSING_VALUE;
 
+    private int continuousPickup = MISSING_VALUE;
+
+    private int continuousDropOff = MISSING_VALUE;
+
+    private Area startServiceArea;
+
+    private Area endServiceArea;
+
+    private double startServiceAreaRadius = MISSING_VALUE;
+
+    private double endServiceAreaRadius = MISSING_VALUE;
+
     /** This is a Conveyal extension to the GTFS spec to support Seattle on/off peak fares. */
     private String farePeriodId;
 
@@ -69,6 +82,12 @@ public final class StopTime extends IdentityBean<AgencyAndId> implements Compara
         this.stopSequence = st.stopSequence;
         this.timepoint = st.timepoint;
         this.trip = st.trip;
+        this.continuousPickup = st.continuousPickup;
+        this.continuousDropOff = st.continuousDropOff;
+        this.startServiceArea = st.startServiceArea;
+        this.endServiceArea = st.endServiceArea;
+        this.startServiceAreaRadius = st.startServiceAreaRadius;
+        this.endServiceAreaRadius = st.endServiceAreaRadius;
     }
 
     public AgencyAndId getId() {
@@ -214,6 +233,54 @@ public final class StopTime extends IdentityBean<AgencyAndId> implements Compara
 
     public void setFarePeriodId(String farePeriodId) {
         this.farePeriodId = farePeriodId;
+    }
+
+    public int getContinuousPickup() {
+        return continuousPickup;
+    }
+
+    public void setContinuousPickup(int continuousPickup) {
+        this.continuousPickup = continuousPickup;
+    }
+
+    public int getContinuousDropOff() {
+        return continuousDropOff;
+    }
+
+    public void setContinuousDropOff(int continuousDropOff) {
+        this.continuousDropOff = continuousDropOff;
+    }
+
+    public org.onebusaway.gtfs.model.Area getStartServiceArea() {
+        return startServiceArea;
+    }
+
+    public void setStartServiceArea(org.onebusaway.gtfs.model.Area startServiceArea) {
+        this.startServiceArea = startServiceArea;
+    }
+
+    public org.onebusaway.gtfs.model.Area getEndServiceArea() {
+        return endServiceArea;
+    }
+
+    public void setEndServiceArea(Area endServiceArea) {
+        this.endServiceArea = endServiceArea;
+    }
+
+    public double getStartServiceAreaRadius() {
+        return startServiceAreaRadius;
+    }
+
+    public void setStartServiceAreaRadius(double startServiceAreaRadius) {
+        this.startServiceAreaRadius = startServiceAreaRadius;
+    }
+
+    public double getEndServiceAreaRadius() {
+        return endServiceAreaRadius;
+    }
+
+    public void setEndServiceAreaRadius(double endServiceAreaRadius) {
+        this.endServiceAreaRadius = endServiceAreaRadius;
     }
 
     public int compareTo(StopTime o) {

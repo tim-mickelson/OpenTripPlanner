@@ -18,4 +18,6 @@ package org.opentripplanner.routing.vertextype;
  */
 public interface TemporaryVertex {
     boolean isEndVertex();
+
+    void dispose();
 }
