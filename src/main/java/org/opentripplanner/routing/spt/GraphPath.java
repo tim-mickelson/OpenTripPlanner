@@ -16,7 +16,7 @@ package org.opentripplanner.routing.spt;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.api.resource.CoordinateArrayListSequence;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.model.AgencyAndId;

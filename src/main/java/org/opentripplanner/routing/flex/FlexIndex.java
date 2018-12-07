@@ -2,9 +2,9 @@ package org.opentripplanner.routing.flex;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.graph_builder.module.map.StreetMatcher;
 import org.opentripplanner.routing.edgetype.PatternHop;

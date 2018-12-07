@@ -40,7 +40,7 @@
 [INFO] |  \- jgridshift:jgridshift:jar:1.0:compile
 [INFO] +- org.geotools:gt-coverage:jar:10.5:compile
 [INFO] |  +- org.geotools:gt-api:jar:10.5:compile
-[INFO] |  +- com.vividsolutions:jts:jar:1.13:compile
+[INFO] |  +- org.locationtech:jts:jar:1.13:compile
 [INFO] |  +- javax.media:jai_imageio:jar:1.1:compile
 [INFO] |  +- it.geosolutions.imageio-ext:imageio-ext-tiff:jar:1.1.8:compile
 [INFO] |  |  +- it.geosolutions.imageio-ext:imageio-ext-utilities:jar:1.1.8:compile

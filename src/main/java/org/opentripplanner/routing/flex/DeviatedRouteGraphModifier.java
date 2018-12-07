@@ -2,9 +2,9 @@ package org.opentripplanner.routing.flex;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.linearref.LengthIndexedLine;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.linearref.LengthIndexedLine;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.model.Stop;

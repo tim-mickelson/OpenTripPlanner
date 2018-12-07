@@ -13,16 +13,15 @@
 
 package org.opentripplanner.api.resource;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.api.model.*;
 import org.opentripplanner.common.geometry.DirectionUtils;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.PackedCoordinateSequence;
 import org.opentripplanner.common.model.P2;
 import org.opentripplanner.model.*;
-import org.opentripplanner.profile.BikeRentalStationInfo;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.alertpatch.StopCondition;

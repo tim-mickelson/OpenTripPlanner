@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.edgetype.flex;
 
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;

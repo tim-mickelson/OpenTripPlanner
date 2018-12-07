@@ -15,11 +15,10 @@ package org.opentripplanner.common.geometry;
 
 import static org.junit.Assert.assertEquals;
 
-import com.vividsolutions.jts.geom.*;
 import org.junit.Test;
+import org.locationtech.jts.geom.*;
 import org.opentripplanner.common.model.P2;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class GeometryUtilsTest {

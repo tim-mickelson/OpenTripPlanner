@@ -88,7 +88,7 @@ dependencies {
         "com.sun.jersey:jersey-server:$jersey_version",
         "com.sun.jersey.contribs:jersey-spring:$jersey_version",
 
-        'com.vividsolutions:jts:1.13', // why do we need to specifically include this, it's transitive
+        'org.locationtech:jts:1.13', // why do we need to specifically include this, it's transitive
         'commons-discovery:commons-discovery:0.4',
         'commons-lang:commons-lang:2.6',
         'crosby.binary:osmpbf:1.2.1',

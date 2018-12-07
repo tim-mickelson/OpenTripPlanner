@@ -17,7 +17,7 @@ import java.util.BitSet;
 
 import java.util.Locale;
 
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
@@ -361,7 +361,7 @@ public class TransitBoardAlight extends TablePatternEdge implements OnboardEdge 
                 s1.incrementWeight(wait_cost + options.getBoardCost(s0.getNonTransitMode()));
             }
             s1.incrementWeight(getExtraWeight(options));
-            
+
             // On-the-fly reverse optimization
             // determine if this needs to be reverse-optimized.
             // The last alight can be moved forward by bestWait (but no further) without

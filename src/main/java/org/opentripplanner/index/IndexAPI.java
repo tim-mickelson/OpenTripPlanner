@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 import org.opentripplanner.index.model.*;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.AgencyAndId;
@@ -32,7 +32,6 @@ import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.gtfs.GtfsLibrary;
-import org.opentripplanner.profile.StopCluster;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
 import org.opentripplanner.routing.edgetype.Timetable;
 import org.opentripplanner.routing.edgetype.TripPattern;
@@ -576,29 +575,6 @@ public class IndexAPI {
     public Response getServices(@PathParam("serviceId") String serviceId) {
         index.serviceForId.get(serviceId); // TODO complete
         return Response.status(Status.OK).entity("NONE").build();
-    }
-
-    /** Return all clusters of stops. */
-    @GET
-    @Path("/clusters")
-    public Response getAllStopClusters () {
-        index.clusterStopsAsNeeded();
-        // use 'detail' field common to all API methods in this class
-        List<StopClusterDetail> scl = StopClusterDetail.list(index.stopClusterForId.values(), detail);
-        return Response.status(Status.OK).entity(scl).build();
-    }
-
-    /** Return a cluster of stops by its ID. */
-    @GET
-    @Path("/clusters/{clusterId}")
-    public Response getStopCluster (@PathParam("clusterId") String clusterIdString) {
-        index.clusterStopsAsNeeded();
-        StopCluster cluster = index.stopClusterForId.get(clusterIdString);
-        if (cluster != null) {
-            return Response.status(Status.OK).entity(new StopClusterDetail(cluster, true)).build();
-        } else {
-            return Response.status(Status.NOT_FOUND).entity(MSG_404).build();
-        }
     }
 
     /** Return all area IDs. */

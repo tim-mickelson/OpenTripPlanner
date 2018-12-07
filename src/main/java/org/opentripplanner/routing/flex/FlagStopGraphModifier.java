@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.flex;
 
-import com.vividsolutions.jts.linearref.LengthIndexedLine;
+import org.locationtech.jts.linearref.LengthIndexedLine;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.strategies.SearchTerminationStrategy;
 import org.opentripplanner.routing.core.RoutingRequest;

@@ -14,10 +14,11 @@
 package org.opentripplanner.common.geometry;
 
 import java.io.Serializable;
+import java.util.stream.DoubleStream;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.CoordinateSequenceFactory;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.CoordinateSequenceFactory;
 
 public class Serializable2DPackedCoordinateSequenceFactory implements Serializable, CoordinateSequenceFactory {
 
@@ -36,7 +37,7 @@ public class Serializable2DPackedCoordinateSequenceFactory implements Serializab
 
     @Override
     public CoordinateSequence create(int size, int dimension) {
-        throw new UnsupportedOperationException();
+        return new PackedCoordinateSequence.Double(DoubleStream.generate(() -> 0).limit(size * dimension).toArray(), dimension);
     }
     
 

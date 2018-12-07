@@ -18,13 +18,13 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.linearref.LinearLocation;
-import com.vividsolutions.jts.linearref.LocationIndexedLine;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.linearref.LinearLocation;
+import org.locationtech.jts.linearref.LocationIndexedLine;
 import org.apache.commons.math3.util.FastMath;
 import org.opentripplanner.model.*;
 import org.opentripplanner.common.geometry.GeometryUtils;
@@ -410,14 +410,6 @@ public class PatternHopFactory {
 
         /* Interpret the transfers explicitly defined in transfers.txt. */
         loadTransfers(graph);
-
-        /* Store parent stops in graph, even if not linked. These are needed for clustering*/
-        for (TransitStationStop stop : context.stationStopNodes.values()) {
-            if (stop instanceof TransitStation) {
-                TransitStation parentStopVertex = (TransitStation) stop;
-                graph.parentStopById.put(parentStopVertex.getStopId(), parentStopVertex.getStop());
-            }
-        }
 
         /* Is this the wrong place to do this? It should be done on all feeds at once, or at deserialization. */
         // it is already done at deserialization, but standalone mode allows using graphs without serializing them.

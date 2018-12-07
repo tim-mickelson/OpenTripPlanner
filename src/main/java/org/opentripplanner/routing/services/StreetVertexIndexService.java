@@ -13,8 +13,8 @@
 
 package org.opentripplanner.routing.services;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.graph.Edge;
@@ -76,7 +76,4 @@ public interface StreetVertexIndexService {
     public Vertex getVertexForLocation(GenericLocation place, RoutingRequest options,
                                        boolean endVertex);
 
-	/** Get a vertex at a given coordinate, using the same logic as in Samples. Used in Analyst
-	 * so that origins and destinations are linked the same way. */
-	public Vertex getSampleVertexAt(Coordinate coordinate, boolean dest);
 }

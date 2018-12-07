@@ -1,6 +1,6 @@
 package org.opentripplanner.index.model;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.util.PolylineEncoder;
 import org.opentripplanner.util.model.EncodedPolylineBean;

@@ -1,9 +1,9 @@
 package org.opentripplanner.routing.edgetype.flex;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.linearref.LengthIndexedLine;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.linearref.LengthIndexedLine;
 import org.opentripplanner.api.resource.CoordinateArrayListSequence;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
@@ -215,7 +215,7 @@ public class PartialPatternHop extends PatternHop {
     }
 
     public boolean isOriginalHop(PatternHop hop) {
-        return originalHop.getId() == hop.getId();
+        return originalHop.equals(hop);
     }
 
     public boolean hasBoardArea() {

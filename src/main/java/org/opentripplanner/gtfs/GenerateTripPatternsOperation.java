@@ -17,7 +17,7 @@ package org.opentripplanner.gtfs;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.graph_builder.annotation.TripDegenerate;
 import org.opentripplanner.graph_builder.annotation.TripUndefinedService;

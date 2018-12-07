@@ -3,7 +3,7 @@ package org.opentripplanner.model;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 import java.io.Serializable;
 import java.util.Arrays;

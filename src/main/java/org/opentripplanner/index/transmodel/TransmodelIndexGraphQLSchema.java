@@ -1,8 +1,8 @@
 package org.opentripplanner.index.transmodel;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.LineString;
 import graphql.GraphQL;
 import graphql.Scalars;
 import graphql.relay.DefaultConnection;
@@ -2335,7 +2335,7 @@ public class TransmodelIndexGraphQLSchema {
                         .type(new GraphQLNonNull(new GraphQLList(lineType)))
                         .dataFetcher(environment -> index.routeForId.values()
                                 .stream()
-                                .filter(route -> route.getAgency() == environment.getSource())
+                                .filter(route -> Objects.equals(route.getAgency(), environment.getSource()))
                                 .collect(Collectors.toList()))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -2378,7 +2378,7 @@ public class TransmodelIndexGraphQLSchema {
                         .type(new GraphQLNonNull(new GraphQLList(lineType)))
                         .dataFetcher(environment -> index.routeForId.values()
                                 .stream()
-                                .filter(route -> route.getOperator() == environment.getSource())
+                                .filter(route -> Objects.equals(route.getOperator(), environment.getSource()))
                                 .collect(Collectors.toList()))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -2386,7 +2386,7 @@ public class TransmodelIndexGraphQLSchema {
                         .type(new GraphQLNonNull(new GraphQLList(serviceJourneyType)))
                         .dataFetcher(environment -> index.tripForId.values()
                                 .stream()
-                                .filter(trip -> trip.getOperator() == environment.getSource())
+                                .filter(trip -> Objects.equals(trip.getOperator(), environment.getSource()))
                                 .collect(Collectors.toList()))
                         .build())
                 .build();
@@ -2692,7 +2692,7 @@ public class TransmodelIndexGraphQLSchema {
                             if (environment.getArgument("name") == null) {
                                 stream = index.stopForId.values().stream();
                             } else {
-                                stream = index.getLuceneIndex().query(environment.getArgument("name"), true, true, false, false)
+                                stream = index.getLuceneIndex().query(environment.getArgument("name"), true, true, false)
                                         .stream()
                                         .map(result -> index.stopForId.get(mappingUtil.fromIdString(result.id)));
                             }
@@ -2892,6 +2892,7 @@ public class TransmodelIndexGraphQLSchema {
                                         environment.getArgument("filterByInUse")
                                 );
                             } catch (VertexNotFoundException e) {
+                                LOG.warn("findClosestPlacesByWalking failed with exception, returning empty list of places. " , e);
                                 places = Collections.emptyList();
                             }
 
