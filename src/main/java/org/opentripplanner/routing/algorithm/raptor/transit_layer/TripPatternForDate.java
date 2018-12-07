@@ -1,7 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import com.conveyal.r5.profile.entur.api.TripPatternInfo;
-import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
+
+import com.conveyal.r5.profile.entur.api.transit.TripPatternInfo;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +25,7 @@ public class TripPatternForDate implements TripPatternInfo<TripSchedule> {
     }
 
     @Override
-    public int currentPatternStop(int i) {
+    public int stopIndex(int i) {
         return this.tripPattern.getStopPattern()[i];
     }
 

@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import com.conveyal.r5.profile.entur.api.*;
+import com.conveyal.r5.profile.entur.api.transit.*;
 import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
@@ -29,7 +29,7 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
     private List<List<TripPatternForDates>> activeTripPatternsPerStop;
 
     /** Transfers by stop index */
-    private List<List<StopArrival>> transfers;
+    private List<List<TransferLeg>> transfers;
 
     public OtpRRDataProvider(TransitLayer transitLayer, LocalDate startDate, int dayRange, TraverseModeSet transitModes,
                              HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
@@ -42,7 +42,7 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
 
     /** Gets all the transfers starting at a given stop */
     @Override
-    public Iterator<StopArrival> getTransfers(int stopIndex) {
+    public Iterator<TransferLeg> getTransfers(int stopIndex) {
         return transfers.get(stopIndex).iterator();
     }
 
@@ -93,7 +93,7 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
 
     private void calculateTransferDuration(double walkSpeed) {
         this.transfers = Arrays.stream(transitLayer.getTransferByStop())
-                .map(t ->  t.stream().map(s -> new StopArrivalImpl(s, walkSpeed)).collect(Collectors.<StopArrival>toList()))
+                .map(t ->  t.stream().map(s -> new TransferR5Adapter(s, walkSpeed)).collect(Collectors.<TransferLeg>toList()))
                 .collect(toList());
     }
 }

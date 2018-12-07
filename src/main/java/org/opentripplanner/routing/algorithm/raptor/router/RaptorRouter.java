@@ -1,7 +1,14 @@
 package org.opentripplanner.routing.algorithm.raptor.router;
 
 import com.conveyal.r5.profile.entur.RangeRaptorService;
-import com.conveyal.r5.profile.entur.api.*;
+import com.conveyal.r5.profile.entur.api.TuningParameters;
+import com.conveyal.r5.profile.entur.api.path.Path;
+import com.conveyal.r5.profile.entur.api.request.RangeRaptorRequest;
+import com.conveyal.r5.profile.entur.api.request.RaptorProfiles;
+import com.conveyal.r5.profile.entur.api.request.RequestBuilder;
+import com.conveyal.r5.profile.entur.api.transit.AccessLeg;
+import com.conveyal.r5.profile.entur.api.transit.EgressLeg;
+import com.conveyal.r5.profile.entur.api.transit.TransitDataProvider;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.model.Stop;
@@ -9,7 +16,7 @@ import org.opentripplanner.routing.algorithm.raptor.itinerary.ItineraryMapper;
 import com.conveyal.r5.profile.entur.util.paretoset.*;
 import org.opentripplanner.routing.algorithm.raptor.itinerary.ParetoItinerary;
 import org.opentripplanner.routing.algorithm.raptor.street_router.AccessEgressRouter;
-import org.opentripplanner.routing.algorithm.raptor.street_router.StopArrivalMapper;
+import org.opentripplanner.routing.algorithm.raptor.street_router.TransferToAccessEgressLegMapper;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.*;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.slf4j.Logger;
@@ -49,9 +56,9 @@ public class RaptorRouter {
         Map<Stop, Transfer> egressTransfers =
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
-        StopArrivalMapper stopArrivalMapper = new StopArrivalMapper(transitLayer);
-        Collection<StopArrival> accessTimes = stopArrivalMapper.map(accessTransfers, request.walkSpeed);
-        Collection<StopArrival> egressTimes = stopArrivalMapper.map(egressTransfers, request.walkSpeed);
+        TransferToAccessEgressLegMapper mapper = new TransferToAccessEgressLegMapper(transitLayer);
+        Collection<AccessLeg> accessTimes = mapper.map(accessTransfers, request.walkSpeed);
+        Collection<EgressLeg> egressTimes = mapper.map(egressTransfers, request.walkSpeed);
 
         LOG.info("Access/egress routing took {} ms", System.currentTimeMillis() - startTimeAccessEgress);
 
@@ -65,12 +72,12 @@ public class RaptorRouter {
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
-        RangeRaptorRequest rangeRaptorRequest = new RangeRaptorRequest.Builder(departureTime, departureTime + SEARCH_RANGE_SECONDS)
+        RangeRaptorRequest rangeRaptorRequest = new RequestBuilder(departureTime, departureTime + SEARCH_RANGE_SECONDS)
         .addAccessStops(accessTimes)
         .addEgressStops(egressTimes)
         .departureStepInSeconds(60)
         .boardSlackInSeconds(60)
-        .profile(RaptorProfiles.MULTI_CRITERIA)
+        .profile(RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR)
         .build();
 
 
@@ -78,7 +85,7 @@ public class RaptorRouter {
          * Route transit
          */
 
-        Collection<Path2<TripSchedule>> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
+        Collection<Path<TripSchedule>> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
 
         LOG.info("Main routing took {} ms", System.currentTimeMillis() - startTimeRouting);
 
@@ -103,12 +110,13 @@ public class RaptorRouter {
         return tripPlan;
     }
 
-    void filterByParetoSet(Collection<Itinerary> itineraries) {
-        ParetoSet<ParetoItinerary> paretoSet = new ParetoSet<>(
-                ParetoFunction.createParetoFunctions().lessThen().lessThen().lessThen().lessThen().build());
+    private void filterByParetoSet(Collection<Itinerary> itineraries) {
+        ParetoSet<ParetoItinerary> paretoSet = new ParetoSet<>(ParetoItinerary.paretoComperator());
         List<ParetoItinerary> paretoItineraries = itineraries.stream()
-                .map(i -> new ParetoItinerary(i)).collect(Collectors.toList());
-        paretoItineraries.stream().forEach(p -> {
+                .map(ParetoItinerary::new)
+                .collect(Collectors.toList());
+
+        paretoItineraries.forEach(p -> {
             p.initParetoVector();
             paretoSet.add(p);
         });
