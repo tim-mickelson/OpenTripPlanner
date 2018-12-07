@@ -3,13 +3,13 @@ package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 import java.util.Objects;
 
 public class OrderedIndexPair {
-    public OrderedIndexPair(int fromIndex, int toIndex) {
+    OrderedIndexPair(int fromIndex, int toIndex) {
         this.fromIndex = fromIndex;
         this.toIndex = toIndex;
     }
 
-    public final int fromIndex;
-    public final int toIndex;
+    private final int fromIndex;
+    private final int toIndex;
 
     @Override
     public boolean equals(Object o) {

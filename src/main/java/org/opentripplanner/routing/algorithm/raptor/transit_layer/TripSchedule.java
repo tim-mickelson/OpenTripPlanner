@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import com.conveyal.r5.profile.entur.api.TripScheduleInfo;
+import com.conveyal.r5.profile.entur.api.transit.TripScheduleInfo;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.edgetype.TripPattern;
 
@@ -10,7 +10,7 @@ import org.opentripplanner.routing.edgetype.TripPattern;
  */
 
 public interface TripSchedule extends TripScheduleInfo {
-    public Trip getOriginalTrip();
-    public TripPattern getOriginalTripPattern();
-    public int getServiceCode();
+    Trip getOriginalTrip();
+    TripPattern getOriginalTripPattern();
+    int getServiceCode();
 }

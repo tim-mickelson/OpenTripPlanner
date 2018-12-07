@@ -1,16 +1,18 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
-import com.conveyal.r5.profile.entur.api.StopArrival;
+import com.conveyal.r5.profile.entur.api.transit.TransferLeg;
 
-public class StopArrivalImpl implements StopArrival {
+public class TransferR5Adapter implements TransferLeg {
 
     private final int duration;
 
     private final Transfer transfer;
 
-    StopArrivalImpl(Transfer transfer, double walkSpeed) {
+    TransferR5Adapter(Transfer transfer, double walkSpeed) {
         this.transfer = transfer;
         this.duration = (int) Math.round(transfer.getDistance() / walkSpeed);
+
+        // TODO - Add cost
     }
 
     @Override
@@ -25,6 +27,6 @@ public class StopArrivalImpl implements StopArrival {
 
     @Override
     public int cost() {
-        return transfer.cost();
+        return 0;
     }
 }

@@ -1,8 +1,8 @@
 package org.opentripplanner.routing.algorithm.raptor.itinerary;
 
 import com.conveyal.r5.profile.entur.util.TimeUtils;
-import com.conveyal.r5.profile.entur.util.paretoset.ParetoFunction;
-import com.conveyal.r5.profile.entur.util.paretoset.ParetoSortable;
+import com.conveyal.r5.profile.entur.util.paretoset.ParetoComparator;
+import com.conveyal.r5.profile.entur.util.paretoset.ParetoComparatorBuilder;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.Leg;
 
@@ -12,7 +12,7 @@ import java.util.Set;
 import static com.conveyal.r5.profile.entur.util.TimeUtils.timeToStrCompact;
 import static com.conveyal.r5.profile.entur.util.TimeUtils.timeToStrShort;
 
-public class ParetoItinerary extends Itinerary implements ParetoSortable {
+public class ParetoItinerary extends Itinerary {
 
     private final int[] paretoValues = new int[5];
 
@@ -69,40 +69,21 @@ public class ParetoItinerary extends Itinerary implements ParetoSortable {
         paretoValues[i] = agencies.hashCode();
     }
 
-    public static ParetoFunction.Builder paretoDominanceFunctions() {
-        return ParetoFunction.createParetoFunctions()
-                .lessThen()
-                .lessThen()
-                .lessThen()
-                .lessThen()
-                //.different()
-                .different();
+    public static ParetoComparator<ParetoItinerary> paretoComperator() {
+        return new ParetoComparatorBuilder<ParetoItinerary>()
+                .lessThen(ParetoItinerary::paretoValue1)
+                .lessThen(ParetoItinerary::paretoValue2)
+                .lessThen(ParetoItinerary::paretoValue3)
+                .lessThen(ParetoItinerary::paretoValue4)
+                .lessThen(ParetoItinerary::paretoValue5)
+                .build();
     }
 
-    @Override
-    public int paretoValue1() {
-        return paretoValues[0];
-    }
-
-    @Override
-    public int paretoValue2() {
-        return paretoValues[1];
-    }
-
-    @Override
-    public int paretoValue3() {
-        return paretoValues[2];
-    }
-
-    @Override
-    public int paretoValue4() {
-        return paretoValues[3];
-    }
-
-    @Override
-    public int paretoValue5() {
-        return paretoValues[4];
-    }
+    private int paretoValue1() { return paretoValues[0]; }
+    private int paretoValue2() { return paretoValues[1]; }
+    private int paretoValue3() { return paretoValues[2]; }
+    private int paretoValue4() { return paretoValues[3]; }
+    private int paretoValue5() { return paretoValues[4]; }
 
     @Override
     public String toString() {
