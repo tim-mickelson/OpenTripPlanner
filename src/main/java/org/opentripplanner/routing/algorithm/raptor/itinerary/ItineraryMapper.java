@@ -81,10 +81,8 @@ public class ItineraryMapper {
             if (pathLeg.isTransferLeg()) {
                 Leg transferLeg = mapTransferLeg(pathLeg.asTransferLeg());
 
-                if (transferLeg.distance > 0) {
-                    itinerary.walkDistance += transferLeg.distance;
-                    itinerary.addLeg(transferLeg);
-                }
+                itinerary.walkDistance += transferLeg.distance;
+                itinerary.addLeg(transferLeg);
 
                 // Increment counters
                 itinerary.transfers++;
