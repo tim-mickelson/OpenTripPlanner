@@ -114,7 +114,7 @@ public class AccessEgressRouter {
 
         Transfer transfer = new Transfer(
                 0,
-                (int)originalState.getWalkDistance() * 1000,
+                (int)originalState.getWalkDistance(),
                 points);
 
         return transfer;
