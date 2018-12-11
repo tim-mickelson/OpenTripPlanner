@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class RaptorRouter {
     private final TransitDataProvider<TripSchedule> otpRRDataProvider;
     private final TransitLayer transitLayer;
-    private static final int SEARCH_RANGE_SECONDS = 60 * 120;
+    private static final int SEARCH_RANGE_SECONDS = 60 * 40;
     private static final Logger LOG = LoggerFactory.getLogger(RaptorRouter.class);
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
