@@ -124,7 +124,8 @@ public class Routers {
     @GET @Path("/ready")
     @Produces({ MediaType.TEXT_PLAIN})
     public Response isReady() {
-        boolean isRouterReady = false;
+        // Always set ready to true in raptor branch
+        boolean isRouterReady = true;
         List<String> waitingUpdaters = new ArrayList<>();
         for (String id : otpServer.getRouterIds()) {
             Router router = otpServer.getRouter(id);
