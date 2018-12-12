@@ -124,41 +124,7 @@ public class Routers {
     @GET @Path("/ready")
     @Produces({ MediaType.TEXT_PLAIN})
     public Response isReady() {
-        // Always set ready to true in raptor branch
-        boolean isRouterReady = true;
-        List<String> waitingUpdaters = new ArrayList<>();
-        for (String id : otpServer.getRouterIds()) {
-            Router router = otpServer.getRouter(id);
-            if (router != null) {
-                // Router could have been evicted in the meantime
-                Graph graph = router.graph;
-
-                isRouterReady = true;
-                for (GraphUpdater updater : graph.updaterManager.getUpdaterList()) {
-                    if (updater instanceof PollingGraphUpdater) {
-                        if (! ((PollingGraphUpdater) updater).isReady()) {
-                            waitingUpdaters.add(((PollingGraphUpdater) updater).getType());
-                        }
-                    }
-                }
-            }
-        }
-        if (!isRouterReady) {
-            LOG.info("Graph not ready.");
-            throw new WebApplicationException(Response.status(Status.NOT_FOUND)
-                    .entity("Graph not ready.\n").type("text/plain")
-                    .build());
-        }
-        if (!waitingUpdaters.isEmpty()) {
-            LOG.info("Graph ready, waiting for updaters: {}", waitingUpdaters);
-            throw new WebApplicationException(Response.status(Status.NOT_FOUND)
-                    .entity("Graph ready, waiting for updaters: " + waitingUpdaters + "\n").type("text/plain")
-                    .build());
-        }
-        if (!flaggedAsReady) {
-            flaggedAsReady = true;
-            LOG.info("Graph is now ready.");
-        }
+        // Always return status ok in the raptor branch
         return Response.status(Status.OK)
                 .entity("Ready.\n").type("text/plain")
                 .build();
