@@ -24,7 +24,7 @@ public class TransferToAccessEgressLegMapper {
         for (Map.Entry<Stop, Transfer> entry : input.entrySet()) {
             Stop stop = entry.getKey();
             Transfer transfer = entry.getValue();
-            int duration = (int)Math.floor(transfer.getDistance() / 1000.0 / walkSpeed); //TODO: Avoid hard coding walk speed
+            int duration = (int)Math.floor(transfer.getDistance() / walkSpeed); //TODO: Avoid hard coding walk speed
             int stopIndex = transitLayer.getIndexByStop(stop);
             // TODO - Calculate som meaningful cost
             result.add((T)new R5TransferLeg(stopIndex, duration, 0));
