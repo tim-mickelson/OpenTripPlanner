@@ -1,6 +1,8 @@
 /* This file is based on code copied from project OneBusAway, see the LICENSE file for further information. */
 package org.opentripplanner.model;
 
+import java.util.Objects;
+
 public class Area extends IdentityBean<AgencyAndId> {
     private static final long serialVersionUID = 1L;
 
@@ -38,4 +40,17 @@ public class Area extends IdentityBean<AgencyAndId> {
         this.wkt = wkt;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Area area = (Area) o;
+        return id.equals(area.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id);
+    }
 }

@@ -16,7 +16,6 @@
  */
 package org.opentripplanner.model;
 
-import org.onebusaway.gtfs.model.Area;
 import org.opentripplanner.util.TimeToStringConverter;
 
 
@@ -251,15 +250,15 @@ public final class StopTime extends IdentityBean<AgencyAndId> implements Compara
         this.continuousDropOff = continuousDropOff;
     }
 
-    public org.onebusaway.gtfs.model.Area getStartServiceArea() {
+    public Area getStartServiceArea() {
         return startServiceArea;
     }
 
-    public void setStartServiceArea(org.onebusaway.gtfs.model.Area startServiceArea) {
+    public void setStartServiceArea(Area startServiceArea) {
         this.startServiceArea = startServiceArea;
     }
 
-    public org.onebusaway.gtfs.model.Area getEndServiceArea() {
+    public Area getEndServiceArea() {
         return endServiceArea;
     }
 

@@ -22,13 +22,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 class StopTimeMapper {
+    private final AreaMapper areaMapper;
+
     private final StopMapper stopMapper;
 
     private final TripMapper tripMapper;
 
     private Map<org.onebusaway.gtfs.model.StopTime, StopTime> mappedStopTimes = new HashMap<>();
 
-    StopTimeMapper(StopMapper stopMapper, TripMapper tripMapper) {
+    StopTimeMapper(StopMapper stopMapper, TripMapper tripMapper, AreaMapper areaMapper) {
+        this.areaMapper = areaMapper;
         this.stopMapper = stopMapper;
         this.tripMapper = tripMapper;
     }
@@ -59,8 +62,8 @@ class StopTimeMapper {
         lhs.setFarePeriodId(rhs.getFarePeriodId());
         lhs.setContinuousPickup(rhs.getContinuousPickup());
         lhs.setContinuousDropOff(rhs.getContinuousDropOff());
-        lhs.setStartServiceArea(rhs.getStartServiceArea());
-        lhs.setEndServiceArea(rhs.getEndServiceArea());
+        lhs.setStartServiceArea(areaMapper.map(rhs.getStartServiceArea()));
+        lhs.setEndServiceArea(areaMapper.map(rhs.getEndServiceArea()));
         lhs.setStartServiceAreaRadius(rhs.getStartServiceAreaRadius());
         lhs.setEndServiceAreaRadius(rhs.getEndServiceAreaRadius());
 

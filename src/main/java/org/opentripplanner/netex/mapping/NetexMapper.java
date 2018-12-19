@@ -1,21 +1,16 @@
 package org.opentripplanner.netex.mapping;
 
+import org.opentripplanner.model.*;
 import org.opentripplanner.model.NoticeAssignment;
 import org.opentripplanner.model.Route;
-import org.opentripplanner.model.ShapePoint;
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.Transfer;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
-import org.rutebanken.netex.model.Authority;
+import org.rutebanken.netex.model.*;
 import org.rutebanken.netex.model.Branding;
-import org.rutebanken.netex.model.GroupOfStopPlaces;
-import org.rutebanken.netex.model.JourneyPattern;
-import org.rutebanken.netex.model.Line_VersionStructure;
 import org.rutebanken.netex.model.Notice;
-import org.rutebanken.netex.model.StopPlace;
 import org.rutebanken.netex.model.TariffZone;
 
+import java.util.AbstractMap;
 import java.util.Collection;
 
 import static org.opentripplanner.netex.mapping.CalendarMapper.mapToCalendarDates;
@@ -33,6 +28,8 @@ public class NetexMapper {
     private final RouteMapper routeMapper = new RouteMapper();
 
     private final StopMapper stopMapper = new StopMapper();
+
+    private final FlexibleStopPlaceMapper flexibleStopPlaceMapper = new FlexibleStopPlaceMapper();
 
     private final TripPatternMapper tripPatternMapper = new TripPatternMapper();
 
@@ -113,6 +110,14 @@ public class NetexMapper {
                 Stop stop = stopMapper.mapGroupsOfStopPlaces(group, transitBuilder.getStopByGroupOfStopPlaces(), transitBuilder.getStops());
                 transitBuilder.getGroupsOfStopPlaces().add(stop);
                 transitBuilder.getStops().add(stop);
+            }
+        }
+
+        for (String flexibleStopPlaceId : netexDao.flexibleStopPlaceById.keys()) {
+            // TODO Consider also checking validity instead of always picking last version, as is being done with stop places
+            FlexibleStopPlace flexibleStopPlace = netexDao.flexibleStopPlaceById.lookupLastVersionById(flexibleStopPlaceId);
+            if (flexibleStopPlace != null) {
+                flexibleStopPlaceMapper.mapFlexibleStopPlaceWithQuay(flexibleStopPlace, transitBuilder);
             }
         }
 

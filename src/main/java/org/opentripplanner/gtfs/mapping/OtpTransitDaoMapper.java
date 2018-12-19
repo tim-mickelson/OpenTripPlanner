@@ -13,18 +13,15 @@
 
 package org.opentripplanner.gtfs.mapping;
 
-import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.ShapePoint;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 
-import java.awt.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 
 public class OtpTransitDaoMapper {
     private final AgencyMapper agencyMapper = new AgencyMapper();
+
+    private final AreaMapper areaMapper = new AreaMapper();
 
     private final StopMapper stopMapper = new StopMapper();
 
@@ -44,7 +41,7 @@ public class OtpTransitDaoMapper {
 
     private final TripMapper tripMapper = new TripMapper(routeMapper);
 
-    private final StopTimeMapper stopTimeMapper = new StopTimeMapper(stopMapper, tripMapper);
+    private final StopTimeMapper stopTimeMapper = new StopTimeMapper(stopMapper, tripMapper, areaMapper);
 
     private final FrequencyMapper frequencyMapper = new FrequencyMapper(tripMapper);
 
@@ -55,8 +52,6 @@ public class OtpTransitDaoMapper {
     private final FareRuleMapper fareRuleMapper = new FareRuleMapper(
             routeMapper, fareAttributeMapper
     );
-
-    private final AreaMapper areaMapper = new AreaMapper();
 
     public static OtpTransitBuilder mapGtfsDaoToBuilder(
             org.onebusaway.gtfs.services.GtfsRelationalDao data

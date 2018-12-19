@@ -19,16 +19,12 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import org.opentripplanner.model.*;
 import org.opentripplanner.netex.mapping.AgencyAndIdFactory;
+import org.opentripplanner.netex.mapping.FlexibleQuayWithArea;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class OtpTransitBuilder {
@@ -47,6 +43,8 @@ public class OtpTransitBuilder {
     private final List<FareRule> fareRules = new ArrayList<>();
 
     private final List<FeedInfo> feedInfos = new ArrayList<>();
+
+    private final EntityMap<AgencyAndId, FlexibleQuayWithArea> flexibleStopsWithArea = new EntityMap<>();
 
     private final List<Frequency> frequencies = new ArrayList<>();
 
@@ -93,12 +91,10 @@ public class OtpTransitBuilder {
         return agencies;
     }
 
+    public List<Area> getAreas() { return areas; }
+
     public Agency findAgencyById(String id) {
         return agencies.stream().filter(a -> a.getId().equals(id)).findFirst().orElse(null);
-    }
-
-    public List<Area> getAreas() {
-        return areas;
     }
 
     public List<ServiceCalendarDate> getCalendarDates() {
@@ -120,6 +116,8 @@ public class OtpTransitBuilder {
     public List<FeedInfo> getFeedInfos() {
         return feedInfos;
     }
+
+    public EntityMap<AgencyAndId, FlexibleQuayWithArea> getFlexibleQuayWithArea() { return flexibleStopsWithArea; }
 
     public List<Frequency> getFrequencies() {
         return frequencies;
@@ -229,7 +227,7 @@ public class OtpTransitBuilder {
             quaysByStopPlace.put(stopsById.get(AgencyAndIdFactory.createAgencyAndId(stop.getParentStation())), stop);
         }
 
-        // Find quays not used
+        // Find quays not used in tripPatterns
         Set<Stop> quaysNotInUse = new HashSet<>(quays);
         for (StopPattern stopPattern : tripPatterns.keySet()) {
             for (Stop stop : stopPattern.stops) {
@@ -245,6 +243,13 @@ public class OtpTransitBuilder {
         for (Map.Entry<Stop, Collection<Stop>> entry : quaysByStopPlace.asMap().entrySet()) {
             if (entry.getValue().stream().anyMatch(s -> !quaysNotInUse.contains(s))) {
                 stopPlacesNotInUse.remove(entry.getKey());
+            }
+        }
+
+        // Find stop places not used in tripPatterns
+        for (StopPattern stopPattern : tripPatterns.keySet()) {
+            for (Stop stop : stopPattern.stops) {
+                stopPlacesNotInUse.remove(stop);
             }
         }
 

@@ -1,35 +1,22 @@
 package org.opentripplanner.netex.mapping;
 
-import org.opentripplanner.model.BookingArrangement;
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.StopPattern;
-import org.opentripplanner.model.StopTime;
-import org.opentripplanner.model.Trip;
+import org.locationtech.jts.geom.Geometry;
+import org.opentripplanner.common.geometry.GeometryUtils;
+import org.opentripplanner.model.*;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 import org.opentripplanner.routing.trippattern.TripTimes;
-import org.rutebanken.netex.model.DestinationDisplay;
-import org.rutebanken.netex.model.JourneyPattern;
-import org.rutebanken.netex.model.PointInJourneyPatternRefStructure;
-import org.rutebanken.netex.model.PointInLinkSequence_VersionedChildStructure;
+import org.rutebanken.netex.model.*;
 import org.rutebanken.netex.model.Route;
-import org.rutebanken.netex.model.ScheduledStopPointRefStructure;
-import org.rutebanken.netex.model.ServiceJourney;
-import org.rutebanken.netex.model.StopPointInJourneyPattern;
-import org.rutebanken.netex.model.TimetabledPassingTime;
-import org.rutebanken.netex.model.TimetabledPassingTimes_RelStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBElement;
 import java.math.BigInteger;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.opentripplanner.model.StopPattern.*;
@@ -63,6 +50,14 @@ public class TripPatternMapper {
         }
 
         for (ServiceJourney serviceJourney : serviceJourneys) {
+            boolean isFlexible = isFlexible(serviceJourney, netexDao);
+            if (isFlexible) {
+                if (!flexibleStructureSupported(serviceJourney, netexDao)) {
+                    LOG.warn("Flexible structure not supported for {}", serviceJourney.getId());
+                    continue;
+                }
+            }
+
             Trip trip = tripMapper.mapServiceJourney(serviceJourney, transitBuilder, netexDao);
             trips.add(trip);
 
@@ -70,7 +65,7 @@ public class TripPatternMapper {
             List<TimetabledPassingTime> timetabledPassingTimes = passingTimes.getTimetabledPassingTime();
 
             List<StopTimeWithBookingArrangement> stopTimes = mapToStopTimes(
-                    journeyPattern, transitBuilder, netexDao, trip, timetabledPassingTimes
+                    journeyPattern, transitBuilder, netexDao, trip, timetabledPassingTimes,isFlexible
             );
 
             if (stopTimes != null && stopTimes.size() > 0) {
@@ -94,7 +89,7 @@ public class TripPatternMapper {
                 // We can do this because we assume the stopPatterrns are the same for all trips in a
                 // JourneyPattern
                 if (stopPattern == null) {
-                    stopPattern = new StopPattern(transitBuilder.getStopTimesSortedByTrip().get(trip));
+                    stopPattern = new StopPattern(transitBuilder.getStopTimesSortedByTrip().get(trip), getAreasById(transitBuilder)::get);
                     int i=0;
                     for (StopTimeWithBookingArrangement stwb: stopTimes) {
                         stopPattern.bookingArrangements[i++] = stwb.bookingArrangement;
@@ -159,7 +154,7 @@ public class TripPatternMapper {
         transitBuilder.getTripPatterns().put(tripPattern.stopPattern, tripPattern);
     }
 
-    private List<StopTimeWithBookingArrangement> mapToStopTimes(JourneyPattern journeyPattern, OtpTransitBuilder transitBuilder, NetexDao netexDao, Trip trip, List<TimetabledPassingTime> timetabledPassingTimes) {
+    private List<StopTimeWithBookingArrangement> mapToStopTimes(JourneyPattern journeyPattern, OtpTransitBuilder transitBuilder, NetexDao netexDao, Trip trip, List<TimetabledPassingTime> timetabledPassingTimes, boolean isFlexible) {
         List<StopTimeWithBookingArrangement> stopTimes = new ArrayList<>();
 
         int stopSequence = 0;
@@ -170,11 +165,28 @@ public class TripPatternMapper {
             String ref = pointInJourneyPatternRef.getValue().getRef();
 
             Stop quay = findQuay(ref, journeyPattern, netexDao, transitBuilder);
+            FlexibleQuayWithArea flexibleQuayWithArea = null;
+
+            if (isFlexible) {
+                flexibleQuayWithArea = findFlexibleQuayWithArea(ref, journeyPattern, netexDao, transitBuilder);
+                quay = flexibleQuayWithArea.stop;
+            }
 
             if (quay != null) {
                 StopPointInJourneyPattern stopPoint = findStopPoint(ref, journeyPattern);
-
                 StopTime stopTime = mapToStopTime(trip, stopPoint, quay, passingTime, stopSequence, netexDao);
+                stopTime.setContinuousPickup(0);
+                stopTime.setContinuousDropOff(0);
+
+                // This only maps the case with exactly two passing times
+                if (flexibleQuayWithArea != null) {
+                    if (stopTimes.size() == 0) {
+                        stopTime.setStartServiceArea(flexibleQuayWithArea.area);
+                    } else if (stopTimes.size() == 1) {
+                        stopTime.setEndServiceArea(stopTimes.get(0).stopTime.getStartServiceArea());
+                    }
+                }
+
                 if (stopTimes.size() > 0 && stopTimeNegative(stopTimes.get(stopTimes.size() - 1).stopTime, stopTime)) {
                     LOG.error("Stoptime increased by negative amount in serviceJourney " + trip.getId().getId());
                     return null;
@@ -185,7 +197,7 @@ public class TripPatternMapper {
                 stopTimes.add(new StopTimeWithBookingArrangement(stopTime, bookingArrangement));
                 ++stopSequence;
             } else {
-                LOG.warn("Quay not found for timetabledPassingTimes: " + passingTime.getId());
+                LOG.warn("No quay or flexible stop place found for timetabledPassingTimes: " + passingTime.getId());
             }
         }
         return stopTimes;
@@ -262,6 +274,8 @@ public class TripPatternMapper {
         return stopTime;
     }
 
+
+
     private Stop findQuay(String pointInJourneyPatterRef, JourneyPattern journeyPattern,
             NetexDao netexDao, OtpTransitBuilder transitBuilder) {
         List<PointInLinkSequence_VersionedChildStructure> points = journeyPattern
@@ -291,6 +305,43 @@ public class TripPatternMapper {
         }
 
         return null;
+    }
+
+
+
+    private FlexibleQuayWithArea findFlexibleQuayWithArea(String pointInJourneyPatterRef, JourneyPattern journeyPattern,
+                                                          NetexDao netexDao, OtpTransitBuilder transitBuilder) {
+        List<PointInLinkSequence_VersionedChildStructure> points = journeyPattern
+                .getPointsInSequence()
+                .getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
+        for (PointInLinkSequence_VersionedChildStructure point : points) {
+            if (point instanceof StopPointInJourneyPattern) {
+                StopPointInJourneyPattern stop = (StopPointInJourneyPattern) point;
+                if (stop.getId().equals(pointInJourneyPatterRef)) {
+                    JAXBElement<? extends ScheduledStopPointRefStructure> scheduledStopPointRef = ((StopPointInJourneyPattern) point)
+                            .getScheduledStopPointRef();
+                    String stopId = netexDao.flexibleStopPlaceIdByStopPointRef.lookup(scheduledStopPointRef.getValue().getRef());
+                    if (stopId == null) {
+                        LOG.warn("No passengerStopAssignment found for " + scheduledStopPointRef
+                                .getValue().getRef());
+                    } else {
+                        FlexibleQuayWithArea flexibleQuayWithArea = transitBuilder.getFlexibleQuayWithArea()
+                                .get(AgencyAndIdFactory.createAgencyAndId(getFlexibleQuayRefFromStopPlaceRef(stopId)));
+                        if (flexibleQuayWithArea == null) {
+                            LOG.warn("Quay not found for " + scheduledStopPointRef.getValue()
+                                    .getRef());
+                        }
+                        return flexibleQuayWithArea;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private String getFlexibleQuayRefFromStopPlaceRef(String stopPlaceRef) {
+        return stopPlaceRef.replace("FlexibleStopPlace", "FlexibleQuay");
     }
 
     private StopPointInJourneyPattern findStopPoint(String pointInJourneyPatterRef,
@@ -328,6 +379,22 @@ public class TripPatternMapper {
         return value != null && !value;
     }
 
+    boolean isFlexible(ServiceJourney serviceJourney, NetexDao netexDao) {
+        Line_VersionStructure line = TripMapper.lineFromServiceJourney(serviceJourney, netexDao);
+
+        return line instanceof FlexibleLine;
+    }
+
+    /**
+     * Only a call-and-ride serviceJourney with two passingTimes currently supported.
+     */
+
+    boolean flexibleStructureSupported(ServiceJourney serviceJourney, NetexDao netexDao) {
+        Line_VersionStructure line = TripMapper.lineFromServiceJourney(serviceJourney, netexDao);
+
+        return ((FlexibleLine) line).getFlexibleLineType().value().equals("flexibleAreasOnly") &&
+                serviceJourney.getPassingTimes().getTimetabledPassingTime().size() == 2;
+    }
 
     private class StopTimeWithBookingArrangement {
 
@@ -339,5 +406,14 @@ public class TripPatternMapper {
             this.stopTime = stopTime;
             this.bookingArrangement = bookingArrangement;
         }
+    }
+
+    private Map<String, Geometry> getAreasById(OtpTransitBuilder transitBuilder ) {
+        Map<String, Geometry> areasById = new HashMap<>();
+        for (Area area : transitBuilder.getAreas()) {
+            Geometry geometry = GeometryUtils.parseWkt(area.getWkt());
+            areasById.put(area.getAreaId(), geometry);
+        }
+        return areasById;
     }
 }
