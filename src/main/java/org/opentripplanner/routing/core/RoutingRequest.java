@@ -682,6 +682,12 @@ public class RoutingRequest implements Cloneable, Serializable {
     public int minPartialHopLength = 400;
 
     /**
+     * Use flexible services
+     */
+
+    public boolean useFlexService = false;
+
+    /**
      * Saves split edge which can be split on origin/destination search
      * <p>
      * This is used so that TrivialPathException is thrown if origin and destination search would split the same edge
@@ -1260,7 +1266,8 @@ public class RoutingRequest implements Cloneable, Serializable {
                 && ignoreDrtAdvanceBookMin == other.ignoreDrtAdvanceBookMin
                 && excludeWalking == other.excludeWalking
                 && minPartialHopLength == other.minPartialHopLength
-                && clockTimeSec == other.clockTimeSec;
+                && clockTimeSec == other.clockTimeSec
+                && useFlexService == other.useFlexService;
     }
 
     /**

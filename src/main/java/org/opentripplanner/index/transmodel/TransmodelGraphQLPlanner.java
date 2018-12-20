@@ -224,6 +224,9 @@ public class TransmodelGraphQLPlanner {
         callWith.argument("allowBikeRental", (Boolean v) -> request.allowBikeRental = v);
 
         callWith.argument("transferPenalty", (Integer v) -> request.transferPenalty = v);
+
+        callWith.argument("useFlex", (Boolean v) -> request.useFlexService = v);
+
         if (optimize == OptimizeType.TRANSFERS) {
             optimize = OptimizeType.QUICK;
             request.transferPenalty += 1800;

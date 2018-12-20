@@ -240,7 +240,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     public Double ellipsoidToGeoidDifference = 0.0;
 
     /** Whether to use flex modes */
-    public boolean useFlexService = true;
+    public boolean useFlexService = false;
 
     /** Areas for flex service */
     public Map<AgencyAndId, Geometry> areasById = new HashMap<>();

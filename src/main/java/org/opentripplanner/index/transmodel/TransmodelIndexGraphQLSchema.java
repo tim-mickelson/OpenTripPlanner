@@ -958,6 +958,11 @@ public class TransmodelIndexGraphQLSchema {
                         .defaultValue(defaultRoutingRequest.maxPreTransitWalkDistance)
                         .build())
                 .argument(GraphQLArgument.newArgument()
+                        .name("useFlex")
+                        .type(Scalars.GraphQLBoolean)
+                        .defaultValue(defaultRoutingRequest.useFlexService)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
                         .name("walkBoardCost")
                         .description("DEPRECATED - ONLY FOR TESTING. Cost applied each time transit is boarded.")
                         .type(Scalars.GraphQLInt)
@@ -3744,6 +3749,11 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("bookingArrangements")
                         .type(bookingArrangementType)
+                        .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("callAndRide")
+                        .type(Scalars.GraphQLBoolean)
+                        .dataFetcher(environment -> ((Leg) environment.getSource()).isFlexible())
                         .build())
                 .build();
 

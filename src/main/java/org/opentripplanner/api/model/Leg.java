@@ -286,7 +286,7 @@ public class Leg {
       */
      @XmlAttribute
      @JsonSerialize
-     public Boolean callAndRide;
+     public Boolean callAndRide = false;
 
      /* For call-n-ride leg, supply maximum start time based on calculation. */
      @XmlAttribute
@@ -346,6 +346,11 @@ public class Leg {
          } catch (IllegalArgumentException iae) {
              return null;
          }
+     }
+
+     // TODO Also check for hail and ride
+     public boolean isFlexible() {
+         return callAndRide;
      }
 
     /**
