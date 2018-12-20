@@ -1,16 +1,3 @@
-/* This program is free software: you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public License
- as published by the Free Software Foundation, either version 3 of
- the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>. */
-
 package org.opentripplanner.routing.core;
 
 import com.google.common.collect.Sets;
@@ -24,6 +11,7 @@ import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.algorithm.strategies.EuclideanRemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.strategies.RemainingWeightHeuristic;
+import org.opentripplanner.routing.algorithm.strategies.TrivialRemainingWeightHeuristic;
 import org.opentripplanner.routing.edgetype.StreetEdge;
 import org.opentripplanner.routing.edgetype.TemporaryEdge;
 import org.opentripplanner.routing.edgetype.TemporaryPartialStreetEdge;
@@ -240,20 +228,36 @@ public class RoutingContext implements Cloneable {
         else
             this.streetSpeedSnapshot = null;
 
-
         Edge fromBackEdge = null;
         Edge toBackEdge = null;
         if (findPlaces) {
-            // normal mode, search for vertices based RoutingRequest and split streets
-            toVertex = graph.streetIndex.getVertexForLocation(opt.to, opt, true);
-            if (opt.startingTransitTripId != null && !opt.arriveBy) {
-                // Depart on-board mode: set the from vertex to "on-board" state
-                OnBoardDepartService onBoardDepartService = graph.getService(OnBoardDepartService.class);
-                if (onBoardDepartService == null)
-                    throw new UnsupportedOperationException("Missing OnBoardDepartService");
-                fromVertex = onBoardDepartService.setupDepartOnBoard(this);
-            } else {
-                fromVertex = graph.streetIndex.getVertexForLocation(opt.from, opt, false);
+            if (opt.batch) {
+                // batch mode: find an OSM vertex, don't split
+                // We do this so that we are always linking to the same thing in analyst mode
+                // even if the transit network has changed.
+                // TODO offset time by distance to nearest OSM node?
+                if (opt.arriveBy) {
+                    // TODO what if there is no coordinate but instead a named place?
+                    toVertex = graph.streetIndex.getSampleVertexAt(opt.to.getCoordinate(), true);
+                    fromVertex = null;
+                }
+                else {
+                    fromVertex = graph.streetIndex.getSampleVertexAt(opt.from.getCoordinate(), false);
+                    toVertex = null;
+                }
+            }
+            else {
+                // normal mode, search for vertices based RoutingRequest and split streets
+                toVertex = graph.streetIndex.getVertexForLocation(opt.to, opt, true);
+                if (opt.startingTransitTripId != null && !opt.arriveBy) {
+                    // Depart on-board mode: set the from vertex to "on-board" state
+                    OnBoardDepartService onBoardDepartService = graph.getService(OnBoardDepartService.class);
+                    if (onBoardDepartService == null)
+                        throw new UnsupportedOperationException("Missing OnBoardDepartService");
+                    fromVertex = onBoardDepartService.setupDepartOnBoard(this);
+                } else {
+                    fromVertex = graph.streetIndex.getVertexForLocation(opt.from, opt, false);
+                }
             }
         } else {
             // debug mode, force endpoint vertices to those specified rather than searching
@@ -273,7 +277,7 @@ public class RoutingContext implements Cloneable {
                 makePartialEdgeAlong(pse, fromStreetVertex, toStreetVertex);
             }
         }
-        
+
         if (opt.startingTransitStopId != null) {
             Stop stop = graph.index.stopForId.get(opt.startingTransitStopId);
             TransitStop tstop = graph.index.stopVertexForStop.get(stop);
@@ -283,7 +287,10 @@ public class RoutingContext implements Cloneable {
         originBackEdge = opt.arriveBy ? toBackEdge : fromBackEdge;
         target = opt.arriveBy ? fromVertex : toVertex;
         transferTable = graph.getTransferTable();
-        remainingWeightHeuristic = new EuclideanRemainingWeightHeuristic();
+        if (opt.batch)
+            remainingWeightHeuristic = new TrivialRemainingWeightHeuristic();
+        else
+            remainingWeightHeuristic = new EuclideanRemainingWeightHeuristic();
 
         if (this.origin != null) {
             LOG.debug("Origin vertex inbound edges {}", this.origin.getIncoming());
@@ -302,14 +309,16 @@ public class RoutingContext implements Cloneable {
     public void check() {
         ArrayList<String> notFound = new ArrayList<String>();
 
-        // check origin present
-        if (fromVertex == null) {
-            notFound.add("from");
-        }
+        // check origin present when not doing an arrive-by batch search
+        if (!(opt.batch && opt.arriveBy))
+            if (fromVertex == null)
+                notFound.add("from");
 
-        // check destination present
-        if (toVertex == null) {
-            notFound.add("to");
+        // check destination present when not doing a depart-after batch search
+        if (!opt.batch || opt.arriveBy) {
+            if (toVertex == null) {
+                notFound.add("to");
+            }
         }
         if (notFound.size() > 0) {
             throw new VertexNotFoundException(notFound);
@@ -393,27 +402,7 @@ public class RoutingContext implements Cloneable {
      * for garbage collection.
      */
     public void destroy() {
-        disposeTemporaryStart(fromVertex, null);
-        disposeTemporaryEnd(toVertex, null);
-    }
-
-    private static void disposeTemporaryStart(Vertex v, Edge incoming) {
-        if (v instanceof TemporaryVertex) {
-            for (Edge edge : v.getOutgoing()) {
-                disposeTemporaryStart(edge.getToVertex(), edge);
-            }
-        } else if (incoming != null) {
-            v.removeIncoming(incoming);
-        }
-    }
-
-    private static void disposeTemporaryEnd(Vertex v, Edge outgoing) {
-        if (v instanceof TemporaryVertex) {
-            for (Edge edge : v.getIncoming()) {
-                disposeTemporaryEnd(edge.getFromVertex(), edge);
-            }
-        } else if (outgoing != null) {
-            v.removeOutgoing(outgoing);
-        }
+        TemporaryVertex.dispose(fromVertex);
+        TemporaryVertex.dispose(toVertex);
     }
 }

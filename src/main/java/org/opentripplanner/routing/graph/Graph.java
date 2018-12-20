@@ -35,6 +35,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.joda.time.DateTime;
 import org.locationtech.jts.geom.Polygon;
 import org.objenesis.strategy.SerializingInstantiatorStrategy;
+import org.opentripplanner.analyst.request.SampleFactory;
 import org.opentripplanner.calendar.impl.CalendarServiceImpl;
 import org.opentripplanner.graph_builder.linking.SynchronisedSimpleStreetSplitter;
 import org.opentripplanner.model.Agency;
@@ -66,6 +67,7 @@ import org.opentripplanner.routing.services.StreetVertexIndexService;
 import org.opentripplanner.routing.services.notes.StreetNotesService;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 import org.opentripplanner.routing.vertextype.PatternArriveVertex;
+import org.opentripplanner.routing.vertextype.TemporaryVertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.opentripplanner.traffic.StreetSpeedSnapshotSource;
 import org.opentripplanner.updater.GraphUpdaterConfigurator;
@@ -142,6 +144,8 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     public transient GraphIndex index;
 
     public transient FlexIndex flexIndex;
+
+    private transient SampleFactory sampleFactory;
 
     public final transient Deduplicator deduplicator = new Deduplicator();
 
@@ -257,9 +261,18 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     }
 
     /**
-     * Add the given vertex to the graph. Ideally, only vertices should add themselves to the graph, when they are constructed or deserialized.
+     * Add the given vertex to the graph. Ideally, only vertices should add themselves to the
+     * graph, when they are constructed or deserialized.
      */
     public void addVertex(Vertex v) {
+        if(this instanceof TemporaryVertex) {
+            throw new IllegalStateException(
+                    "Don't add TemporaryVertex to the graph vertex index. " +
+                    "A temporary vertex is only valid in the request scope, adding it "
+                            + "here risk creating a memory leak."
+            );
+        }
+
         Vertex old = vertices.put(v.getLabel(), v);
         if (old != null) {
             if (old == v)
@@ -971,6 +984,13 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         return this.envelope;
     }
 
+    // lazy-init sample factor on an as needed basis
+    public SampleFactory getSampleFactory() {
+        if(this.sampleFactory == null)
+            this.sampleFactory = new SampleFactory(this);
+
+        return this.sampleFactory;
+    }
     /**
      * Calculates Transit center from median of coordinates of all transitStops if graph
      * has transit. If it doesn't it isn't calculated. (mean walue of min, max latitude and longitudes are used)

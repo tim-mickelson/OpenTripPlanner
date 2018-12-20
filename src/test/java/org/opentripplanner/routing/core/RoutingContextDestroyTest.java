@@ -28,14 +28,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class RoutingContext_Destroy_Test {
-
-    private static final boolean ARRIVE_BY_TRUE = true;
-
-    private static final boolean ARRIVE_BY_FALSE = false;
-
+public class RoutingContextDestroyTest {
     private final GeometryFactory gf = GeometryUtils.getGeometryFactory();
-    private RoutingRequest request;
     private RoutingContext subject;
 
     // Given:
@@ -64,24 +58,17 @@ public class RoutingContext_Destroy_Test {
         g.index(new DefaultStreetVertexIndexFactory());
     }
 
-    @Test public void temporary_changes_is_removed_from_graph_on_context_destroy() {
-        // try arriveBy set to both true and false
-        temporary_changes_is_removed_from_graph_on_context_destroy(ARRIVE_BY_TRUE);
-        temporary_changes_is_removed_from_graph_on_context_destroy(ARRIVE_BY_FALSE);
-    }
-
-    private void temporary_changes_is_removed_from_graph_on_context_destroy(boolean arriveBy) {
+    @Test public void temporaryChangesRemovedOnContextDestroy() {
         // Given - A request
-        request = new RoutingRequest();
+        RoutingRequest request = new RoutingRequest();
         request.from = from;
         request.to = to;
-        request.arriveBy = arriveBy;
 
         // When - the context is created
         subject = new RoutingContext(request, g);
 
         // Then:
-        origin_and_destination_is_inserted_correct_in_the_graph();
+        originAndDestinationInsertedCorrect();
 
         // And When:
         subject.destroy();
@@ -98,7 +85,7 @@ public class RoutingContext_Destroy_Test {
         }
     }
 
-    private void origin_and_destination_is_inserted_correct_in_the_graph() {
+    private void originAndDestinationInsertedCorrect() {
         // Then - the origin and destination is
         assertEquals("Origin", subject.fromVertex.getName());
         assertEquals("Destination", subject.toVertex.getName());
@@ -151,9 +138,8 @@ public class RoutingContext_Destroy_Test {
         return list;
     }
 
-    private void assertVertexEdgeIsNotReferencingTemporaryElements(Vertex source, Edge e,
-            Vertex v) {
-        String sourceName = source.getName();
+    private void assertVertexEdgeIsNotReferencingTemporaryElements(Vertex src, Edge e, Vertex v) {
+        String sourceName = src.getName();
         assertFalse(sourceName + " -> " + e.getName(), e instanceof TemporaryEdge);
         assertFalse(sourceName + " -> " + v.getName(), v instanceof TemporaryVertex);
     }
