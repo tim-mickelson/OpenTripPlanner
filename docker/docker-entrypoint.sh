@@ -27,7 +27,7 @@ then
 else
   echo "** WARNING: Downloaded file ($FILE_TMP_PATH) is empty or not present**"
   echo "** Not overwriting $GRAPH_FILE_TARGET_PATH**"
-  wget -q --header 'Content-Type: application/json' --post-data='{"source":"otp", "message":":no_entry: Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
+  wget -q --header 'Content-Type: application/json' --post-data='{"source":"otp", "message":":no_entry: Downloaded file is empty or not present. This makes OTP raptor fail! Please check logs"}' http://hubot/hubot/say/
   echo "Now sleeping 5m in the hope that this will be manually resolved in the mean time, and then restarting."
   sleep 5m
   exit 1
