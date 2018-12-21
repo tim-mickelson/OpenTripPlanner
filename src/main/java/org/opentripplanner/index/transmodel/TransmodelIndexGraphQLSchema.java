@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.opentripplanner.api.common.Message;
 import org.opentripplanner.api.model.*;
+import org.opentripplanner.graph_builder.annotation.StopLinkedTooFar;
 import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.index.model.StopTimesInPattern;
 import org.opentripplanner.index.model.TripTimeShort;
@@ -206,6 +207,12 @@ public class TransmodelIndexGraphQLSchema {
              .value("child", "child", "Only mono modal children stop places, not their multi modal parent stop")
              .value("all", "all", "Both multiModal parents and their mono modal child stop places.")
              .build();
+
+    private static GraphQLEnumType stopTypeEnum = GraphQLEnumType.newEnum()
+            .name("StopType")
+            .value("regular", Stop.stopTypeEnumeration.REGULAR)
+            .value("flexible_area", Stop.stopTypeEnumeration.FLEXIBLE_AREA)
+            .build();
 
 
     private static GraphQLEnumType transportSubmode = TransmodelIndexGraphQLSchema.createEnum("TransportSubmode", TransmodelTransportSubmode.values(), (t -> t.getValue()));
@@ -1571,6 +1578,17 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(dataFetchingEnvironment -> index.getAlertsForStop(
                                 dataFetchingEnvironment.getSource()))
                         .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("stopType")
+                        .type(stopTypeEnum)
+                        .dataFetcher(environment -> (((Stop) environment.getSource()).getStopType()))
+                        .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("flexibleArea")
+                        .description("Flexible area polygon in WKT polygon format.")
+                        .type(Scalars.GraphQLString)
+                        .dataFetcher(environment -> (((Stop) environment.getSource()).getArea() != null ? ((Stop) environment.getSource()).getArea().getWkt() : null))
+                        .build())
                 .build();
 
         timetabledPassingTimeType = GraphQLObjectType.newObject()
@@ -1858,6 +1876,13 @@ public class TransmodelIndexGraphQLSchema {
                          .dataFetcher(environment ->  getBookingArrangementForTripTimeShort(environment.getSource()))
                          .type(bookingArrangementType)
                          .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("flexible")
+                        .type(Scalars.GraphQLBoolean)
+                        .description("Whether this call is part of a flexible trip. This means that arrival or departure " +
+                                "times are not scheduled but estimated within specified operating hours.")
+                        .dataFetcher(environment -> ((TripTimeShort) environment.getSource()).isFlexible())
+                        .build())
                 .build();
 
         serviceJourneyType = GraphQLObjectType.newObject()
@@ -3749,11 +3774,6 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("bookingArrangements")
                         .type(bookingArrangementType)
-                        .build())
-                .field(GraphQLFieldDefinition.newFieldDefinition()
-                        .name("callAndRide")
-                        .type(Scalars.GraphQLBoolean)
-                        .dataFetcher(environment -> ((Leg) environment.getSource()).isFlexible())
                         .build())
                 .build();
 

@@ -107,6 +107,11 @@ public class TripTimeShort {
         return Comparator.comparing(t -> t.serviceDay + t.realtimeDeparture);
     }
 
+    // TODO Are all these checks valid?
+    public boolean isFlexible() {
+        return continuousPickup != 0 || continuousDropOff != 0 || serviceArea != null || serviceAreaRadius != 0;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

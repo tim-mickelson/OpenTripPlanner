@@ -21,6 +21,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
     public void mapFlexibleStopPlaceWithQuay(FlexibleStopPlace flexibleStopPlace, OtpTransitBuilder transitBuilder) {
         Stop quay = new Stop();
         Area area = new Area();
+        quay.setStopType(Stop.stopTypeEnumeration.FLEXIBLE_AREA);
         quay.setId(AgencyAndIdFactory.createAgencyAndId(createQuayIdForStopPlaceId(flexibleStopPlace.getId())));
         // StopPlace maps to parent stop (location type 1)
         quay.setLocationType(0);
@@ -72,6 +73,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
         stopPlace.setId(AgencyAndIdFactory.createAgencyAndId(flexibleStopPlace.getId()));
         stopPlace.setLocationType(1);
         quay.setParentStation(stopPlace.getId().toString());
+        quay.setArea(area);
 
         transitBuilder.getFlexibleQuayWithArea().add(new FlexibleQuayWithArea(quay, area));
         transitBuilder.getAreas().add(area);

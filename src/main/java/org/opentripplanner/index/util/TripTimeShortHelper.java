@@ -98,7 +98,7 @@ public class TripTimeShortHelper {
         long endTimeSeconds = (leg.endTime.toInstant().toEpochMilli() - serviceDate.getAsDate().getTime()) / 1000;
 
         if (leg.isFlexible()) {
-            TripTimeShort tripTimeShort = tripTimes.get(leg.from.stopSequence);
+            TripTimeShort tripTimeShort = tripTimes.get(leg.to.stopSequence);
             tripTimeShort.scheduledArrival = (int) endTimeSeconds;
             tripTimeShort.realtimeArrival = (int) endTimeSeconds;
             return tripTimeShort;
