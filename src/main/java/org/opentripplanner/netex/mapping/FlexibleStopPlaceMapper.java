@@ -37,6 +37,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
 
         quay.setVehicleType(flexibleStopPlaceTypeMapper.getTransportMode(flexibleStopPlace));
         quay.setTimezone(super.DEFAULT_TIMEZONE);
+        quay.setName(flexibleStopPlace.getName().getValue());
         // Map coordinates
         if(flexibleStopPlace.getCentroid() != null){
             quay.setLat(flexibleStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
@@ -60,6 +61,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
         }
 
         Stop stopPlace = new Stop();
+        stopPlace.setName(flexibleStopPlace.getName().getValue());
         // Map coordinates
         if(flexibleStopPlace.getCentroid() != null){
             stopPlace.setLat(flexibleStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
