@@ -302,6 +302,9 @@ public class TransmodelGraphQLPlanner {
 
         callWith.argument("useRaptor", (Boolean v) -> request.useRaptorAlgorithm = v);
 
+        callWith.argument("raptorSearchRange", (Integer v) -> request.raptorSearchRange = v);
+        callWith.argument("raptorSearchDays", (Integer v) -> request.raptorSearchDays = v);
+
         if (!request.modes.isTransit() && request.modes.getCar()) {
             request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
             request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);

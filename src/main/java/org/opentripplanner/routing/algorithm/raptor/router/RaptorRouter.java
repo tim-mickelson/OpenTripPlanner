@@ -33,12 +33,11 @@ import java.util.stream.Collectors;
 public class RaptorRouter {
     private final TransitDataProvider<TripSchedule> otpRRDataProvider;
     private final TransitLayer transitLayer;
-    private static final int SEARCH_RANGE_SECONDS = 60;
     private static final Logger LOG = LoggerFactory.getLogger(RaptorRouter.class);
 
     public RaptorRouter(RoutingRequest request, TransitLayer transitLayer) {
         double startTime = System.currentTimeMillis();
-        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), 4, request.modes, request.transportSubmodes, request.walkSpeed);
+        this.otpRRDataProvider = new OtpRRDataProvider(transitLayer, request.getDateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), request.raptorSearchDays, request.modes, request.transportSubmodes, request.walkSpeed);
         LOG.info("Filtering tripPatterns took {} ms", System.currentTimeMillis() - startTime);
         this.transitLayer = transitLayer;
     }
@@ -72,7 +71,7 @@ public class RaptorRouter {
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
-        RangeRaptorRequest rangeRaptorRequest = new RequestBuilder(departureTime, departureTime + SEARCH_RANGE_SECONDS)
+        RangeRaptorRequest rangeRaptorRequest = new RequestBuilder(departureTime, departureTime + request.raptorSearchRange * 60)
         .addAccessStops(accessTimes)
         .addEgressStops(egressTimes)
         .departureStepInSeconds(60)

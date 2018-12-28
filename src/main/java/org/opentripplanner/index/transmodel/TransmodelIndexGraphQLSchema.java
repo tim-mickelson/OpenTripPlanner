@@ -1016,6 +1016,20 @@ public class TransmodelIndexGraphQLSchema {
                         .type(Scalars.GraphQLBoolean)
                         .defaultValue(true)
                         .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("raptorSearchRange")
+                        .description("This is the number of minutes that are searched using range raptor. It is still " +
+                                "possible to find trips that start outside this range, but they will not be packed.")
+                        .type(Scalars.GraphQLInt)
+                        .defaultValue(40)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("raptorSearchDays")
+                        .description("Transit data will be filtered by the given number of days before searching begins. " +
+                                "This is only relevant for trips that last multiple days.")
+                        .type(Scalars.GraphQLInt)
+                        .defaultValue(1)
+                        .build())
                 .dataFetcher(environment -> new TransmodelGraphQLPlanner(mappingUtil).plan(environment)
                 )
                 .build();
