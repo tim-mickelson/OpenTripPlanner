@@ -504,6 +504,18 @@ public class RoutingRequest implements Cloneable, Serializable {
      */
     public boolean useRaptorAlgorithm = false;
 
+    /**
+     * Raptor search range (in minutes)
+     */
+
+    public int raptorSearchRange = 40;
+
+    /**
+     * Raptor number of days searched
+     */
+
+    public int raptorSearchDays = 1;
+
     /** Saves split edge which can be split on origin/destination search
      *
      * This is used so that TrivialPathException is thrown if origin and destination search would split the same edge
