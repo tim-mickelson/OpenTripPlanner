@@ -3,8 +3,10 @@ package org.opentripplanner.index.model;
 import com.beust.jcommander.internal.Lists;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.core.ServiceDay;
+import org.opentripplanner.routing.edgetype.PatternHop;
 import org.opentripplanner.routing.edgetype.Timetable;
 import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
@@ -109,7 +111,7 @@ public class TripTimeShort {
 
     // TODO Are all these checks valid?
     public boolean isFlexible() {
-        return continuousPickup != 0 || continuousDropOff != 0 || serviceArea != null || serviceAreaRadius != 0;
+        return continuousPickup == 0 || continuousDropOff == 0 || serviceArea != null || serviceAreaRadius != 0;
     }
 
     @Override

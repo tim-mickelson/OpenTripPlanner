@@ -175,8 +175,8 @@ public class TripPatternMapper {
             if (quay != null) {
                 StopPointInJourneyPattern stopPoint = findStopPoint(ref, journeyPattern);
                 StopTime stopTime = mapToStopTime(trip, stopPoint, quay, passingTime, stopSequence, netexDao);
-                stopTime.setContinuousPickup(0);
-                stopTime.setContinuousDropOff(0);
+                stopTime.setContinuousPickup(StopTime.MISSING_VALUE);
+                stopTime.setContinuousDropOff(StopTime.MISSING_VALUE);
 
                 // This only maps the case with exactly two passing times
                 if (flexibleQuayWithArea != null) {
