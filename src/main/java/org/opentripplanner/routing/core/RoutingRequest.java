@@ -688,6 +688,11 @@ public class RoutingRequest implements Cloneable, Serializable {
     public boolean useFlexService = false;
 
     /**
+     * How many trips used in a itineraries should be banned from inclusion in successive itineraries. Counting from start of itinerary.
+     */
+    public int banFirstTripsFromReuseNo = Integer.MAX_VALUE;
+
+    /**
      * Saves split edge which can be split on origin/destination search
      * <p>
      * This is used so that TrivialPathException is thrown if origin and destination search would split the same edge

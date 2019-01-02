@@ -194,11 +194,8 @@ public class GraphPathFinder {
             for (GraphPath path : newPaths) {
                 // path.dump();
                 List<AgencyAndId> tripIds = path.getTrips();
-                for (AgencyAndId tripId : tripIds) {
-                    if (!router.graph.index.tripIsCallAndRide(tripId)) {
-                        options.banTrip(tripId);
-                    }
-                }
+                banTrips(options, tripIds);
+
                 if (tripIds.isEmpty()) {
                     // This path does not use transit (is entirely on-street). Do not repeatedly find the same one.
                     options.onlyTransitTrips = true;
@@ -231,6 +228,23 @@ public class GraphPathFinder {
         Collections.sort(paths, new PathComparator(options.arriveBy));
         return paths;
     }
+
+    private void banTrips(RoutingRequest options, List<AgencyAndId> tripIds) {
+        List<AgencyAndId> orderedTripIds=new ArrayList<>(tripIds);
+        if (options.arriveBy) {
+            Collections.reverse(orderedTripIds);
+        }
+
+        int i = 1;
+        for (AgencyAndId tripId : orderedTripIds) {
+            if (i++ <= options.banFirstTripsFromReuseNo) {
+                if (!router.graph.index.tripIsCallAndRide(tripId)) {
+                    options.banTrip(tripId);
+                }
+            }
+        }
+    }
+
 
     /**
      * Do a full reversed search to compact the legs of the path.
@@ -319,9 +333,7 @@ public class GraphPathFinder {
                             (options.arriveBy && joinedPath.states.getLast().getTimeInMillis() <= options.dateTime * 1000)){
                         joinedPaths.add(joinedPath);
                         if(newPaths.size() > 1){
-                            for (AgencyAndId tripId : joinedPath.getTrips()) {
-                                options.banTrip(tripId);
-                            }
+                            banTrips(options, joinedPath.getTrips());
                         }
                     }
                 }
