@@ -84,23 +84,8 @@ public class FlexibleStopPlaceMapper extends StopMapper {
     private Area mapFlexibleArea(FlexibleArea flexibleArea) {
         Area area = new Area();
         area.setId(AgencyAndIdFactory.createAgencyAndId(flexibleArea.getId()));
-        area.setWkt(mapPolygon(((LinearRingType)(flexibleArea.getPolygon().getExterior().getAbstractRing().getValue())).getPosList().getValue()));
+        area.setWkt(((LinearRingType)(flexibleArea.getPolygon().getExterior().getAbstractRing().getValue())).getPosList().getValue());
         return area;
-    }
-
-    private String mapPolygon(List<Double> coordinates) {
-        StringBuilder wktPolygon = new StringBuilder();
-        wktPolygon.append("POLYGON((");
-        for (int i = 0; i < coordinates.size(); i += 2) {
-            wktPolygon.append(coordinates.get(i));
-            wktPolygon.append(" ");
-            wktPolygon.append(coordinates.get(i + 1));
-            if (i < coordinates.size() - 2) {
-                wktPolygon.append(", ");
-            }
-        }
-        wktPolygon.append("))");
-        return wktPolygon.toString();
     }
 
     private String createQuayIdForStopPlaceId(String stopPlaceId) {

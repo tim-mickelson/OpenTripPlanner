@@ -20,10 +20,7 @@ import org.opentripplanner.index.model.StopTimesInPattern;
 import org.opentripplanner.index.model.TripTimeShort;
 import org.opentripplanner.index.transmodel.mapping.TransmodelMappingUtil;
 import org.opentripplanner.index.transmodel.model.TransmodelPlaceType;
-import org.opentripplanner.index.transmodel.model.scalars.DateScalarFactory;
-import org.opentripplanner.index.transmodel.model.scalars.DateTimeScalarFactory;
-import org.opentripplanner.index.transmodel.model.scalars.LocalTimeScalarFactory;
-import org.opentripplanner.index.transmodel.model.scalars.TimeScalarFactory;
+import org.opentripplanner.index.transmodel.model.scalars.*;
 import org.opentripplanner.index.util.TripTimeShortHelper;
 import org.opentripplanner.model.*;
 import org.opentripplanner.model.calendar.ServiceDate;
@@ -1585,9 +1582,9 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("flexibleArea")
-                        .description("Flexible area polygon in WKT polygon format.")
-                        .type(Scalars.GraphQLString)
-                        .dataFetcher(environment -> (((Stop) environment.getSource()).getArea() != null ? ((Stop) environment.getSource()).getArea().getWkt() : null))
+                        .description("Geometry for flexible area.")
+                        .type(GeoJSONCoordinatesScalar.getGraphQGeoJSONCoordinatesScalar())
+                        .dataFetcher(environment -> (((Stop) environment.getSource()).getArea() != null ? ((Stop) environment.getSource()).getArea().getCoordinates() : null))
                         .build())
                 .build();
 
