@@ -18,6 +18,8 @@ public class FlexibleStopPlaceMapper extends StopMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(FlexibleStopPlaceMapper.class);
 
+    private static int positionOffset = 0;
+
     private FlexibleStopPlaceTypeMapper flexibleStopPlaceTypeMapper = new FlexibleStopPlaceTypeMapper();
 
     public void mapFlexibleStopPlaceWithQuay(FlexibleStopPlace flexibleStopPlace, OtpTransitBuilder transitBuilder) {
@@ -70,7 +72,10 @@ public class FlexibleStopPlaceMapper extends StopMapper {
         } else if (area.getCoordinates().length > 0) {
             Coordinate centroid = GeometryUtils.calculateCentroid(area.getCoordinates());
             stopPlace.setLat(centroid.y);
-            stopPlace.setLon(centroid.x);
+            // PositionOffset has to be done because the flex implementation does not work with duplicate
+            // centroids in the same trip
+            stopPlace.setLon(centroid.x + positionOffset / 10.0);
+            positionOffset += 1;
         }else {
             LOG.warn(flexibleStopPlace.getId() + " does not contain any coordinates.");
         }
