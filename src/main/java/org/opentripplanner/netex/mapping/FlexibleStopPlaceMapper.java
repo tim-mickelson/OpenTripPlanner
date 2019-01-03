@@ -1,6 +1,8 @@
 package org.opentripplanner.netex.mapping;
 
 import net.opengis.gml._3.LinearRingType;
+import org.locationtech.jts.geom.Coordinate;
+import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.model.Area;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
@@ -25,8 +27,6 @@ public class FlexibleStopPlaceMapper extends StopMapper {
         quay.setId(AgencyAndIdFactory.createAgencyAndId(createQuayIdForStopPlaceId(flexibleStopPlace.getId())));
         // StopPlace maps to parent stop (location type 1)
         quay.setLocationType(0);
-        quay.setLat(58.2176318);
-        quay.setLon(10.9356465);
 
         // Map coordinates
         if(flexibleStopPlace.getCentroid() != null){
@@ -64,16 +64,24 @@ public class FlexibleStopPlaceMapper extends StopMapper {
         Stop stopPlace = new Stop();
         stopPlace.setName(flexibleStopPlace.getName().getValue());
         // Map coordinates
-        if(flexibleStopPlace.getCentroid() != null){
+        if(flexibleStopPlace.getCentroid() != null) {
             stopPlace.setLat(flexibleStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
             stopPlace.setLon(flexibleStopPlace.getCentroid().getLocation().getLongitude().doubleValue());
-        }else{
+        } else if (area.getCoordinates().length > 0) {
+            Coordinate centroid = GeometryUtils.calculateCentroid(area.getCoordinates());
+            stopPlace.setLat(centroid.y);
+            stopPlace.setLon(centroid.x);
+        }else {
             LOG.warn(flexibleStopPlace.getId() + " does not contain any coordinates.");
         }
         stopPlace.setId(AgencyAndIdFactory.createAgencyAndId(flexibleStopPlace.getId()));
         stopPlace.setLocationType(1);
+
+
         quay.setParentStation(stopPlace.getId().toString());
         quay.setArea(area);
+        quay.setLat(stopPlace.getLat());
+        quay.setLon(stopPlace.getLon());
 
         transitBuilder.getFlexibleQuayWithArea().add(new FlexibleQuayWithArea(quay, area));
         transitBuilder.getAreas().add(area);

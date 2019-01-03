@@ -13,6 +13,7 @@
 
 package org.opentripplanner.common.geometry;
 
+import org.locationtech.jts.algorithm.Centroid;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -147,5 +148,10 @@ public class GeometryUtils {
             LOG.error("Unable to parse wkt: " + e);
         }
         return null;
+    }
+
+    public static Coordinate calculateCentroid(Coordinate[] coordinates) {
+        LinearRing linearRing = getGeometryFactory().createLinearRing(coordinates);
+        return linearRing.getCentroid().getCoordinate();
     }
 }
