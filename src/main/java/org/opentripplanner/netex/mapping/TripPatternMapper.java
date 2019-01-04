@@ -231,12 +231,22 @@ public class TripPatternMapper {
         stopTime.setStop(quay);
 
         stopTime.setArrivalTime(
-                calculateOtpTime(passingTime.getArrivalTime(), passingTime.getArrivalDayOffset(),
-                        passingTime.getDepartureTime(), passingTime.getDepartureDayOffset()));
+                calculateOtpTime(new TimeWithOffset(passingTime.getArrivalTime(), passingTime.getArrivalDayOffset()),
+                        Arrays.asList(
+                        new TimeWithOffset(passingTime.getLatestArrivalTime(), passingTime.getLatestArrivalDayOffset()),
+                        new TimeWithOffset(passingTime.getDepartureTime(), passingTime.getDepartureDayOffset()),
+                        new TimeWithOffset(passingTime.getEarliestDepartureTime(), passingTime.getEarliestDepartureDayOffset()))
+                )
+        );
 
-        stopTime.setDepartureTime(calculateOtpTime(passingTime.getDepartureTime(),
-                passingTime.getDepartureDayOffset(), passingTime.getArrivalTime(),
-                passingTime.getArrivalDayOffset()));
+        stopTime.setDepartureTime(
+                calculateOtpTime(new TimeWithOffset(passingTime.getDepartureTime(), passingTime.getDepartureDayOffset()),
+                        Arrays.asList(
+                                new TimeWithOffset(passingTime.getEarliestDepartureTime(), passingTime.getEarliestDepartureDayOffset()),
+                                new TimeWithOffset(passingTime.getArrivalTime(), passingTime.getArrivalDayOffset()),
+                                new TimeWithOffset(passingTime.getLatestArrivalTime(), passingTime.getLatestArrivalDayOffset()))
+                )
+        );
 
         if (stopPoint != null) {
             if (isFalse(stopPoint.isForAlighting())) {
@@ -360,11 +370,18 @@ public class TripPatternMapper {
         return null;
     }
 
-    private static int calculateOtpTime(LocalTime time, BigInteger dayOffset,
-            LocalTime fallbackTime, BigInteger fallbackDayOffset) {
-        return time != null ?
-                calculateOtpTime(time, dayOffset) :
-                calculateOtpTime(fallbackTime, fallbackDayOffset);
+    private static int calculateOtpTime(TimeWithOffset timeWithOffset, List<TimeWithOffset> fallbackTimes) {
+        if (timeWithOffset.time != null) {
+            return calculateOtpTime(timeWithOffset.time, timeWithOffset.dayOffset);
+        }
+        else {
+            for (TimeWithOffset fallBackTime : fallbackTimes) {
+                if (fallBackTime.time != null) {
+                    return calculateOtpTime(fallBackTime.time, fallBackTime.dayOffset);
+                }
+            }
+            throw new IllegalArgumentException();
+        }
     }
 
     static int calculateOtpTime(LocalTime time, BigInteger dayOffset) {
@@ -415,5 +432,15 @@ public class TripPatternMapper {
             areasById.put(area.getAreaId(), geometry);
         }
         return areasById;
+    }
+
+    private class TimeWithOffset {
+        LocalTime time;
+        BigInteger dayOffset;
+
+        TimeWithOffset(LocalTime time, BigInteger dayOffset) {
+            this.time = time;
+            this.dayOffset = dayOffset;
+        }
     }
 }
