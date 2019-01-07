@@ -547,7 +547,7 @@ public class RoutingRequest implements Cloneable, Serializable {
      * Total time we can spend on call-n-ride legs. After an itinerary is found, this value is
      * reduced to min(duration - options.reduceCallAndRideSeconds, duration * reduceCallAndRideRatio)
      */
-    public int maxCallAndRideSeconds = Integer.MAX_VALUE;
+    public int maxCallAndRideSeconds = 3600;
 
     /**
      * Seconds to reduce maxCallAndRideSeconds after a complete call-n-ride itinerary
