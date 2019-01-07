@@ -178,9 +178,7 @@ public abstract class GtfsFlexGraphModifier {
         }
         rr.preTransitReluctance = 1;
         rr.maxPreTransitTime = 0;
-
-        Collection<Pair<State, PatternHop>> test = getClosestPatternHops(rr);
-
+        
         for(Pair<State, PatternHop> p : getClosestPatternHops(rr)) {
             State s = p.getKey();
             PatternHop hop = p.getValue();
