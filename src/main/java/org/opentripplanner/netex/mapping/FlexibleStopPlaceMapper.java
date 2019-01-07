@@ -74,7 +74,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
             stopPlace.setLat(centroid.y);
             // PositionOffset has to be done because the flex implementation does not work with duplicate
             // centroids in the same trip
-            stopPlace.setLon(centroid.x + positionOffset / 10.0);
+            stopPlace.setLon(centroid.x + positionOffset / 1000.0);
             positionOffset += 1;
         }else {
             LOG.warn(flexibleStopPlace.getId() + " does not contain any coordinates.");
