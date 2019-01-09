@@ -47,10 +47,13 @@ public class NetexMapper {
 
     private final String agencyId;
 
+    private final String defaultFlexMaxTravelTime;
 
-    public NetexMapper(OtpTransitBuilder transitBuilder, String agencyId) {
+
+    public NetexMapper(OtpTransitBuilder transitBuilder, String agencyId, String defaultFlexMaxTravelTime) {
         this.transitBuilder = transitBuilder;
         this.agencyId = agencyId;
+        this.defaultFlexMaxTravelTime = defaultFlexMaxTravelTime;
     }
 
     public void mapNetexToOtpEntities(NetexDao netexDao) {
@@ -122,7 +125,7 @@ public class NetexMapper {
         }
 
         for (JourneyPattern journeyPattern : netexDao.journeyPatternsById.values()) {
-            tripPatternMapper.mapTripPattern(journeyPattern, transitBuilder, netexDao);
+            tripPatternMapper.mapTripPattern(journeyPattern, transitBuilder, netexDao, defaultFlexMaxTravelTime);
         }
 
         for (String serviceId : netexDao.getCalendarServiceIds()) {

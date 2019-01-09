@@ -30,7 +30,7 @@ public class TripPatternMapper {
     private BookingArrangementMapper bookingArrangementMapper = new BookingArrangementMapper();
     private String currentHeadsign;
 
-    public void mapTripPattern(JourneyPattern journeyPattern, OtpTransitBuilder transitBuilder, NetexDao netexDao) {
+    public void mapTripPattern(JourneyPattern journeyPattern, OtpTransitBuilder transitBuilder, NetexDao netexDao, String defaultFlexMaxTravelTime) {
         TripMapper tripMapper = new TripMapper();
 
         List<Trip> trips = new ArrayList<>();
@@ -58,7 +58,7 @@ public class TripPatternMapper {
                 }
             }
 
-            Trip trip = tripMapper.mapServiceJourney(serviceJourney, transitBuilder, netexDao);
+            Trip trip = tripMapper.mapServiceJourney(serviceJourney, transitBuilder, netexDao, defaultFlexMaxTravelTime);
             trips.add(trip);
 
             TimetabledPassingTimes_RelStructure passingTimes = serviceJourney.getPassingTimes();

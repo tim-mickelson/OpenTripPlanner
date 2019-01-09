@@ -23,7 +23,7 @@ public class TripMapper {
     private TransportModeMapper transportModeMapper = new TransportModeMapper();
     private BookingArrangementMapper bookingArrangementMapper = new BookingArrangementMapper();
 
-    public Trip mapServiceJourney(ServiceJourney serviceJourney, OtpTransitBuilder gtfsDao, NetexDao netexDao){
+    public Trip mapServiceJourney(ServiceJourney serviceJourney, OtpTransitBuilder gtfsDao, NetexDao netexDao, String defaultFlexMaxTravelTime){
 
         Line_VersionStructure line = lineFromServiceJourney(serviceJourney, netexDao);
 
@@ -80,6 +80,11 @@ public class TripMapper {
             trip.setShapeId(serviceLinkId);
         }
 
+        // Map to default until support is added in NeTEx
+        if (line instanceof FlexibleLine) {
+            trip.setDrtMaxTravelTime(defaultFlexMaxTravelTime);
+        }
+
         if (serviceJourney.getFlexibleServiceProperties()!=null) {
             mapFlexibleServicePropertiesProperties(serviceJourney.getFlexibleServiceProperties(), trip);
         }
@@ -117,7 +122,6 @@ public class TripMapper {
                 flexibleServiceProperties.getBookingAccess(), flexibleServiceProperties.getBookWhen(), flexibleServiceProperties.getBuyWhen(), flexibleServiceProperties.getBookingMethods(),
                 flexibleServiceProperties.getMinimumBookingPeriod(), flexibleServiceProperties.getLatestBookingTime());
         otpTrip.setBookingArrangements(otpBookingArrangement);
-
     }
 
     private Trip.ServiceAlteration mapServiceAlteration(ServiceAlterationEnumeration netexValue) {
