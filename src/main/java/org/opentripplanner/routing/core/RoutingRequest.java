@@ -541,7 +541,7 @@ public class RoutingRequest implements Cloneable, Serializable {
     /**
      * Reluctance for call-n-ride
      */
-    public double callAndRideReluctance = 2.0;
+    public double callAndRideReluctance = 1.0;
 
     /**
      * Total time we can spend on call-n-ride legs. After an itinerary is found, this value is

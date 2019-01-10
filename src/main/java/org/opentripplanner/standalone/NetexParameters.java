@@ -34,7 +34,7 @@ public class NetexParameters {
 
     private static final String NETEX_FEED_ID = "DefaultFeed";
 
-    private static final String DEFAULT_FLEX_MAX_TRAVEL_TIME = "2t+10";
+    private static final String DEFAULT_FLEX_MAX_TRAVEL_TIME = "1t+2";
 
     /**
      * This field is used to identify the specific NeTEx feed. It is used instead of the feed_id field in GTFS file
