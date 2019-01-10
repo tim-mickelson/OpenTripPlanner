@@ -169,7 +169,9 @@ public class TripPatternMapper {
 
             if (isFlexible) {
                 flexibleQuayWithArea = findFlexibleQuayWithArea(ref, journeyPattern, netexDao, transitBuilder);
-                quay = flexibleQuayWithArea.stop;
+                if (flexibleQuayWithArea != null) {
+                    quay = flexibleQuayWithArea.stop;
+                }
             }
 
             if (quay != null) {
