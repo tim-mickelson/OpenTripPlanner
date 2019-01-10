@@ -347,6 +347,7 @@ public class TripPatternMapper {
             }
         }
 
+        LOG.warn("Flexible quay with area not found");
         return null;
     }
 
