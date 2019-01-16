@@ -14,6 +14,7 @@ import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.edgetype.PatternHop;
+import org.opentripplanner.routing.edgetype.StationStopEdge;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.edgetype.flex.TemporaryPartialPatternHop;
 import org.opentripplanner.routing.graph.Graph;
@@ -251,7 +252,9 @@ public class DeviatedRouteGraphModifier extends GtfsFlexGraphModifier {
         if (v instanceof TransitStop) {
             return (TransitStop) v;
         } else if (v instanceof TransitStation) {
-            Collection<Stop> stops = this.graph.index.stopsForParentStation.get(((TransitStation) v).getStopId());
+            // Collect quays for stop places, multimodal stops and groupsOfStopPlaces
+            Collection<Stop> stops = v.getOutgoing().stream().filter(t -> t instanceof StationStopEdge)
+                    .map(t -> ((TransitStop)t.getToVertex()).getStop()).collect(Collectors.toList());
             if (!stops.isEmpty()) {
                 return this.graph.index.stopVertexForStop.get(stops.iterator().next());
             } else {
