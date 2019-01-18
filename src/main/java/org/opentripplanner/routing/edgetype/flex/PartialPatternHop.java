@@ -166,9 +166,10 @@ public class PartialPatternHop extends FlexPatternHop {
 
     @Override
     public LineString getDisplayGeometry() {
+        /*
         if (displayGeometry != null) {
             return displayGeometry;
-        }
+        }*/
         return getGeometry();
     }
 

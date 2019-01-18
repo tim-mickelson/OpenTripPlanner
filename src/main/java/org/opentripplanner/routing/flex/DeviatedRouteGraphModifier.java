@@ -192,7 +192,7 @@ public class DeviatedRouteGraphModifier extends GtfsFlexGraphModifier {
                             toStop = getTemporaryStop(toVertex, null, opt.rctx, opt);
                         }
                         Point toPt = GeometryUtils.getGeometryFactory().createPoint(toStop.getCoordinate());
-                        if (!hop.getServiceArea().contains(toPt)) {
+                        if (!hop.getServiceArea().contains(toPt) || !hop.isDirectDropoff()) {
                             continue;
                         }
                         if (!(v instanceof TransitStop)) {
@@ -208,7 +208,7 @@ public class DeviatedRouteGraphModifier extends GtfsFlexGraphModifier {
                             fromStop = getTemporaryStop(fromVertex, null, opt.rctx, opt);
                         }
                         Point fromPt = GeometryUtils.getGeometryFactory().createPoint(fromStop.getCoordinate());
-                        if (!hop.getServiceArea().contains(fromPt)) {
+                        if (!hop.getServiceArea().contains(fromPt) || !hop.isDirectPickup()) {
                             continue;
                         }
                         if (!(v instanceof TransitStop)) {

@@ -212,7 +212,7 @@ public class Graph implements Serializable {
     public Map<FeedScopedId, Stop> parentStopById = new HashMap<>();
 
     /** Whether to use flex modes */
-    public boolean useFlexService = false;
+    public boolean useFlexService = true;
 
     /** Areas for flex service */
     public Map<FeedScopedId, Geometry> flexAreasById = new HashMap<>();

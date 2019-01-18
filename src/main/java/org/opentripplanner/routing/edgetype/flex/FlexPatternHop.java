@@ -18,6 +18,10 @@ public class FlexPatternHop extends PatternHop {
 
     private Geometry serviceArea = null;
 
+    private boolean directPickup = false;
+
+    private boolean directDropoff = false;
+
     public FlexPatternHop(PatternStopVertex from, PatternStopVertex to, Stop begin, Stop end, int stopIndex) {
         super(from, to, begin, end, stopIndex, true);
     }
@@ -96,6 +100,14 @@ public class FlexPatternHop extends PatternHop {
     public void setServiceArea(Geometry serviceArea) {
         this.serviceArea = serviceArea;
     }
+
+    public boolean isDirectPickup() { return directPickup; }
+
+    public void setDirectPickup(boolean directPickup) { this.directPickup = directPickup; }
+
+    public boolean isDirectDropoff() { return directDropoff; }
+
+    public void setDirectDropoff(boolean directDropoff) { this.directDropoff = directDropoff; }
 
     private enum RequestStops {
         NO(1), YES(0), PHONE(2), COORDINATE_WITH_DRIVER(3);

@@ -516,6 +516,8 @@ public class TripPattern implements Cloneable, Serializable {
                 StopPatternFlexFields flexFields = stopPattern.getFlexFields();
                 hop.setRequestPickup(flexFields.continuousPickup[stop]);
                 hop.setRequestDropoff(flexFields.continuousDropOff[stop]);
+                hop.setDirectPickup(stopPattern.pickups[stop] != 0);
+                hop.setDirectDropoff(stopPattern.dropoffs[stop] != 0);
                 hop.setServiceAreaRadius(flexFields.serviceAreaRadius[stop]);
                 hop.setServiceArea(flexFields.serviceAreas[stop]);
                 hopEdges[stop] = hop;
