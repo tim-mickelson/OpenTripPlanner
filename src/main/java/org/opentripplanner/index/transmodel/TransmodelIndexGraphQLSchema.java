@@ -988,7 +988,8 @@ public class TransmodelIndexGraphQLSchema {
                 .argument(GraphQLArgument.newArgument()
                         .name("raptorSearchRange")
                         .description("This is the number of minutes that are searched using range raptor. It is still " +
-                                "possible to find trips that start outside this range, but they will not be packed.")
+                                "possible to find trips that start outside this range, but they will not be packed. " +
+                                "Maximum 240 minutes.")
                         .type(Scalars.GraphQLInt)
                         .defaultValue(40)
                         .build())
