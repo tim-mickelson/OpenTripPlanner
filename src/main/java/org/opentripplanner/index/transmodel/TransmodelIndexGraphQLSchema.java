@@ -29,7 +29,6 @@ import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.alertpatch.StopCondition;
-import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.bike_park.BikePark;
 import org.opentripplanner.routing.bike_rental.BikeRentalStation;
 import org.opentripplanner.routing.bike_rental.BikeRentalStationService;
@@ -1034,7 +1033,7 @@ public class TransmodelIndexGraphQLSchema {
                 .argument(GraphQLArgument.newArgument()
                         .name("raptorSearchDays")
                         .description("Transit data will be filtered by the given number of days before searching begins. " +
-                                "This is only relevant for trips that last multiple days.")
+                                "This is only relevant for trips that last multiple days. Maximum 7 days.")
                         .type(Scalars.GraphQLInt)
                         .defaultValue(1)
                         .build())
