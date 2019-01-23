@@ -48,11 +48,9 @@ public class MergeTripPatternForDates {
 
         for(;leftIndex<left.size();++leftIndex) {
             combinedList.add(combine(left.get(leftIndex), 1));
-            leftIndex++;
         }
         for(;rightIndex<right.size();++rightIndex) {
             combinedList.add(combine(dayOffset, right.get(rightIndex)));
-            rightIndex++;
         }
 
         return combinedList;
