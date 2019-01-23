@@ -303,7 +303,7 @@ public class TransmodelGraphQLPlanner {
 
         callWith.argument("useRaptor", (Boolean v) -> request.useRaptorAlgorithm = v);
 
-        callWith.argument("raptorSearchRange", (Integer v) -> request.raptorSearchRange = v);
+        callWith.argument("raptorSearchRange", (Integer v) -> request.raptorSearchRange = Integer.min(240, v));
         callWith.argument("raptorSearchDays", (Integer v) -> request.raptorSearchDays = Integer.min(7, v));
         callWith.argument("raptorProfile", (RaptorProfiles v) -> request.raptorProfile = v);
         
