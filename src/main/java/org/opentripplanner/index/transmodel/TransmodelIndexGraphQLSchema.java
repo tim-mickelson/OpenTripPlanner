@@ -29,6 +29,7 @@ import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.alertpatch.StopCondition;
+import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.bike_park.BikePark;
 import org.opentripplanner.routing.bike_rental.BikeRentalStation;
 import org.opentripplanner.routing.bike_rental.BikeRentalStationService;
@@ -214,6 +215,13 @@ public class TransmodelIndexGraphQLSchema {
              .value("child", "child", "Only mono modal children stop places, not their multi modal parent stop")
              .value("all", "all", "Both multiModal parents and their mono modal child stop places.")
              .build();
+
+    private static GraphQLEnumType RaptorProfileEnum = GraphQLEnumType.newEnum()
+            .name("RaptorProfile")
+            .value("earliestArrival", RaptorProfiles.RANGE_RAPTOR, "Route by earliest arrival only. " +
+                    "This is much faster than a multi criteria search.")
+            .value("multiCriteria", RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR, "Route using multiple criteria.")
+            .build();
 
 
     private static GraphQLEnumType transportSubmode = TransmodelIndexGraphQLSchema.createEnum("TransportSubmode", TransmodelTransportSubmode.values(), (t -> t.getValue()));
@@ -1029,6 +1037,12 @@ public class TransmodelIndexGraphQLSchema {
                                 "This is only relevant for trips that last multiple days.")
                         .type(Scalars.GraphQLInt)
                         .defaultValue(1)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("raptorProfile")
+                        .description("How to optimize raptor searches.")
+                        .type(RaptorProfileEnum)
+                        .defaultValue(RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR)
                         .build())
                 .dataFetcher(environment -> new TransmodelGraphQLPlanner(mappingUtil).plan(environment)
                 )

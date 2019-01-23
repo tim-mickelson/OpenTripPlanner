@@ -76,7 +76,7 @@ public class RaptorRouter {
         .addEgressStops(egressTimes)
         .departureStepInSeconds(60)
         .boardSlackInSeconds(60)
-        .profile(RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR)
+        .profile(request.raptorProfile)
         .build();
 
 
