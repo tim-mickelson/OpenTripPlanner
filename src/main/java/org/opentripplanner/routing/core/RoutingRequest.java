@@ -644,7 +644,7 @@ public class RoutingRequest implements Cloneable, Serializable {
      * Type of raptor profile used during transit search.
      */
 
-    public RaptorProfiles raptorProfile = RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR;
+    public RaptorProfiles raptorProfile = RaptorProfiles.RANGE_RAPTOR;
 
     /** Saves split edge which can be split on origin/destination search
      *
