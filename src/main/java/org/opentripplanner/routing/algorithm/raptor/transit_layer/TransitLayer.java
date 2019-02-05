@@ -15,7 +15,7 @@ public class TransitLayer {
     public List<Transfer>[] transferByStop;
 
     /** Maps to original graph to retrieve additional data */
-    public Stop[] stopsByIndex; // Index 0 and 1 are reserved for access/egress
+    public Stop[] stopsByIndex;
     public Map<Stop, Integer> indexByStop;
     public Map<OrderedIndexPair, Transfer> transferByStopPair;
 
