@@ -9,7 +9,7 @@
     <url>http://opentripplanner.org</url>
 
     <groupId>org.opentripplanner</groupId>
-    <artifactId>otp</artifactId>
+    <artifactId>otp-x</artifactId>
     <version>1.3.5.RB-SNAPSHOT</version>
     <packaging>jar</packaging>
 

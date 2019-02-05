@@ -16,22 +16,14 @@ aliases:
       echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
       /tools/docker_build_push.sh
     environment:
-      CIRCLE_PROJECT_REPONAME: otp
-  - &build-notify
-    name: Notify babylon about build and docker image pushed
-    command: |
-      echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
-      echo 'export BUILD_STATUS_API_KEY="$BUILD_STATUS_API_KEY"' >> $BASH_ENV
-      /tools/build_notify.sh
-    environment:
-      CIRCLE_PROJECT_REPONAME: otp
+      CIRCLE_PROJECT_REPONAME: otp-x
   - &post_build
     name: Trigger downstream builds
     command: |
       echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
       echo 'export CIRCLE_PROJECT_REPONAME="$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
       echo 'export GITHUB_TOKEN="$GITHUB_TOKEN"' >> $BASH_ENV
-      /tools/trigger_build.sh "entur/marduk.git" "master" "$(git log -1 --pretty=%B)"
+      /tools/trigger_build.sh "entur/marduk.git" "marduk-x" "$(git log -1 --pretty=%B)"
 jobs:
   test:
     docker:
@@ -87,14 +79,6 @@ jobs:
           - .circleci
           - Dockerfile
           - docker
-  notify-build:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
-    steps:
-    - run: *build-notify
   deploy-docker:
     docker:
       - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
@@ -127,7 +111,7 @@ workflows:
     jobs:
     - test:
         context: org-carbon
-    - deploy-nexus:
+    - deploy-jfrog:
         context: org-carbon
         requires:
         - test
@@ -136,10 +120,11 @@ workflows:
             only:
               - entur_raptor
               - rutebanken_develop
+              - otp-x
     - deploy-docker:
         context: org-carbon
         requires:
-        - deploy-nexus
+        - deploy-jfrog
     - notify-build:
         context: org-carbon
         requires:
@@ -147,4 +132,4 @@ workflows:
     - trigger-dependants:
         context: org-carbon
         requires:
-        - deploy-nexus
+        - deploy-jfrog
