@@ -125,10 +125,6 @@ workflows:
         context: org-carbon
         requires:
         - deploy-jfrog
-    - notify-build:
-        context: org-carbon
-        requires:
-        - deploy-docker
     - trigger-dependants:
         context: org-carbon
         requires:
