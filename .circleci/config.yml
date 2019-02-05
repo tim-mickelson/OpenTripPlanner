@@ -53,7 +53,7 @@ jobs:
         path: ~/junit
     - store_artifacts:
         path: ~/junit
-  deploy-nexus:
+  deploy-jfrog:
     docker:
     - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
       auth:
