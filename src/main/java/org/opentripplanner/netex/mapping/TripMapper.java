@@ -6,12 +6,7 @@ import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
-import org.rutebanken.netex.model.FlexibleServiceProperties;
-import org.rutebanken.netex.model.JourneyPattern;
-import org.rutebanken.netex.model.LineRefStructure;
-import org.rutebanken.netex.model.Route;
-import org.rutebanken.netex.model.ServiceAlterationEnumeration;
-import org.rutebanken.netex.model.ServiceJourney;
+import org.rutebanken.netex.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,23 +23,14 @@ public class TripMapper {
     private TransportModeMapper transportModeMapper = new TransportModeMapper();
     private BookingArrangementMapper bookingArrangementMapper = new BookingArrangementMapper();
 
-    public Trip mapServiceJourney(ServiceJourney serviceJourney, OtpTransitBuilder gtfsDao, NetexDao netexDao){
+    public Trip mapServiceJourney(ServiceJourney serviceJourney, OtpTransitBuilder gtfsDao, NetexDao netexDao, String defaultFlexMaxTravelTime){
 
-        JAXBElement<? extends LineRefStructure> lineRefStruct = serviceJourney.getLineRef();
-
-        String lineRef = null;
-        if(lineRefStruct != null){
-            lineRef = lineRefStruct.getValue().getRef();
-        }else if(serviceJourney.getJourneyPatternRef() != null){
-            JourneyPattern journeyPattern = netexDao.journeyPatternsById.lookup(serviceJourney.getJourneyPatternRef().getValue().getRef());
-            String routeRef = journeyPattern.getRouteRef().getRef();
-            lineRef = netexDao.routeById.lookup(routeRef).getLineRef().getValue().getRef();
-        }
+        Line_VersionStructure line = lineFromServiceJourney(serviceJourney, netexDao);
 
         Trip trip = new Trip();
         trip.setId(AgencyAndIdFactory.createAgencyAndId(serviceJourney.getId()));
 
-        trip.setRoute(gtfsDao.getRoutes().get(AgencyAndIdFactory.createAgencyAndId(lineRef)));
+        trip.setRoute(gtfsDao.getRoutes().get(AgencyAndIdFactory.createAgencyAndId(line.getId())));
         if (serviceJourney.getOperatorRef() != null) {
             Operator operator = gtfsDao.getOperatorsById().get(AgencyAndIdFactory.createAgencyAndId(serviceJourney.getOperatorRef().getRef()));
             trip.setTripOperator(operator);
@@ -94,6 +80,11 @@ public class TripMapper {
             trip.setShapeId(serviceLinkId);
         }
 
+        // Map to default until support is added in NeTEx
+        if (line instanceof FlexibleLine) {
+            trip.setDrtMaxTravelTime(defaultFlexMaxTravelTime);
+        }
+
         if (serviceJourney.getFlexibleServiceProperties()!=null) {
             mapFlexibleServicePropertiesProperties(serviceJourney.getFlexibleServiceProperties(), trip);
         }
@@ -131,7 +122,6 @@ public class TripMapper {
                 flexibleServiceProperties.getBookingAccess(), flexibleServiceProperties.getBookWhen(), flexibleServiceProperties.getBuyWhen(), flexibleServiceProperties.getBookingMethods(),
                 flexibleServiceProperties.getMinimumBookingPeriod(), flexibleServiceProperties.getLatestBookingTime());
         otpTrip.setBookingArrangements(otpBookingArrangement);
-
     }
 
     private Trip.ServiceAlteration mapServiceAlteration(ServiceAlterationEnumeration netexValue) {
@@ -146,4 +136,16 @@ public class TripMapper {
         return null;
     }
 
+    public static Line_VersionStructure lineFromServiceJourney(ServiceJourney serviceJourney, NetexDao netexDao) {
+        JAXBElement<? extends LineRefStructure> lineRefStruct = serviceJourney.getLineRef();
+        String lineRef = null;
+        if(lineRefStruct != null){
+            lineRef = lineRefStruct.getValue().getRef();
+        }else if(serviceJourney.getJourneyPatternRef() != null){
+            JourneyPattern journeyPattern = netexDao.journeyPatternsById.lookup(serviceJourney.getJourneyPatternRef().getValue().getRef());
+            String routeRef = journeyPattern.getRouteRef().getRef();
+            lineRef = netexDao.routeById.lookup(routeRef).getLineRef().getValue().getRef();
+        }
+        return netexDao.lineById.lookup(lineRef);
+    }
 }

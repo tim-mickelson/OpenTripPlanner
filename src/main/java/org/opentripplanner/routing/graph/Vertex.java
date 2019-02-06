@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.opentripplanner.common.MavenVersion;
 import org.opentripplanner.common.geometry.DirectionUtils;
 import org.opentripplanner.routing.edgetype.StreetEdge;
+import org.opentripplanner.routing.vertextype.flex.TemporaryTransitStopDepart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,6 +148,9 @@ public abstract class Vertex implements Serializable, Cloneable {
     /* FIELD ACCESSOR METHODS : READ/WRITE */
 
     public void addOutgoing(Edge edge) {
+        if (this instanceof TemporaryTransitStopDepart) {
+            int i = 0;
+        }
         synchronized (this) {
             outgoing = addEdge(outgoing, edge);
         }
