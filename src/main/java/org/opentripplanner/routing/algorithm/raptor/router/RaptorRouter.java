@@ -9,7 +9,6 @@ import com.conveyal.r5.profile.entur.api.request.RequestBuilder;
 import com.conveyal.r5.profile.entur.api.transit.AccessLeg;
 import com.conveyal.r5.profile.entur.api.transit.EgressLeg;
 import com.conveyal.r5.profile.entur.api.transit.TransitDataProvider;
-import com.conveyal.r5.profile.entur.api.transit.TripScheduleInfo;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.model.Stop;
@@ -26,8 +25,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -74,9 +71,7 @@ public class RaptorRouter {
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
-        int quarterTime = request.raptorSearchRange * 60 / 4;
-
-        RangeRaptorRequest<TripSchedule> rangeRaptorRequest1 = new RequestBuilder<TripSchedule>(departureTime, departureTime + quarterTime)
+        RangeRaptorRequest rangeRaptorRequest = new RequestBuilder(departureTime, departureTime + request.raptorSearchRange * 60)
         .addAccessStops(accessTimes)
         .addEgressStops(egressTimes)
         .departureStepInSeconds(60)
@@ -84,55 +79,12 @@ public class RaptorRouter {
         .profile(request.raptorProfile)
         .build();
 
-        RangeRaptorRequest<TripSchedule> rangeRaptorRequest2 = new RequestBuilder<TripSchedule>(departureTime + quarterTime, departureTime + quarterTime * 2)
-                .addAccessStops(accessTimes)
-                .addEgressStops(egressTimes)
-                .departureStepInSeconds(60)
-                .boardSlackInSeconds(60)
-                .profile(request.raptorProfile)
-                .build();
-
-        RangeRaptorRequest<TripSchedule> rangeRaptorRequest3 = new RequestBuilder<TripSchedule>(departureTime + quarterTime * 2, departureTime + quarterTime * 3)
-                .addAccessStops(accessTimes)
-                .addEgressStops(egressTimes)
-                .departureStepInSeconds(60)
-                .boardSlackInSeconds(60)
-                .profile(request.raptorProfile)
-                .build();
-
-        RangeRaptorRequest<TripSchedule> rangeRaptorRequest4 = new RequestBuilder<TripSchedule>(departureTime + quarterTime * 3, departureTime + quarterTime * 4)
-                .addAccessStops(accessTimes)
-                .addEgressStops(egressTimes)
-                .departureStepInSeconds(60)
-                .boardSlackInSeconds(60)
-                .profile(request.raptorProfile)
-                .build();
-
 
         /**
          * Route transit
          */
 
-        CompletableFuture<Collection<Path<TripSchedule>>> completableFuture1 = CompletableFuture.supplyAsync(() -> new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest1, this.otpRRDataProvider)));
-        CompletableFuture<Collection<Path<TripSchedule>>> completableFuture2 = CompletableFuture.supplyAsync(() -> new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest2, this.otpRRDataProvider)));
-        CompletableFuture<Collection<Path<TripSchedule>>> completableFuture3 = CompletableFuture.supplyAsync(() -> new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest3, this.otpRRDataProvider)));
-        CompletableFuture<Collection<Path<TripSchedule>>> completableFuture4 = CompletableFuture.supplyAsync(() -> new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest4, this.otpRRDataProvider)));
-
-        Collection<Path<TripSchedule>> paths = new ArrayList<>();
-
-        try {
-            Collection<Path<TripSchedule>> paths1 = completableFuture1.get();
-            Collection<Path<TripSchedule>> paths2 = completableFuture2.get();
-            Collection<Path<TripSchedule>> paths3 = completableFuture3.get();
-            Collection<Path<TripSchedule>> paths4 = completableFuture4.get();
-            paths.addAll(paths1);
-            paths.addAll(paths2);
-            paths.addAll(paths3);
-            paths.addAll(paths4);
-        }
-        catch (Exception e) {
-
-        }
+        Collection<Path<TripSchedule>> paths = new ArrayList<>(rangeRaptorService.route(rangeRaptorRequest, this.otpRRDataProvider));
 
         LOG.info("Main routing took {} ms", System.currentTimeMillis() - startTimeRouting);
 
