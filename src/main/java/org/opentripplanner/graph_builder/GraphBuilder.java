@@ -68,9 +68,9 @@ public class GraphBuilder implements Runnable {
 
     public static final String GRAPH_FILENAME = "Graph.obj";
 
-    public static final String BASE_GRAPH_FILENAME = "baseGraph.obj";
+    public static final String BASE_GRAPH_FILENAME = "baseGraphX.obj";
 
-    private List<GraphBuilderModule> _graphBuilderModules = new ArrayList<GraphBuilderModule>();
+    private List<GraphBuilderModule> _graphBuilderModules = new ArrayList<>();
 
     private File graphFile;
     
