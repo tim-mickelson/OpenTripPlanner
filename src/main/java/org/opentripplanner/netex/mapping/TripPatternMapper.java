@@ -68,6 +68,8 @@ public class TripPatternMapper {
                     journeyPattern, transitBuilder, netexDao, trip, timetabledPassingTimes,isFlexible
             );
 
+            tripMapper.setdrtAdvanceBookMin(trip, stopTimes.stream().map(s -> s.bookingArrangement).collect(Collectors.toList()));
+
             if (stopTimes != null && stopTimes.size() > 0) {
                 transitBuilder.getStopTimesSortedByTrip().put(trip, stopTimes.stream().map(stwb -> stwb.stopTime).collect(Collectors.toList()));
 

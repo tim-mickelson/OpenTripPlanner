@@ -11,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBElement;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * Agency id must be added when the stop is related to a line
@@ -147,5 +150,30 @@ public class TripMapper {
             lineRef = netexDao.routeById.lookup(routeRef).getLineRef().getValue().getRef();
         }
         return netexDao.lineById.lookup(lineRef);
+    }
+
+    /**
+     *
+     * @param trip Trip to be modified
+     * @param bookingArrangements Booking arrangements for StopPointsInJourneyPatterns for this trip
+     *
+     * This maps minimumBookingPeriod from one of three levels to trip. Order of precedence is StopPointInJourneyPattern -
+     * ServiceJourney - Line.
+     */
+
+    public void setdrtAdvanceBookMin(Trip trip, List<BookingArrangement> bookingArrangements) {
+        if (bookingArrangements.stream().anyMatch(b -> b != null && b.getMinimumBookingPeriod() != null)) {
+            trip.setDrtAdvanceBookMin(durationToMins(bookingArrangements.stream().filter(b -> b.getMinimumBookingPeriod() != null).findFirst()
+                    .get().getMinimumBookingPeriod()));
+        } else if (trip.getBookingArrangements() != null && trip.getBookingArrangements().getMinimumBookingPeriod() != null) {
+            trip.setDrtAdvanceBookMin(durationToMins(trip.getBookingArrangements().getMinimumBookingPeriod()));
+        } else if (trip.getRoute().getBookingArrangements() != null
+                && trip.getRoute().getBookingArrangements().getMinimumBookingPeriod() != null) {
+            trip.setDrtAdvanceBookMin(durationToMins(trip.getRoute().getBookingArrangements().getMinimumBookingPeriod()));
+        }
+    }
+
+    private double durationToMins(Duration duration) {
+        return duration.get(ChronoUnit.SECONDS) / 60.0;
     }
 }
