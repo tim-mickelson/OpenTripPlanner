@@ -227,6 +227,7 @@ public class TransmodelGraphQLPlanner {
         callWith.argument("transferPenalty", (Integer v) -> request.transferPenalty = v);
 
         callWith.argument("useFlex", (Boolean v) -> request.useFlexService = v);
+        callWith.argument("ignoreMinimumBookingPeriod", (Boolean v) -> request.ignoreDrtAdvanceBookMin = v);
 
         if (optimize == OptimizeType.TRANSFERS) {
             optimize = OptimizeType.QUICK;
