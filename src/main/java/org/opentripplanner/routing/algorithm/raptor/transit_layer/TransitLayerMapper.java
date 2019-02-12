@@ -147,8 +147,7 @@ public class TransitLayerMapper {
 
     /** Copy pre-calculated transfers from the original graph */
     private void mapTransfers() {
-        transitLayer.transferByStopPair = new HashMap<>();
-        transitLayer.transferByStop = Stream.generate(ArrayList<Transfer>::new)
+        transitLayer.transferByStopIndex = Stream.generate(ArrayList<Transfer>::new)
                 .limit(transitLayer.stopsByIndex.size()).collect(Collectors.toList());
         for (int i = 0; i < transitLayer.stopsByIndex.size(); i++) {
             for (Edge edge : graph.index.stopVertexForStop.get(transitLayer.stopsByIndex.get(i)).getOutgoing()) {
@@ -161,8 +160,7 @@ public class TransitLayerMapper {
                             (int)distance,
                             Arrays.asList(edge.getGeometry().getCoordinates()));
 
-                    transitLayer.transferByStopPair.put(new OrderedIndexPair(i, stopIndex), transfer);
-                    transitLayer.transferByStop.get(i).add(transfer);
+                    transitLayer.transferByStopIndex.get(i).add(transfer);
                 }
             }
         }
