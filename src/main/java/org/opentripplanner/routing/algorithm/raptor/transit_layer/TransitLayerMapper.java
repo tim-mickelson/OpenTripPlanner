@@ -103,9 +103,8 @@ public class TransitLayerMapper {
 
         Multimap<LocalDate, Integer> serviceCodesByLocalDates = HashMultimap.create();
 
-        Iterator<AgencyAndId> serviceIdIterator = graph.getCalendarService().getServiceIds().iterator();
-        while (serviceIdIterator.hasNext()) {
-            AgencyAndId serviceId = serviceIdIterator.next();
+        for (Iterator<AgencyAndId> it = graph.getCalendarService().getServiceIds().iterator(); it.hasNext();) {
+            AgencyAndId serviceId = it.next();
             Set<LocalDate> localDates = graph.getCalendarService().getServiceDatesForServiceId(serviceId)
                     .stream().map(this::localDateFromServiceDate).collect(Collectors.toSet());
             int serviceIndex = graph.serviceCodes.get(serviceId);
