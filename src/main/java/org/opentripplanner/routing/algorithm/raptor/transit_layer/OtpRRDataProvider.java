@@ -92,7 +92,7 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
     }
 
     private void calculateTransferDuration(double walkSpeed) {
-        this.transfers = Arrays.stream(transitLayer.getTransferByStop())
+        this.transfers = transitLayer.getTransferByStop().stream()
                 .map(t ->  t.stream().map(s -> new TransferR5Adapter(s, walkSpeed)).collect(Collectors.<TransferLeg>toList()))
                 .collect(toList());
     }

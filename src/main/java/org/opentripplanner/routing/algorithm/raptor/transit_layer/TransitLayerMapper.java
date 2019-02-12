@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Maps the TransitLayer object from the OTP Graph object. The ServiceDay hierarchy is reversed, with service days at
@@ -44,11 +45,11 @@ public class TransitLayerMapper {
     /** Create maps between stop indices used by Raptor and stop objects in original graph */
     private void createStopMaps() {
         ArrayList<Stop> stops = new ArrayList<>(graph.index.stopForId.values());
-        transitLayer.stopsByIndex = new Stop[stops.size()];
+        transitLayer.stopsByIndex = new ArrayList<>();
         transitLayer.indexByStop = new HashMap<>();
         for (int i = 0; i < stops.size(); i++) {
             Stop currentStop = stops.get(i);
-            transitLayer.stopsByIndex[i] = currentStop;
+            transitLayer.stopsByIndex.add(currentStop);
             transitLayer.indexByStop.put(currentStop, i);
         }
     }
@@ -119,12 +120,12 @@ public class TransitLayerMapper {
         for (Map.Entry<LocalDate, Collection<Integer>> serviceEntry : serviceCodesByLocalDates.asMap().entrySet()) {
             Set<Integer> servicesForDate = new HashSet<>(serviceEntry.getValue());
             List<TripPattern> filteredPatterns = serviceEntry.getValue().stream().map(s -> patternsByServiceCode.get(s))
-                    .flatMap(s -> s.stream()) .collect(Collectors.toList());
+                    .flatMap(Collection::stream) .collect(Collectors.toList());
 
-            List<TripPatternForDate> tripPatternsForDate = new ArrayList();
+            List<TripPatternForDate> tripPatternsForDate = new ArrayList<>();
 
             for (TripPattern tripPattern : filteredPatterns) {
-                List<TripSchedule> tripSchedules = new ArrayList<TripSchedule>(tripPattern.getTripSchedules());
+                List<TripSchedule> tripSchedules = new ArrayList<>(tripPattern.getTripSchedules());
 
                 tripSchedules = tripSchedules.stream().filter(t -> servicesForDate.contains(t.getServiceCode()))
                         .collect(Collectors.toList());
@@ -137,7 +138,7 @@ public class TransitLayerMapper {
             }
 
             transitLayer.tripPatternsForDate.put(serviceEntry.getKey(), tripPatternsForDate);
-        }
+    }
 
         // Sort by TripPattern for easier merging in OtpRRDataProvider
         transitLayer.tripPatternsForDate.entrySet().stream()
@@ -148,10 +149,10 @@ public class TransitLayerMapper {
     /** Copy pre-calculated transfers from the original graph */
     private void mapTransfers() {
         transitLayer.transferByStopPair = new HashMap<>();
-        transitLayer.transferByStop = new ArrayList[transitLayer.stopsByIndex.length];
-        Arrays.setAll(transitLayer.transferByStop, a -> new ArrayList<>());
-        for (int i = 0; i < transitLayer.stopsByIndex.length; i++) {
-            for (Edge edge : graph.index.stopVertexForStop.get(transitLayer.stopsByIndex[i]).getOutgoing()) {
+        transitLayer.transferByStop = Stream.generate(ArrayList<Transfer>::new)
+                .limit(transitLayer.stopsByIndex.size()).collect(Collectors.toList());
+        for (int i = 0; i < transitLayer.stopsByIndex.size(); i++) {
+            for (Edge edge : graph.index.stopVertexForStop.get(transitLayer.stopsByIndex.get(i)).getOutgoing()) {
                 if (edge instanceof SimpleTransfer) {
                     int stopIndex = transitLayer.indexByStop.get(((TransitStop)edge.getToVertex()).getStop());
                     double distance = edge.getDistance();
@@ -162,7 +163,7 @@ public class TransitLayerMapper {
                             Arrays.asList(edge.getGeometry().getCoordinates()));
 
                     transitLayer.transferByStopPair.put(new OrderedIndexPair(i, stopIndex), transfer);
-                    transitLayer.transferByStop[i].add(transfer);
+                    transitLayer.transferByStop.get(i).add(transfer);
                 }
             }
         }
