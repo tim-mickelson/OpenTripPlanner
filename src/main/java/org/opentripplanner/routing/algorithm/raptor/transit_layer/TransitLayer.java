@@ -16,7 +16,6 @@ public class TransitLayer {
     /** Maps to original graph to retrieve additional data */
     public List<Stop> stopsByIndex;
     public Map<Stop, Integer> indexByStop;
-    public Map<OrderedIndexPair, Transfer> transferByStopPair;
 
     public int getStopCount() { return stopsByIndex.size(); }
 
@@ -26,10 +25,6 @@ public class TransitLayer {
 
     public Stop getStopByIndex(int stopIndex) {
         return stopIndex != -1 ? stopsByIndex.get(stopIndex) : null;
-    }
-
-    public Transfer getTransfer(int fromIndex, int toIndex) {
-        return transferByStopPair.get(new OrderedIndexPair(fromIndex, toIndex));
     }
 
     public Collection<TripPatternForDate> getTripPatternsForDate(LocalDate date) {

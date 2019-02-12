@@ -21,8 +21,6 @@ import static java.util.stream.Collectors.toList;
 
 public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(OtpRRDataProvider.class);
-
     private TransitLayer transitLayer;
 
     /** Active trip patterns by stop index */
