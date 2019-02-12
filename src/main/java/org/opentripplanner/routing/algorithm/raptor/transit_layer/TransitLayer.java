@@ -11,7 +11,7 @@ public class TransitLayer {
 
     /** Transit data required for routing */
     public Map<LocalDate, List<TripPatternForDate>> tripPatternsForDate;
-    public List<List<Transfer>> transferByStop;
+    public List<List<Transfer>> transferByStopIndex;
 
     /** Maps to original graph to retrieve additional data */
     public List<Stop> stopsByIndex;
@@ -31,7 +31,7 @@ public class TransitLayer {
         return tripPatternsForDate.get(date);
     }
 
-    public List<List<Transfer>> getTransferByStop() {
-        return this.transferByStop;
+    public List<List<Transfer>> getTransferByStopIndex() {
+        return this.transferByStopIndex;
     }
 }

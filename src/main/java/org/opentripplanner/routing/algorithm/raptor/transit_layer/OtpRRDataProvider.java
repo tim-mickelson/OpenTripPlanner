@@ -4,8 +4,6 @@ import com.conveyal.r5.profile.entur.api.transit.*;
 import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -90,7 +88,7 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
     }
 
     private void calculateTransferDuration(double walkSpeed) {
-        this.transfers = transitLayer.getTransferByStop().stream()
+        this.transfers = transitLayer.getTransferByStopIndex().stream()
                 .map(t ->  t.stream().map(s -> new TransferR5Adapter(s, walkSpeed)).collect(Collectors.<TransferLeg>toList()))
                 .collect(toList());
     }
