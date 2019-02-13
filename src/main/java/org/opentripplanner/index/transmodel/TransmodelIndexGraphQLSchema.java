@@ -987,7 +987,7 @@ public class TransmodelIndexGraphQLSchema {
                 .argument(GraphQLArgument.newArgument()
                         .name("ignoreMinimumBookingPeriod")
                         .description("Ignore the MinimumBookingPeriod defined on the ServiceJourney and allow itineraries to start immediately after the current time.")
-                        .type(Scalars.GraphQLFloat)
+                        .type(Scalars.GraphQLBoolean)
                         .defaultValue(defaultRoutingRequest.ignoreDrtAdvanceBookMin)
                         .build())
                 .dataFetcher(environment -> new TransmodelGraphQLPlanner(mappingUtil).plan(environment)
