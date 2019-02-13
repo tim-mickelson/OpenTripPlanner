@@ -44,7 +44,7 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
 
     /** Gets all the unique trip patterns touching a set of stops */
     @Override
-    public Iterator<TripPatternInfo<TripSchedule>> patternIterator(UnsignedIntIterator stops) {
+    public Iterator<? extends TripPatternInfo<TripSchedule>> patternIterator(IntIterator stops) {
         Set<TripPatternInfo<TripSchedule>> activeTripPatternsForGivenStops = new HashSet<>();
         int stopIndex = stops.next();
         while (stopIndex > 0) {

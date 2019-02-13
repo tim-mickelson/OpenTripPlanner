@@ -1,6 +1,6 @@
 package org.opentripplanner.index.transmodel;
 
-import com.conveyal.r5.profile.entur.api.request.RaptorProfiles;
+import com.conveyal.r5.profile.entur.api.request.RaptorProfile;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.LineString;
@@ -211,9 +211,9 @@ public class TransmodelIndexGraphQLSchema {
 
     private static GraphQLEnumType RaptorProfileEnum = GraphQLEnumType.newEnum()
             .name("RaptorProfile")
-            .value("earliestArrival", RaptorProfiles.RANGE_RAPTOR, "Route by earliest arrival only. " +
+            .value("earliestArrival", RaptorProfile.RANGE_RAPTOR, "Route by earliest arrival only. " +
                     "This is much faster than a multi criteria search.")
-            .value("multiCriteria", RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR, "Route using multiple criteria.")
+            .value("multiCriteria", RaptorProfile.MULTI_CRITERIA_RANGE_RAPTOR, "Route using multiple criteria.")
             .build();
 
 
@@ -1004,7 +1004,7 @@ public class TransmodelIndexGraphQLSchema {
                         .name("raptorProfile")
                         .description("How to optimize raptor searches.")
                         .type(RaptorProfileEnum)
-                        .defaultValue(RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR)
+                        .defaultValue(RaptorProfile.MULTI_CRITERIA_RANGE_RAPTOR)
                         .build())
                 .dataFetcher(environment -> new TransmodelGraphQLPlanner(mappingUtil).plan(environment)
                 )

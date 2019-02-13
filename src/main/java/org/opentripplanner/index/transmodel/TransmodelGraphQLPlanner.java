@@ -1,6 +1,6 @@
 package org.opentripplanner.index.transmodel;
 
-import com.conveyal.r5.profile.entur.api.request.RaptorProfiles;
+import com.conveyal.r5.profile.entur.api.request.RaptorProfile;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import graphql.schema.DataFetchingEnvironment;
@@ -303,7 +303,7 @@ public class TransmodelGraphQLPlanner {
 
         callWith.argument("raptorSearchRange", (Integer v) -> request.raptorSearchRange = Integer.min(240, v));
         callWith.argument("raptorSearchDays", (Integer v) -> request.raptorSearchDays = Integer.min(7, v));
-        callWith.argument("raptorProfile", (RaptorProfiles v) -> request.raptorProfile = v);
+        callWith.argument("raptorProfile", (RaptorProfile v) -> request.raptorProfile = v);
         
 
         if (!request.modes.isTransit() && request.modes.getCar()) {

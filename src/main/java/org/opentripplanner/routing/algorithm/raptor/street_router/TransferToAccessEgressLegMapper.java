@@ -1,7 +1,5 @@
 package org.opentripplanner.routing.algorithm.raptor.street_router;
 
-import com.conveyal.r5.profile.entur.api.transit.AccessLeg;
-import com.conveyal.r5.profile.entur.api.transit.EgressLeg;
 import com.conveyal.r5.profile.entur.api.transit.TransferLeg;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
@@ -27,21 +25,19 @@ public class TransferToAccessEgressLegMapper {
             int duration = (int)Math.floor(transfer.getDistance() / walkSpeed); //TODO: Avoid hard coding walk speed
             int stopIndex = transitLayer.getIndexByStop(stop);
             // TODO - Calculate som meaningful cost
-            result.add((T)new R5TransferLeg(stopIndex, duration, 0));
+            result.add((T)new R5TransferLeg(stopIndex, duration));
         }
         return result;
     }
 
 
-    private static class R5TransferLeg implements AccessLeg, EgressLeg {
+    private static class R5TransferLeg implements TransferLeg {
         private int stop;
         private int durationInSeconds;
-        private int cost;
 
-        private R5TransferLeg(int stop, int durationInSeconds, int cost) {
+        private R5TransferLeg(int stop, int durationInSeconds) {
             this.stop = stop;
             this.durationInSeconds = durationInSeconds;
-            this.cost = cost;
         }
 
         @Override public int stop() {
@@ -50,10 +46,6 @@ public class TransferToAccessEgressLegMapper {
 
         @Override public int durationInSeconds() {
             return durationInSeconds;
-        }
-
-        @Override public int cost() {
-            return cost;
         }
     }
 }
