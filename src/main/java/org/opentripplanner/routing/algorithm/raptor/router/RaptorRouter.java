@@ -4,10 +4,8 @@ import com.conveyal.r5.profile.entur.RangeRaptorService;
 import com.conveyal.r5.profile.entur.api.TuningParameters;
 import com.conveyal.r5.profile.entur.api.path.Path;
 import com.conveyal.r5.profile.entur.api.request.RangeRaptorRequest;
-import com.conveyal.r5.profile.entur.api.request.RaptorProfiles;
 import com.conveyal.r5.profile.entur.api.request.RequestBuilder;
-import com.conveyal.r5.profile.entur.api.transit.AccessLeg;
-import com.conveyal.r5.profile.entur.api.transit.EgressLeg;
+import com.conveyal.r5.profile.entur.api.transit.TransferLeg;
 import com.conveyal.r5.profile.entur.api.transit.TransitDataProvider;
 import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.TripPlan;
@@ -56,8 +54,8 @@ public class RaptorRouter {
             AccessEgressRouter.streetSearch(request, true, Integer.MAX_VALUE);
 
         TransferToAccessEgressLegMapper mapper = new TransferToAccessEgressLegMapper(transitLayer);
-        Collection<AccessLeg> accessTimes = mapper.map(accessTransfers, request.walkSpeed);
-        Collection<EgressLeg> egressTimes = mapper.map(egressTransfers, request.walkSpeed);
+        Collection<TransferLeg> accessTimes = mapper.map(accessTransfers, request.walkSpeed);
+        Collection<TransferLeg> egressTimes = mapper.map(egressTransfers, request.walkSpeed);
 
         LOG.info("Access/egress routing took {} ms", System.currentTimeMillis() - startTimeAccessEgress);
 
@@ -71,14 +69,16 @@ public class RaptorRouter {
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
-        RangeRaptorRequest rangeRaptorRequest = new RequestBuilder(departureTime, departureTime + request.raptorSearchRange * 60)
-        .addAccessStops(accessTimes)
-        .addEgressStops(egressTimes)
-        .departureStepInSeconds(60)
-        .boardSlackInSeconds(60)
-        .profile(request.raptorProfile)
-        .build();
 
+
+        RangeRaptorRequest rangeRaptorRequest = new RequestBuilder()
+                .earliestDepartureTime(departureTime)
+                .searchWindowInSeconds(request.raptorSearchRange * 60)
+                .addAccessStops(accessTimes)
+                .addEgressStops(egressTimes)
+                .boardSlackInSeconds(60)
+                .profile(request.raptorProfile)
+                .build();
 
         /**
          * Route transit

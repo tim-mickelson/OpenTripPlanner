@@ -11,8 +11,6 @@ public class TransferR5Adapter implements TransferLeg {
     TransferR5Adapter(Transfer transfer, double walkSpeed) {
         this.transfer = transfer;
         this.duration = (int) Math.round(transfer.getDistance() / walkSpeed);
-
-        // TODO - Add cost
     }
 
     @Override
@@ -23,10 +21,5 @@ public class TransferR5Adapter implements TransferLeg {
     @Override
     public int durationInSeconds() {
         return this.duration;
-    }
-
-    @Override
-    public int cost() {
-        return 0;
     }
 }

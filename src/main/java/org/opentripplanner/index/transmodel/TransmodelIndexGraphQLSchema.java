@@ -3,6 +3,7 @@ package org.opentripplanner.index.transmodel;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
+import graphql.GraphQL;
 import graphql.Scalars;
 import graphql.relay.DefaultConnection;
 import graphql.relay.DefaultPageInfo;
@@ -217,9 +218,9 @@ public class TransmodelIndexGraphQLSchema {
 
     private static GraphQLEnumType RaptorProfileEnum = GraphQLEnumType.newEnum()
             .name("RaptorProfile")
-            .value("earliestArrival", RaptorProfiles.RANGE_RAPTOR, "Route by earliest arrival only. " +
+            .value("earliestArrival", RaptorProfile.RANGE_RAPTOR, "Route by earliest arrival only. " +
                     "This is much faster than a multi criteria search.")
-            .value("multiCriteria", RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR, "Route using multiple criteria.")
+            .value("multiCriteria", RaptorProfile.MULTI_CRITERIA_RANGE_RAPTOR, "Route using multiple criteria.")
             .build();
 
 
@@ -1042,7 +1043,7 @@ public class TransmodelIndexGraphQLSchema {
                         .name("raptorProfile")
                         .description("How to optimize raptor searches.")
                         .type(RaptorProfileEnum)
-                        .defaultValue(RaptorProfiles.MULTI_CRITERIA_RANGE_RAPTOR)
+                        .defaultValue(RaptorProfile.MULTI_CRITERIA_RANGE_RAPTOR)
                         .build())
                 .dataFetcher(environment -> new TransmodelGraphQLPlanner(mappingUtil).plan(environment)
                 )
