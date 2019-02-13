@@ -1678,4 +1678,8 @@ public class RoutingRequest implements Cloneable, Serializable {
         }
 
     }
+
+    public void resetClockTime() {
+        this.clockTimeSec = System.currentTimeMillis() / 1000;
+    }
 }

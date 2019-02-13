@@ -472,6 +472,8 @@ public abstract class RoutingResource {
 
         request.parseTime(router.graph.getTimeZone(), this.date, this.time);
 
+        request.resetClockTime();
+
         if (wheelchair != null)
             request.setWheelchairAccessible(wheelchair);
 
