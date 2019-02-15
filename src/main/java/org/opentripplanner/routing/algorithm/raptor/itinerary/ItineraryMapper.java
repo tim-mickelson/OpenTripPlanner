@@ -186,7 +186,7 @@ public class ItineraryMapper {
     private Leg mapTransferLeg(TransferPathLeg<TripSchedule> pathLeg) {
         Stop transferFromStop = transitLayer.getStopByIndex(pathLeg.fromStop());
         Stop transferToStop = transitLayer.getStopByIndex(pathLeg.toStop());
-        Transfer transfer = transitLayer.getTransferByStopIndex().get(pathLeg.fromStop()).get(pathLeg.toStop());
+        Transfer transfer = transitLayer.getTransferByStopIndex().get(pathLeg.fromStop()).stream().filter(t -> t.stop() == pathLeg.toStop()).findFirst().get();
 
         Leg leg = new Leg();
         leg.stop = new ArrayList<>(); // TODO: Map intermediate stops
