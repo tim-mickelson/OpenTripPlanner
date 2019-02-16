@@ -17,15 +17,15 @@ public class TransferToAccessEgressLegMapper {
         this.transitLayer = transitLayer;
     }
 
-    public <T> Collection<T> map(Map<Stop, Transfer> input, double walkSpeed) {
-        List<T> result = new ArrayList<>();
+    public Collection<TransferLeg> map(Map<Stop, Transfer> input, double walkSpeed) {
+        List<TransferLeg> result = new ArrayList<>();
         for (Map.Entry<Stop, Transfer> entry : input.entrySet()) {
             Stop stop = entry.getKey();
             Transfer transfer = entry.getValue();
             int duration = (int)Math.floor(transfer.getDistance() / walkSpeed); //TODO: Avoid hard coding walk speed
             int stopIndex = transitLayer.getIndexByStop(stop);
             // TODO - Calculate som meaningful cost
-            result.add((T)new R5TransferLeg(stopIndex, duration));
+            result.add(new R5TransferLeg(stopIndex, duration));
         }
         return result;
     }
