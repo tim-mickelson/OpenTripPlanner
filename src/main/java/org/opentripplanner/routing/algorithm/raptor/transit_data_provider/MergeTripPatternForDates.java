@@ -1,4 +1,6 @@
-package org.opentripplanner.routing.algorithm.raptor.transit_layer;
+package org.opentripplanner.routing.algorithm.raptor.transit_data_provider;
+
+import org.opentripplanner.routing.algorithm.raptor.transit_layer.TripPatternForDate;
 
 import java.util.ArrayList;
 import java.util.List;
