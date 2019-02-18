@@ -38,7 +38,7 @@ public class TripPatternForDates implements TripPatternInfo<TripSchedule> {
 
     @Override
     public TripSchedule getTripSchedule(int i) {
-        int dayOffset = 0;
+        int dayOffset = -1; // Start at yesterday to account for trips that cross midnight.
         for (List<TripSchedule> tripScheduleList : tripSchedules ) {
             if (i < tripScheduleList.size()) {
                 return new TripScheduleWithOffset(tripScheduleList.get(i), dayOffset * SECONDS_OF_DAY);
