@@ -30,7 +30,7 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
     public OtpRRDataProvider(TransitLayer transitLayer, LocalDate startDate, int dayRange, TraverseModeSet transitModes,
                              HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes, double walkSpeed) {
         this.transitLayer = transitLayer;
-        List<List<TripPatternForDate>> tripPatternForDates = getTripPatternsForDateRange(startDate, dayRange, transitModes, transportSubmodes);
+        List<List<TripPatternForDate>> tripPatternForDates = getTripPatternsForDateRange(startDate, dayRange, transitModes);
         List<TripPatternForDates> tripPatternForDateList = MergeTripPatternForDates.merge(tripPatternForDates);
         setTripPatternsPerStop(tripPatternForDateList);
         calculateTransferDuration(walkSpeed);
@@ -59,18 +59,18 @@ public class OtpRRDataProvider implements TransitDataProvider<TripSchedule> {
         return transitLayer.getStopCount();
     }
 
-    private List<TripPatternForDate> setActiveTripPatterns(LocalDate date, TraverseModeSet transitModes, HashMap<TraverseMode,
-            Set<TransmodelTransportSubmode>> transportSubmodes) {
+    private List<TripPatternForDate> setActiveTripPatterns(LocalDate date, TraverseModeSet transitModes) {
 
         return transitLayer.getTripPatternsForDate(date).stream()
-                .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode())) // TODO: Fix submode per main mode
+                .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode()))
                 .collect(toList());
     }
 
-    private List<List<TripPatternForDate>> getTripPatternsForDateRange(LocalDate startDate, int dayRange, TraverseModeSet transitModes, HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes) {
+    private List<List<TripPatternForDate>> getTripPatternsForDateRange(LocalDate startDate, int dayRange, TraverseModeSet transitModes) {
         List<List<TripPatternForDate>> tripPatternForDates = new ArrayList<>();
-        for (LocalDate currentDate = startDate; currentDate.isBefore(startDate.plusDays(dayRange)); currentDate = currentDate.plusDays(1)) {
-            tripPatternForDates.add(setActiveTripPatterns(currentDate, transitModes, transportSubmodes));
+        // Start at yesterdays date to account for trips that cross midnight. This is also accounted for in TripPatternForDates.
+        for (LocalDate currentDate = startDate.minusDays(1); currentDate.isBefore(startDate.plusDays(dayRange)); currentDate = currentDate.plusDays(1)) {
+            tripPatternForDates.add(setActiveTripPatterns(currentDate, transitModes));
         }
         return tripPatternForDates;
     }
