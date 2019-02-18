@@ -1,4 +1,4 @@
-package org.opentripplanner.routing.algorithm.raptor.transit_layer;
+package org.opentripplanner.routing.algorithm.raptor.transit_data_provider;
 
 import com.conveyal.r5.profile.entur.api.transit.TripScheduleInfo;
 import org.opentripplanner.model.Trip;

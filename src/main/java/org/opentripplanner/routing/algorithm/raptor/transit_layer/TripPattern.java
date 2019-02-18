@@ -1,6 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 import org.opentripplanner.model.TransmodelTransportSubmode;
+import org.opentripplanner.routing.algorithm.raptor.transit_data_provider.TripSchedule;
 import org.opentripplanner.routing.core.TraverseMode;
 
 import java.util.List;

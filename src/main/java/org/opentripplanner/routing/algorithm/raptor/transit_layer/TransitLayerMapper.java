@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.routing.algorithm.raptor.transit_data_provider.TripSchedule;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
