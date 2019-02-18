@@ -220,7 +220,8 @@ public class TransmodelIndexGraphQLSchema {
             .name("RaptorProfile")
             .value("earliestArrival", RaptorProfile.RANGE_RAPTOR, "Route by earliest arrival only. " +
                     "This is much faster than a multi criteria search.")
-            .value("multiCriteria", RaptorProfile.MULTI_CRITERIA_RANGE_RAPTOR, "Route using multiple criteria.")
+            .value("multiCriteria", RaptorProfile.MULTI_CRITERIA_RANGE_RAPTOR_WITH_HEURISTICS, "Route using multiple criteria.")
+            .value("multiCriteriaWithHeuristic", RaptorProfile.MULTI_CRITERIA_RANGE_RAPTOR_WITH_HEURISTICS, "Route using multiple criteria with a heuristic optimization.")
             .build();
 
 
