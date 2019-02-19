@@ -128,7 +128,7 @@ public class OnBoardDepartPatternHop extends Edge implements OnboardEdge, Tempor
                 (1.0 - positionInHop) * tripTimes.getRunningTime(stopIndex));
 
         s1.incrementTimeInSeconds(remainingTime);
-        s1.incrementWeight(remainingTime);
+        s1.incrementWeight(remainingTime, "OnBoardDepartPatternHop remainingTime");
         s1.setBackMode(getMode());
         s1.setEverBoarded(true);
         return s1.makeState();

@@ -33,7 +33,7 @@ public class SimpleEdge extends FreeEdge {
     public State traverse(State s0) {
         StateEditor s1 = s0.edit(this);
         s1.incrementTimeInSeconds(seconds);
-        s1.incrementWeight(weight);
+        s1.incrementWeight(weight, "SimpleEdge weight");
         // SimpleEdges don't concern themselves with mode
         return s1.makeState();
     }

@@ -13,9 +13,7 @@
 
 package org.opentripplanner.routing.core;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Stop;
@@ -61,6 +59,7 @@ public class StateEditor {
         child = parent.clone();
         child.backState = parent;
         child.backEdge = e;
+        child.setWeightLog(parent.getWeightLog());
         // We clear child.next here, since it could have already been set in the
         // parent
         child.next = null;
@@ -135,6 +134,7 @@ public class StateEditor {
             }
         }
         spawned = true;
+
         return child;
     }
 
@@ -188,7 +188,7 @@ public class StateEditor {
 
     /* Incrementors */
 
-    public void incrementWeight(double weight) {
+    public void incrementWeight(double weight, String description) {
         if (Double.isNaN(weight)) {
             LOG.warn("A state's weight is being incremented by NaN while traversing edge "
                     + child.backEdge);
@@ -201,6 +201,8 @@ public class StateEditor {
             defectiveTraversal = true;
             return;
         }
+        child.getWeightLog().add(description + " - " + weight);
+
         child.weight += weight;
     }
 

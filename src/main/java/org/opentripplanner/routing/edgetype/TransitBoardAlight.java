@@ -186,13 +186,13 @@ public class TransitBoardAlight extends TablePatternEdge implements OnboardEdge 
                 if (boardingTime != 0) {
                     // When traveling backwards the time travels also backwards
                     s1.incrementTimeInSeconds(boardingTime);
-                    s1.incrementWeight(boardingTime * options.waitReluctance);
+                    s1.incrementWeight(boardingTime * options.waitReluctance,  String.format("TransitBoardAlight boardingTime {} * waitReluctance {}", boardingTime, options.walkReluctance));
                 }
             } else {
                 int alightTime = options.getAlightTime(this.getPattern().mode);
                 if (alightTime != 0) {
                     s1.incrementTimeInSeconds(alightTime);
-                    s1.incrementWeight(alightTime * options.waitReluctance);
+                    s1.incrementWeight(alightTime * options.waitReluctance, String.format("TransitBoardAlight alightTime {} * waitReluctance {}", alightTime, options.walkReluctance));
                     // TODO: should we have different cost for alighting and boarding compared to regular waiting?
                 }
             }
@@ -203,7 +203,7 @@ public class TransitBoardAlight extends TablePatternEdge implements OnboardEdge 
                 
                 s1.incrementTimeInSeconds(wait);
                 // this should only occur at the beginning
-                s1.incrementWeight(wait * options.waitAtBeginningFactor);
+                s1.incrementWeight(wait * options.waitAtBeginningFactor,  String.format("TransitBoardAlight wait {} * waitAtBeginningFactor {}", wait, options.waitAtBeginningFactor));
 
                 s1.setInitialWaitTimeSeconds(wait);
 
@@ -213,7 +213,7 @@ public class TransitBoardAlight extends TablePatternEdge implements OnboardEdge 
             // during reverse optimization, board costs should be applied to PatternBoards
             // so that comparable trip plans result (comparable to non-optimized plans)
             if (options.reverseOptimizing)
-                s1.incrementWeight(options.getBoardCost(s0.getNonTransitMode()));
+                s1.incrementWeight(options.getBoardCost(s0.getNonTransitMode()), "TransitBoardAlight getBoardCost (reverseOptimizing)");
 
             if (options.reverseOptimizeOnTheFly) {
                 TripPattern pattern = getPattern();
@@ -341,15 +341,15 @@ public class TransitBoardAlight extends TablePatternEdge implements OnboardEdge 
                 wait_cost *= options.waitReluctance;
             }
             
-            s1.incrementWeight(preferences_penalty);
-            s1.incrementWeight(transferPenalty);
+            s1.incrementWeight(preferences_penalty, "Preferences penalty");
+            s1.incrementWeight(transferPenalty, "Transfer penalty");
 
             // when reverse optimizing, the board cost needs to be applied on
             // alight to prevent state domination due to free alights
             if (options.reverseOptimizing) {
-                s1.incrementWeight(wait_cost);
+                s1.incrementWeight(wait_cost, "Wait cost");
             } else {
-                s1.incrementWeight(wait_cost + options.getBoardCost(s0.getNonTransitMode()));
+                s1.incrementWeight(wait_cost + options.getBoardCost(s0.getNonTransitMode()), String.format("Wait cost {} + boardCost {}", wait_cost, options.getBoardCost(s0.getNonTransitMode())));
             }
             
             // On-the-fly reverse optimization

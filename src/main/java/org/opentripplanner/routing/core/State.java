@@ -13,7 +13,9 @@
 
 package org.opentripplanner.routing.core;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import org.opentripplanner.model.AgencyAndId;
@@ -60,6 +62,16 @@ public class State implements Cloneable {
 
     // track the states of all path parsers -- probably changes frequently
     protected int[] pathParserStates;
+
+    public List<String> getWeightLog() {
+        return weightLog;
+    }
+
+    public void setWeightLog(List<String> weightLog) {
+        this.weightLog = weightLog;
+    }
+
+    private List<String> weightLog = new ArrayList<>();
     
     private static final Logger LOG = LoggerFactory.getLogger(State.class);
 
@@ -721,7 +733,7 @@ public class State implements Cloneable {
                 editor.setFromState(orig);
 
                 editor.incrementTimeInSeconds(orig.getAbsTimeDeltaSeconds());
-                editor.incrementWeight(orig.getWeightDelta());
+                editor.incrementWeight(orig.getWeightDelta(), "State getWeightDelta");
                 editor.incrementWalkDistance(orig.getWalkDistanceDelta());
                 editor.incrementPreTransitTime(orig.getPreTransitTimeDelta());
                 

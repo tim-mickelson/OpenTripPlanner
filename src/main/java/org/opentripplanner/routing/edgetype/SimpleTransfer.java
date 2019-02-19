@@ -71,7 +71,7 @@ public class SimpleTransfer extends Edge {
         se.setBackMode(TraverseMode.WALK);
         int time = (int) Math.ceil(distance / walkspeed) + 2 * StreetTransitLink.STL_TRAVERSE_COST;
         se.incrementTimeInSeconds(time);
-        se.incrementWeight(time * rr.walkReluctance);
+        se.incrementWeight(time * rr.walkReluctance, String.format("SimpleTransfers time {} * walkReluctance {}", time, rr.walkReluctance));
         se.incrementWalkDistance(distance);
         return se.makeState();
     }

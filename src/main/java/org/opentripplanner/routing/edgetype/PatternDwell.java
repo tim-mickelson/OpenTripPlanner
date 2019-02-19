@@ -69,7 +69,7 @@ public class PatternDwell extends TablePatternEdge implements OnboardEdge, Dwell
         StateEditor s1 = state0.edit(this);
         s1.setBackMode(getMode());
         s1.incrementTimeInSeconds(dwellTime);
-        s1.incrementWeight(dwellTime);
+        s1.incrementWeight(dwellTime, "PatternDwell dwellTime");
         return s1.makeState();
     }
 
@@ -79,7 +79,7 @@ public class PatternDwell extends TablePatternEdge implements OnboardEdge, Dwell
         StateEditor s1 = s0.edit(this);
         s1.incrementTimeInSeconds(dwellTime);
         s1.setBackMode(getMode());
-        s1.incrementWeight(dwellTime);
+        s1.incrementWeight(dwellTime, "PatternDwell dwellTime");
         return s1.makeState();
     }
     

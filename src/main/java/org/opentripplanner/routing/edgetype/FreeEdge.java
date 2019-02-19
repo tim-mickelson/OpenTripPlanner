@@ -39,7 +39,7 @@ public class FreeEdge extends Edge {
     @Override
     public State traverse(State s0) {
         StateEditor s1 = s0.edit(this);
-        s1.incrementWeight(1);
+        s1.incrementWeight(1, "FreeEdge default wait");
         // do not change mode, which means it may be null at the start of a trip
         return s1.makeState();
     }

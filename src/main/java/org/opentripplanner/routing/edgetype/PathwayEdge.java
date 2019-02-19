@@ -84,7 +84,7 @@ public class PathwayEdge extends Edge {
         }
         StateEditor s1 = s0.edit(this);
         s1.incrementTimeInSeconds(time);
-        s1.incrementWeight(time);
+        s1.incrementWeight(time, "PathwayEdge time");
         s1.setBackMode(getMode());
         return s1.makeState();
     }

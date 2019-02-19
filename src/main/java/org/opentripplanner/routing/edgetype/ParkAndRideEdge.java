@@ -64,7 +64,7 @@ public class ParkAndRideEdge extends Edge {
             }
             StateEditor s1 = s0.edit(this);
             int time = request.carDropoffTime;
-            s1.incrementWeight(time);
+            s1.incrementWeight(time, "ParkAndRideEdge time");
             s1.incrementTimeInSeconds(time);
             s1.setCarParked(false);
             s1.setBackMode(TraverseMode.LEG_SWITCH);
@@ -81,7 +81,7 @@ public class ParkAndRideEdge extends Edge {
             }
             StateEditor s1 = s0.edit(this);
             int time = request.carDropoffTime;
-            s1.incrementWeight(time);
+            s1.incrementWeight(time, "ParkAndRideEdge time");
             s1.incrementTimeInSeconds(time);
             s1.setCarParked(true);
             s1.setBackMode(TraverseMode.LEG_SWITCH);

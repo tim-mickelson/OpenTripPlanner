@@ -59,7 +59,7 @@ public class ElevatorBoardEdge extends Edge implements ElevatorEdge {
         StateEditor s1 = s0.edit(this);
         // We always walk in elevators, even when we have a bike with us
         s1.setBackMode(TraverseMode.WALK);
-        s1.incrementWeight(options.elevatorBoardCost);
+        s1.incrementWeight(options.elevatorBoardCost, "ElevatorBoardEdge elevatorBoardCost");
         s1.incrementTimeInSeconds(options.elevatorBoardTime);
         return s1.makeState();
     }

@@ -92,7 +92,7 @@ public class TransferEdge extends Edge {
         if (this.getDistance() > s0.getOptions().maxTransferWalkDistance) return null;
         StateEditor s1 = s0.edit(this);
         s1.incrementTimeInSeconds(time);
-        s1.incrementWeight(time);
+        s1.incrementWeight(time, "TransferEdge time");
         s1.setBackMode(TraverseMode.WALK);
         return s1.makeState();
     }

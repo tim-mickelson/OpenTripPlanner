@@ -170,7 +170,7 @@ public class PatternInterlineDwell extends Edge implements OnboardEdge {
         s1.setTripId(newTrip.getId()); // TODO check meaning
         s1.setPreviousTrip(oldTrip);   // TODO check meaning
         s1.setTripTimes(newTripTimes);
-        s1.incrementWeight(dwellTime);
+        s1.incrementWeight(dwellTime, "PatternInterLineDwell dwellTime");
         // Mode should not change.
         return s1.makeState();
     }

@@ -41,7 +41,7 @@ public class SimpleConcreteEdge extends Edge {
         int t = (int) (d / s0.getOptions().getSpeed(mode));
         StateEditor s1 = s0.edit(this);
         s1.incrementTimeInSeconds(t);
-        s1.incrementWeight(d);
+        s1.incrementWeight(d, "SimpleConcreteEdge distance");
         return s1.makeState();
     }
 

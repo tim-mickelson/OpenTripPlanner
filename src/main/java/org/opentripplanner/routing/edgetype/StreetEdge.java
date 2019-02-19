@@ -480,7 +480,7 @@ public class StreetEdge extends Edge implements Cloneable {
         if (walkingBike || TraverseMode.BICYCLE.equals(traverseMode)) {
             if (!(backWalkingBike || TraverseMode.BICYCLE.equals(backMode))) {
                 s1.incrementTimeInSeconds(options.bikeSwitchTime);
-                s1.incrementWeight(options.bikeSwitchCost);
+                s1.incrementWeight(options.bikeSwitchCost, "StreetEdge bikeSwitchCost");
             }
         }
 
@@ -523,7 +523,7 @@ public class StreetEdge extends Edge implements Cloneable {
 
         s1.incrementTimeInSeconds(roundedTime);
         
-        s1.incrementWeight(weight);
+        s1.incrementWeight(weight, "StreetEdge total weight");
 
         return s1;
     }

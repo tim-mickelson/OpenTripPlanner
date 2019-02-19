@@ -81,7 +81,7 @@ public class StreetBikeRentalLink extends Edge {
         StateEditor s1 = s0.edit(this);
         //assume bike rental stations are more-or-less on-street
         s1.incrementTimeInSeconds(1);
-        s1.incrementWeight(1);
+        s1.incrementWeight(1, "StreetBikeRentalLink default weight");
         s1.setBackMode(s0.getNonTransitMode());
         return s1.makeState();
     }

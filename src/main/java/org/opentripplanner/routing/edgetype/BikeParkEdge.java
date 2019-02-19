@@ -66,7 +66,7 @@ public class BikeParkEdge extends Edge {
             return null;
 
         StateEditor s0e = s0.edit(this);
-        s0e.incrementWeight(options.bikeParkCost);
+        s0e.incrementWeight(options.bikeParkCost, "BikeParkCost");
         s0e.incrementTimeInSeconds(options.bikeParkTime);
         s0e.setBackMode(TraverseMode.LEG_SWITCH);
         s0e.setBikeParked(false);
@@ -89,7 +89,7 @@ public class BikeParkEdge extends Edge {
         }
 
         StateEditor s0e = s0.edit(this);
-        s0e.incrementWeight(options.bikeParkCost);
+        s0e.incrementWeight(options.bikeParkCost, "BikeParkEdge bikeParkCost");
         s0e.incrementTimeInSeconds(options.bikeParkTime);
         s0e.setBackMode(TraverseMode.LEG_SWITCH);
         s0e.setBikeParked(true);

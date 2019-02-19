@@ -64,7 +64,7 @@ public abstract class RentABikeAbstractEdge extends Edge {
 
         StateEditor s1 = s0.edit(this);
         s1.incrementWeight(options.arriveBy ? options.bikeRentalDropoffCost
-                : options.bikeRentalPickupCost);
+                : options.bikeRentalPickupCost, "BikeRentalPickupCost / BikeRentalDropOffCost");
         s1.incrementTimeInSeconds(options.arriveBy ? options.bikeRentalDropoffTime
                 : options.bikeRentalPickupTime);
         s1.setBikeRenting(true);
@@ -88,7 +88,7 @@ public abstract class RentABikeAbstractEdge extends Edge {
 
         StateEditor s1e = s0.edit(this);
         s1e.incrementWeight(options.arriveBy ? options.bikeRentalPickupCost
-                : options.bikeRentalDropoffCost);
+                : options.bikeRentalDropoffCost, "BikeRentalPickupCost / BikeRentalDropOffCost");
         s1e.incrementTimeInSeconds(options.arriveBy ? options.bikeRentalPickupTime
                 : options.bikeRentalDropoffTime);
         s1e.setBikeRenting(false);
