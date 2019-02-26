@@ -1,7 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.router;
 
 import com.conveyal.r5.profile.entur.RangeRaptorService;
-import com.conveyal.r5.profile.entur.api.TuningParameters;
+import com.conveyal.r5.profile.entur.api.request.TuningParameters;
 import com.conveyal.r5.profile.entur.api.path.Path;
 import com.conveyal.r5.profile.entur.api.request.RangeRaptorRequest;
 import com.conveyal.r5.profile.entur.api.request.RequestBuilder;
@@ -66,6 +66,12 @@ public class RaptorRouter {
          */
 
         double startTimeRouting = System.currentTimeMillis();
+
+        TuningParameters tuningParameters = new TuningParameters() {
+            @Override public int maxNumberOfTransfers() { return request.maxTransfers; }
+            // We don´t want to relax the results in the test, because it make it much harder to verify the result
+            @Override public double relaxCostAtDestinationArrival() { return 1.0; }
+        };
 
         RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {});
 
