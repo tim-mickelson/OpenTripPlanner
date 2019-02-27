@@ -223,10 +223,10 @@
                 and in "reports" (for site generation), preferably with identical version numbers. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
+                <version>3.0.1</version>
                 <configuration>
+                    <doclet>-Xdoclint:none</doclet>
                     <!-- Turn off Java 8 strict Javadoc checking -->
-                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
                 <executions>
                     <!-- Compress Javadoc into JAR and include that JAR when deploying. -->
