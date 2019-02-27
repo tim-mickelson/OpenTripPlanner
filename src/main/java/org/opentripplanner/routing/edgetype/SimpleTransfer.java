@@ -61,7 +61,7 @@ public class SimpleTransfer extends Edge {
         if (s0.backEdge instanceof StreetTransitLink) {
             return null;
         }
-        if(distance > s0.getOptions().maxTransferWalkDistance) {
+        if(distance > s0.getOptions().getMaxTransferWalkDistance()) {
             return null;
         }
         // Don't allow SimpleTransfer right after Call-n-Ride - in that case we need to transfer at the same stop

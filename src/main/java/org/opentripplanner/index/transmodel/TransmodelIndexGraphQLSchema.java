@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.opentripplanner.api.common.Message;
 import org.opentripplanner.api.model.*;
-import org.opentripplanner.graph_builder.annotation.StopLinkedTooFar;
 import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.index.model.StopTimesInPattern;
 import org.opentripplanner.index.model.TripTimeShort;
@@ -626,7 +625,8 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("points")
-                        .description("The encoded points of the polyline.")
+                        .description("The encoded points of the polyline. Be aware that the string could contain escape characters that need to be accounted for. " +
+                                "(https://www.freeformatter.com/javascript-escape.html)")
                         .type(Scalars.GraphQLString)
                         .dataFetcher(environment -> ((EncodedPolylineBean) environment.getSource()).getPoints())
                         .build())
@@ -805,8 +805,16 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .argument(GraphQLArgument.newArgument()
                         .name("maximumWalkDistance")
-                        .description("The maximum distance (in meters) the user is willing to walk. Note that trip patterns with longer walking distances will be penalized, but not altogether disallowed. Maximum allowed value is 15000 m")
+                        .description("DEPRECATED - Use maxPreTransitWalkDistance/maxTransferWalkDistance instead. " +
+                                "The maximum distance (in meters) the user is willing to walk. Note that trip patterns with " +
+                                "longer walking distances will be penalized, but not altogether disallowed. Maximum allowed value is 15000 m")
                         .defaultValue(defaultRoutingRequest.maxWalkDistance)
+                        .type(Scalars.GraphQLFloat)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("maxTransferWalkDistance")
+                        .description("The maximum walk distance allowed for transfers.")
+                        .defaultValue(defaultRoutingRequest.maxTransferWalkDistance)
                         .type(Scalars.GraphQLFloat)
                         .build())
                 .argument(GraphQLArgument.newArgument()
@@ -983,6 +991,12 @@ public class TransmodelIndexGraphQLSchema {
                         .description("DEPRECATED - ONLY FOR TESTING. Walk cost is multiplied by this value.")
                         .type(Scalars.GraphQLFloat)
                         .defaultValue(defaultRoutingRequest.walkReluctance)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("waitReluctance")
+                        .description("DEPRECATED - ONLY FOR TESTING. Wait cost is multiplied by this value.")
+                        .type(Scalars.GraphQLFloat)
+                        .defaultValue(defaultRoutingRequest.waitReluctance)
                         .build())
                 .argument(GraphQLArgument.newArgument()
                         .name("ignoreMinimumBookingPeriod")
