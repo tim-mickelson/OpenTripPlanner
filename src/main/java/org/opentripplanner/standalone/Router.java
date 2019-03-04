@@ -32,7 +32,7 @@ public class Router {
 
     public String id;
     public Graph graph;
-    public double[] timeouts = {5, 4, 2};
+    public double[] timeouts = {9, 6, 3, 2, 2, 2, 2, 2};
     public double totalTimeout = 15;
 
     /**
