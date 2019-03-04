@@ -4,7 +4,7 @@
 : ${FILE_TMP_PATH="/tmp/graph_obj_from_gcs/Graph.obj"}
 : ${ROUTER_CONFIG="router-config.json"}
 # Notice ending slash here, it is correct
-: ${FILENAME="https://storage.googleapis.com/marduk/graphs/neon-graph/Graph.obj"}
+: ${FILENAME="https://storage.googleapis.com/marduk-production/graphs/1.3.4.RB-SNAPSHOT/netex-20190228041737-Graph.obj"}
 
 
 echo "GRAPH_FILE_TARGET_PATH: $GRAPH_FILE_TARGET_PATH"
