@@ -408,14 +408,15 @@ public class TripPatternMapper {
     }
 
     /**
-     * Only a call-and-ride serviceJourney with two passingTimes currently supported.
+     * Only fixed or call-and-ride serviceJourney with two passingTimes currently supported.
      */
 
     boolean flexibleStructureSupported(ServiceJourney serviceJourney, NetexDao netexDao) {
-        Line_VersionStructure line = TripMapper.lineFromServiceJourney(serviceJourney, netexDao);
+        FlexibleLine flexibleLine = (FlexibleLine)TripMapper.lineFromServiceJourney(serviceJourney, netexDao);
 
-        return ((FlexibleLine) line).getFlexibleLineType().value().equals("flexibleAreasOnly") &&
-                serviceJourney.getPassingTimes().getTimetabledPassingTime().size() == 2;
+        return (flexibleLine.getFlexibleLineType().value().equals("flexibleAreasOnly") &&
+                serviceJourney.getPassingTimes().getTimetabledPassingTime().size() == 2)
+                || (flexibleLine.getFlexibleLineType().value().equals("fixed"));
     }
 
     private class StopTimeWithBookingArrangement {
