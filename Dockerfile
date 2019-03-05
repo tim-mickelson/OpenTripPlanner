@@ -23,8 +23,6 @@ RUN wget -nv "http://central.maven.org/maven2/net/logstash/logback/logstash-logb
 # Copy OTP jar file from target
 COPY target/otp-*-shaded.jar /code/otp-shaded.jar
 
-COPY router-config.json /code/router-config.json
-
 # Copy the logback xml file
 COPY docker/logback.xml /code/logback.xml
 
