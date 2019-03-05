@@ -499,6 +499,19 @@ public class AlertsUpdateHandler {
                     updateStopConditions(patch, null);
                 }
                 patch.getAlert().alertType = situation.getReportType();
+
+                if (situation.getSeverity() != null) {
+                    patch.getAlert().severity = situation.getSeverity().value();
+                } else {
+                    // When severity is not set - use default
+                    patch.getAlert().severity = SeverityEnumeration.NORMAL.value();
+                }
+
+                if (situation.getParticipantRef() != null) {
+                    String codespace = situation.getParticipantRef().getValue();
+                    patch.setFeedId(codespace + ":Authority:" + codespace); //TODO: Should probably not assume this codespace -> authority rule
+                }
+
                 patch.setSituationNumber(situationNumber);
             }
         } else if (expireSituation) {
