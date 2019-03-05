@@ -17,6 +17,14 @@ aliases:
       /tools/docker_build_push.sh
     environment:
       CIRCLE_PROJECT_REPONAME: otp-x
+  - &build-notify
+    name: Notify babylon about build and docker image pushed
+    command: |
+      echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
+      echo 'export BUILD_STATUS_API_KEY="$BUILD_STATUS_API_KEY"' >> $BASH_ENV
+      /tools/build_notify.sh
+    environment:
+      CIRCLE_PROJECT_REPONAME: otp-x
   - &post_build
     name: Trigger downstream builds
     command: |
@@ -79,6 +87,14 @@ jobs:
           - .circleci
           - Dockerfile
           - docker
+  notify-build:
+    docker:
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
+    steps:
+    - run: *build-notify
   deploy-docker:
     docker:
       - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
@@ -125,6 +141,10 @@ workflows:
         context: org-carbon
         requires:
         - deploy-jfrog
+    - notify-build:
+        context: org-carbon
+        requires:
+          - deploy-docker
     - trigger-dependants:
         context: org-carbon
         requires:
