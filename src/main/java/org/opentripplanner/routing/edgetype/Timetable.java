@@ -329,7 +329,7 @@ public class Timetable implements Serializable {
         if (state.getBackEdge() instanceof TimedTransferEdge) {
             // Transfer must be of type TIMED_TRANSFER
             if (transferTime != StopTransfer.TIMED_TRANSFER) {
-                return t0;
+                return -1;
             }
         }
         if (transferTime == StopTransfer.UNKNOWN_TRANSFER) {
