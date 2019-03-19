@@ -13,7 +13,7 @@
 
 package org.opentripplanner.routing.core;
 
-import com.conveyal.r5.profile.entur.api.request.RaptorProfile;
+import com.conveyal.r5.profile.entur.api.request.RangeRaptorProfile;
 import com.google.common.base.Objects;
 import org.apache.commons.collections.CollectionUtils;
 import org.opentripplanner.api.common.Message;
@@ -644,7 +644,7 @@ public class RoutingRequest implements Cloneable, Serializable {
      * Type of raptor profile used during transit search.
      */
 
-    public RaptorProfile raptorProfile = RaptorProfile.RANGE_RAPTOR;
+    public RangeRaptorProfile raptorProfile = RangeRaptorProfile.MULTI_CRITERIA;
 
     /** Saves split edge which can be split on origin/destination search
      *
