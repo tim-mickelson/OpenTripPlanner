@@ -523,6 +523,11 @@ public class RoutingRequest implements Cloneable, Serializable {
     public boolean includePlannedCancellations = false;
 
     /**
+     * When true, interchanges / timed transfers are ignored for this search.
+     */
+    public boolean ignoreInterchanges = false;
+
+    /**
      * If true, the remaining weight heuristic is disabled. Currently only implemented for the long
      * distance path service.
      */
