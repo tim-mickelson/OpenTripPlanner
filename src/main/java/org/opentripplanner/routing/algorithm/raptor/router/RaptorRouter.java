@@ -1,6 +1,8 @@
 package org.opentripplanner.routing.algorithm.raptor.router;
 
 import com.conveyal.r5.profile.entur.RangeRaptorService;
+import com.conveyal.r5.profile.entur.api.request.Optimization;
+import com.conveyal.r5.profile.entur.api.request.RangeRaptorProfile;
 import com.conveyal.r5.profile.entur.api.request.TuningParameters;
 import com.conveyal.r5.profile.entur.api.path.Path;
 import com.conveyal.r5.profile.entur.api.request.RangeRaptorRequest;
@@ -71,22 +73,28 @@ public class RaptorRouter {
             @Override public int maxNumberOfTransfers() { return request.maxTransfers; }
             // We don´t want to relax the results in the test, because it make it much harder to verify the result
             @Override public double relaxCostAtDestinationArrival() { return 1.0; }
+            @Override public int searchThreadPoolSize() { return 0; }
         };
 
         RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {});
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
-
-
-        RangeRaptorRequest rangeRaptorRequest = new RequestBuilder()
+        RequestBuilder builder = new RequestBuilder();
+        builder.profile(request.raptorProfile)
+                .searchParams()
                 .earliestDepartureTime(departureTime)
                 .searchWindowInSeconds(request.raptorSearchRange * 60)
                 .addAccessStops(accessTimes)
                 .addEgressStops(egressTimes)
-                .boardSlackInSeconds(60)
-                .profile(request.raptorProfile)
-                .build();
+                .boardSlackInSeconds(60);
+
+        if(request.raptorProfile.is(RangeRaptorProfile.MULTI_CRITERIA)) {
+            builder.enableOptimization(Optimization.PARETO_CHECK_AGAINST_DESTINATION);
+        }
+
+
+        RangeRaptorRequest rangeRaptorRequest = builder.build();
 
         /**
          * Route transit
