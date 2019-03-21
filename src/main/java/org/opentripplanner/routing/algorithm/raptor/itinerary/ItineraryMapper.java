@@ -1,16 +1,18 @@
 package org.opentripplanner.routing.algorithm.raptor.itinerary;
 
-import com.conveyal.r5.profile.otp2.api.path.*;
-import com.conveyal.r5.speed_test.api.model.TripPlan;
-import org.locationtech.jts.geom.Coordinate;
-import org.opentripplanner.api.model.Itinerary;
-import org.opentripplanner.api.model.Leg;
-import org.opentripplanner.api.model.Place;
-import org.opentripplanner.api.model.VertexType;
+import com.conveyal.r5.profile.otp2.api.path.AccessPathLeg;
+import com.conveyal.r5.profile.otp2.api.path.EgressPathLeg;
+import com.conveyal.r5.profile.otp2.api.path.TransferPathLeg;
+import com.conveyal.r5.profile.otp2.api.path.TransitPathLeg;
+import com.vividsolutions.jts.geom.Coordinate;
+import org.opentripplanner.api.model.*;
+import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.ServiceDate;
+import com.conveyal.r5.profile.otp2.api.path.Path;
+import com.conveyal.r5.profile.otp2.api.path.PathLeg;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit_data_provider.TripSchedule;

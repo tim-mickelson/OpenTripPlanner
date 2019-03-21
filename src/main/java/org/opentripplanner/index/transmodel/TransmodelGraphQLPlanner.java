@@ -1,6 +1,6 @@
 package org.opentripplanner.index.transmodel;
 
-import com.conveyal.r5.profile.entur.api.request.RangeRaptorProfile;
+import com.conveyal.r5.profile.otp2.api.request.RangeRaptorProfile;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import graphql.schema.DataFetchingEnvironment;

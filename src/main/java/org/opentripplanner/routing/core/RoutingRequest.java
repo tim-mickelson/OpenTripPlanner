@@ -13,7 +13,7 @@
 
 package org.opentripplanner.routing.core;
 
-import com.conveyal.r5.profile.entur.api.request.RangeRaptorProfile;
+import com.conveyal.r5.profile.otp2.api.request.RangeRaptorProfile;
 import com.google.common.base.Objects;
 import org.apache.commons.collections.CollectionUtils;
 import org.opentripplanner.api.common.Message;

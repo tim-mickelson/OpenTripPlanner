@@ -1,6 +1,6 @@
 package org.opentripplanner.index.transmodel;
 
-import com.conveyal.r5.profile.entur.api.request.RangeRaptorProfile;
+import com.conveyal.r5.profile.otp2.api.request.RangeRaptorProfile;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;

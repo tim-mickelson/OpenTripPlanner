@@ -1,7 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_layer;
 
 
-import com.conveyal.r5.profile.entur.api.transit.TripPatternInfo;
+import com.conveyal.r5.profile.otp2.api.transit.TripPatternInfo;
 import org.opentripplanner.routing.algorithm.raptor.transit_data_provider.TripSchedule;
 
 import java.util.List;

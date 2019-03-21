@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_data_provider;
 
-import com.conveyal.r5.profile.entur.api.transit.TransferLeg;
+import com.conveyal.r5.profile.otp2.api.transit.TransferLeg;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.Transfer;
 
 public class TransferR5Adapter implements TransferLeg {

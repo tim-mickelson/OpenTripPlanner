@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit_data_provider;
 
-import com.conveyal.r5.profile.entur.api.transit.*;
+import com.conveyal.r5.profile.otp2.api.transit.*;
 import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.routing.algorithm.raptor.transit_layer.*;
 import org.opentripplanner.routing.core.TraverseMode;
