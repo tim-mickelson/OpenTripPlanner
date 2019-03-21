@@ -71,8 +71,6 @@ public class RaptorRouter {
 
         TuningParameters tuningParameters = new TuningParameters() {
             @Override public int maxNumberOfTransfers() { return request.maxTransfers; }
-            // We don´t want to relax the results in the test, because it make it much harder to verify the result
-            @Override public double relaxCostAtDestinationArrival() { return 1.0; }
             @Override public int searchThreadPoolSize() { return 0; }
         };
 
