@@ -85,7 +85,8 @@ public class RaptorRouter {
                 .searchWindowInSeconds(request.raptorSearchRange * 60)
                 .addAccessStops(accessTimes)
                 .addEgressStops(egressTimes)
-                .boardSlackInSeconds(60);
+                .boardSlackInSeconds(60)
+                .timetableEnabled(true);
 
         if(request.raptorProfile.is(RangeRaptorProfile.MULTI_CRITERIA)) {
             builder.enableOptimization(Optimization.PARETO_CHECK_AGAINST_DESTINATION);
