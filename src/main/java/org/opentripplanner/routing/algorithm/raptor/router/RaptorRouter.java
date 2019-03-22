@@ -115,7 +115,7 @@ public class RaptorRouter {
                 .map(p -> itineraryMapper.createItinerary(request, p, accessTransfers, egressTransfers))
                 .collect(Collectors.toList());
 
-        filterByParetoSet(itineraries);
+        //filterByParetoSet(itineraries);
 
         TripPlan tripPlan = itineraryMapper.createTripPlan(request, itineraries);
 
