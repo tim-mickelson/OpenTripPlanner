@@ -89,7 +89,7 @@ public class RaptorRouter {
                 .timetableEnabled(true);
 
         if(request.raptorProfile.is(RangeRaptorProfile.MULTI_CRITERIA)) {
-            builder.enableOptimization(Optimization.PARETO_CHECK_AGAINST_DESTINATION);
+            //builder.enableOptimization(Optimization.PARETO_CHECK_AGAINST_DESTINATION);
         }
 
 
