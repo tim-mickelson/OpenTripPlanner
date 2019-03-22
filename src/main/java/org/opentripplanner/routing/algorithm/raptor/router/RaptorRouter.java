@@ -74,7 +74,7 @@ public class RaptorRouter {
             @Override public int searchThreadPoolSize() { return 0; }
         };
 
-        RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(new TuningParameters() {});
+        RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(tuningParameters);
 
         int departureTime = Instant.ofEpochMilli(request.dateTime * 1000).atZone(ZoneId.systemDefault()).toLocalTime().toSecondOfDay();
 
