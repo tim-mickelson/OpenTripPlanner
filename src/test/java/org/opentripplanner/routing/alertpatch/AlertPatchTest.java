@@ -60,7 +60,7 @@ public class AlertPatchTest extends TestCase {
                 CalendarServiceData.class,
                 createCalendarServiceData(context.getTransitBuilder())
         );
-        graph.index(new DefaultStreetVertexIndexFactory());
+        graph.index(new DefaultStreetVertexIndexFactory(), false);
 
         feedId = context.getFeedId().getId();
     }

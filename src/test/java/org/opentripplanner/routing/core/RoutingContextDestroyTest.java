@@ -55,7 +55,7 @@ public class RoutingContextDestroyTest {
         createStreetEdge(a, b, "a -> b");
         createStreetEdge(b, a, "b -> a");
         createStreetEdge(a, c, "a -> c");
-        g.index(new DefaultStreetVertexIndexFactory());
+        g.index(new DefaultStreetVertexIndexFactory(), false);
     }
 
     @Test public void temporaryChangesRemovedOnContextDestroy() {

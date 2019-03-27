@@ -202,7 +202,7 @@ public class GraphBuilder implements Runnable {
         if (params.loadBaseGraph) {
             graphBuilder.setBaseGraph(GraphBuilder.BASE_GRAPH_FILENAME, params.build);
             Graph graph = graphBuilder.getGraph();
-            graph.index(new DefaultStreetVertexIndexFactory());
+            graph.index(new DefaultStreetVertexIndexFactory(), false);
         }
         graphBuilder.setPath(dir, params.skipTransit ? BASE_GRAPH_FILENAME : GRAPH_FILENAME);
         // Find and parse config files first to reveal syntax errors early without waiting for graph build.

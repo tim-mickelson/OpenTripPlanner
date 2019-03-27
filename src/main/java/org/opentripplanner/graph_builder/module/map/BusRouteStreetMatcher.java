@@ -60,7 +60,7 @@ public class BusRouteStreetMatcher implements GraphBuilderModule {
     public void buildGraph(Graph graph, HashMap<Class<?>, Object> extra) {
 
         //Mapbuilder needs transit index
-        graph.index(new DefaultStreetVertexIndexFactory());
+        graph.index(new DefaultStreetVertexIndexFactory(), true);
 
         StreetMatcher matcher = new StreetMatcher(graph);
         EdgesForRoute edgesForRoute = new EdgesForRoute();

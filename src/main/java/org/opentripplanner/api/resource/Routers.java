@@ -20,7 +20,6 @@ import org.opentripplanner.api.model.RouterList;
 import org.opentripplanner.graph_builder.GraphBuilder;
 import org.opentripplanner.routing.error.GraphNotFoundException;
 import org.opentripplanner.routing.graph.Graph;
-import org.opentripplanner.routing.graph.Graph.LoadLevel;
 import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
 import org.opentripplanner.routing.impl.MemoryGraphSource;
 import org.opentripplanner.routing.services.GraphService;
@@ -52,40 +51,40 @@ import static org.opentripplanner.api.resource.ServerInfo.Q;
 
 /**
  * This REST API endpoint allows remotely loading, reloading, and evicting graphs on a running server.
- * 
+ *
  * A GraphService maintains a mapping between routerIds and specific Graph objects.
  * The HTTP verbs are used as follows to manipulate that mapping:
- * 
+ *
  * GET - see the registered routerIds and Graphs, verify whether a particular routerId is registered
  * PUT - create or replace a mapping from a routerId to a Graph loaded from the server filesystem
  * POST - create or replace a mapping from a routerId to a serialized Graph sent in the request
  * DELETE - de-register a routerId, releasing the reference to the associated graph
- * 
- * The HTTP request URLs are of the form /ws/routers/{routerId}, where the routerId is optional. 
- * If a routerId is supplied in the URL, the verb will act upon the mapping for that specific 
+ *
+ * The HTTP request URLs are of the form /ws/routers/{routerId}, where the routerId is optional.
+ * If a routerId is supplied in the URL, the verb will act upon the mapping for that specific
  * routerId. If no routerId is given, the verb will act upon all routerIds currently registered.
- * 
+ *
  * For example:
- * 
+ *
  * GET http://localhost/otp-rest-servlet/ws/routers
  * will retrieve a list of all registered routerId -> Graph mappings and their geographic bounds.
- * 
+ *
  * GET http://localhost/otp-rest-servlet/ws/routers/london
- * will return status code 200 and a brief description of the 'london' graph including geographic 
+ * will return status code 200 and a brief description of the 'london' graph including geographic
  * bounds, or 404 if the 'london' routerId is not registered.
- * 
+ *
  * PUT http://localhost/otp-rest-servlet/ws/routers
  * will reload the graphs for all currently registered routerIds from disk.
- * 
+ *
  * PUT http://localhost/otp-rest-servlet/ws/routers/paris
  * will load a Graph from a sub-directory called 'paris' and associate it with the routerId 'paris'.
- * 
+ *
  * DELETE http://localhost/otp-rest-servlet/ws/routers/paris
  * will release the Paris Graph and de-register the 'paris' routerId.
- * 
+ *
  * DELETE http://localhost/otp-rest-servlet/ws/routers
  * will de-register all currently registered routerIds.
- * 
+ *
  * The GET methods are not secured, but all other methods are secured under ROLE_ROUTERS.
  * See documentation for individual methods for additional parameters.
  */
@@ -99,8 +98,8 @@ public class Routers {
 
     private static boolean flaggedAsReady = false;
 
-    /** 
-     * Returns a list of routers and their bounds. 
+    /**
+     * Returns a list of routers and their bounds.
      * @return a representation of the graphs and their geographic bounds, in JSON or XML depending
      * on the Accept header in the HTTP request.
      */
@@ -124,14 +123,47 @@ public class Routers {
     @GET @Path("/ready")
     @Produces({ MediaType.TEXT_PLAIN})
     public Response isReady() {
-        // Always return status ok in the raptor branch
+        boolean isRouterReady = false;
+        List<String> waitingUpdaters = new ArrayList<>();
+        for (String id : otpServer.getRouterIds()) {
+            Router router = otpServer.getRouter(id);
+            if (router != null) {
+                // Router could have been evicted in the meantime
+                Graph graph = router.graph;
+
+                isRouterReady = true;
+                for (GraphUpdater updater : graph.updaterManager.getUpdaterList()) {
+                    if (updater instanceof PollingGraphUpdater) {
+                        if (! ((PollingGraphUpdater) updater).isReady()) {
+                            waitingUpdaters.add(((PollingGraphUpdater) updater).getType());
+                        }
+                    }
+                }
+            }
+        }
+        if (!isRouterReady) {
+            LOG.info("Graph not ready.");
+            throw new WebApplicationException(Response.status(Status.NOT_FOUND)
+                    .entity("Graph not ready.\n").type("text/plain")
+                    .build());
+        }
+        if (!waitingUpdaters.isEmpty()) {
+            LOG.info("Graph ready, waiting for updaters: {}", waitingUpdaters);
+            throw new WebApplicationException(Response.status(Status.NOT_FOUND)
+                    .entity("Graph ready, waiting for updaters: " + waitingUpdaters + "\n").type("text/plain")
+                    .build());
+        }
+        if (!flaggedAsReady) {
+            flaggedAsReady = true;
+            LOG.info("Graph is now ready.");
+        }
         return Response.status(Status.OK)
                 .entity("Ready.\n").type("text/plain")
                 .build();
     }
 
-    /** 
-     * Returns the bounds for a specific routerId, or verifies whether it is registered. 
+    /**
+     * Returns the bounds for a specific routerId, or verifies whether it is registered.
      * @returns status code 200 if the routerId is registered, otherwise a 404.
      */
     @GET @Path("{routerId}")
@@ -145,7 +177,7 @@ public class Routers {
                     .build());
         return routerInfo;
     }
-    
+
     private RouterInfo getRouterInfo(String routerId) {
         try {
             Router router = otpServer.getRouter(routerId);
@@ -158,28 +190,28 @@ public class Routers {
         }
     }
 
-    /** 
+    /**
      * Reload the graphs for all registered routerIds from disk.
      */
     @RolesAllowed({ "ROUTERS" })
     @PUT @Produces({ MediaType.APPLICATION_JSON })
     public Response reloadGraphs(@QueryParam("path") String path,
-            @QueryParam("preEvict") @DefaultValue("true") boolean preEvict,
-            @QueryParam("force") @DefaultValue("true") boolean force) {
+                                 @QueryParam("preEvict") @DefaultValue("true") boolean preEvict,
+                                 @QueryParam("force") @DefaultValue("true") boolean force) {
         otpServer.getGraphService().reloadGraphs(preEvict, force);
         return Response.status(Status.OK).build();
     }
 
-    /** 
+    /**
      * Load the graph for the specified routerId from disk.
-     * @param preEvict before reloading each graph, evict the existing graph. This will prevent 
-     * memory usage from increasing during the reload, but routing will be unavailable on this 
+     * @param preEvict before reloading each graph, evict the existing graph. This will prevent
+     * memory usage from increasing during the reload, but routing will be unavailable on this
      * routerId for the duration of the operation.
      */
     @RolesAllowed({ "ROUTERS" })
     @PUT @Path("{routerId}") @Produces({ MediaType.TEXT_PLAIN })
     public Response putGraphId(@PathParam("routerId") String routerId,
-            @QueryParam("preEvict") @DefaultValue("true") boolean preEvict) {
+                               @QueryParam("preEvict") @DefaultValue("true") boolean preEvict) {
         LOG.debug("Attempting to load graph '{}' from server's local filesystem.", routerId);
         GraphService graphService = otpServer.getGraphService();
         if (graphService.getRouterIds().contains(routerId)) {
@@ -198,17 +230,16 @@ public class Routers {
         }
     }
 
-    /** 
-     * Deserialize a graph sent with the HTTP request as POST data, associating it with the given 
+    /**
+     * Deserialize a graph sent with the HTTP request as POST data, associating it with the given
      * routerId.
      */
     @RolesAllowed({ "ROUTERS" })
     @POST @Path("{routerId}") @Produces({ MediaType.TEXT_PLAIN })
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public Response postGraphOverWire (
-            @PathParam("routerId") String routerId, 
-            @QueryParam("preEvict") @DefaultValue("true") boolean preEvict, 
-            @QueryParam("loadLevel") @DefaultValue("FULL") LoadLevel level,
+            @PathParam("routerId") String routerId,
+            @QueryParam("preEvict") @DefaultValue("true") boolean preEvict,
             InputStream is) {
         if (preEvict) {
             LOG.debug("pre-evicting graph");
@@ -217,7 +248,7 @@ public class Routers {
         LOG.debug("deserializing graph from POST data stream...");
         Graph graph;
         try {
-            graph = Graph.load(is, level);
+            graph = Graph.load(is);
             GraphService graphService = otpServer.getGraphService();
             graphService.registerGraph(routerId, new MemoryGraphSource(routerId, graph));
             return Response.status(Status.CREATED).entity(graph.toString() + "\n").build();
@@ -225,7 +256,7 @@ public class Routers {
             return Response.status(Status.BAD_REQUEST).entity(e.toString() + "\n").build();
         }
     }
-    
+
     /**
      * Build a graph from data in the ZIP file posted over the wire, associating it with the given router ID.
      * This method will be selected when the Content-Type is application/zip.
@@ -238,31 +269,31 @@ public class Routers {
             @QueryParam("preEvict") @DefaultValue("true") boolean preEvict,
             InputStream input) {
         // TODO: async processing
-        
+
         if (preEvict) {
             LOG.debug("Pre-evicting graph with routerId {} before building new graph", routerId);
             otpServer.getGraphService().evictRouter(routerId);
         }
-        
+
         // get a temporary directory, using Google Guava
         File tempDir = Files.createTempDir();
-        
+
         // extract the zip file to the temp dir
         ZipInputStream zis = new ZipInputStream(input);
-        
+
         try {
             for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
                 if (entry.isDirectory())
                     // we only support flat ZIP files
                     return Response.status(Response.Status.BAD_REQUEST)
                             .entity("ZIP files containing directories are not supported").build();
-                    
+
                 File file = new File(tempDir, entry.getName());
-                
+
                 if (!file.getParentFile().equals(tempDir))
                     return Response.status(Response.Status.BAD_REQUEST)
                             .entity("ZIP files containing directories are not supported").build();
-                    
+
                 OutputStream os = new FileOutputStream(file);
                 ByteStreams.copy(zis, os);
                 os.close();
@@ -276,29 +307,29 @@ public class Routers {
         CommandLineParameters params = otpServer.params.clone();
         params.build = tempDir;
         params.inMemory = true;
-        
+
         GraphBuilder graphBuilder = GraphBuilder.forDirectory(params, tempDir);
-        
+
         graphBuilder.run();
-        
+
         // remove the temporary directory
         // this doesn't work for nested directories, but the extract doesn't either,
         // so we'll crash long before we get here . . .
         for (File file : tempDir.listFiles()) {
             file.delete();
         }
-        
+
         tempDir.delete();
-        
+
         Graph graph = graphBuilder.getGraph();
-        graph.index(new DefaultStreetVertexIndexFactory());
-        
+        graph.index(new DefaultStreetVertexIndexFactory(), true);
+
         GraphService graphService = otpServer.getGraphService();
         graphService.registerGraph(routerId, new MemoryGraphSource(routerId, graph));
         return Response.status(Status.CREATED).entity(graph.toString() + "\n").build();
     }
-    
-    /** 
+
+    /**
      * Save the graph data, but don't load it in memory. The file location is based on routerId.
      * If the graph already exists, the graph will be overwritten.
      */
@@ -330,7 +361,7 @@ public class Routers {
         return Response.status(200).entity(message).build();
     }
 
-    /** 
+    /**
      * De-register a specific routerId, evicting the associated graph from memory. 
      * @return status code 200 if the routerId was de-registered, 
      * 404 if the routerId was not registered. 

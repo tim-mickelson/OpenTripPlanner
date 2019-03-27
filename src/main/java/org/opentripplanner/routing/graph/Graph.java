@@ -13,8 +13,9 @@
 
 package org.opentripplanner.routing.graph;
 
-import com.conveyal.r5.kryo.TIntArrayListSerializer;
-import com.conveyal.r5.kryo.TIntIntHashMapSerializer;
+import com.conveyal.kryo.HashBiMapSerializer;
+import com.conveyal.kryo.TIntArrayListSerializer;
+import com.conveyal.kryo.TIntIntHashMapSerializer;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -637,41 +638,9 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     /* (de) serialization */
 
-    public enum LoadLevel {
-        BASIC, FULL, DEBUG;
-    }
-
-    public static Graph load(File file, LoadLevel level) throws IOException, ClassNotFoundException {
+    public static Graph load(File file) throws IOException {
         LOG.info("Reading graph " + file.getAbsolutePath() + " ...");
-        // cannot use getClassLoader() in static context
-        ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
-        return load(in, level);
-    }
-
-    public static Graph load(ClassLoader classLoader, File file, LoadLevel level)
-            throws IOException, ClassNotFoundException {
-        LOG.info("Reading graph " + file.getAbsolutePath() + " with alternate classloader ...");
-        ObjectInputStream in = new GraphObjectInputStream(new BufferedInputStream(
-                new FileInputStream(file)), classLoader);
-        return load(in, level);
-    }
-
-    public static Graph load(InputStream is, LoadLevel level) throws ClassNotFoundException,
-            IOException {
-        return load(new ObjectInputStream(is), level);
-    }
-
-    /**
-     * Default load. Uses DefaultStreetVertexIndexFactory.
-     * @param in
-     * @param level
-     * @return
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    public static Graph load(ObjectInputStream in, LoadLevel level) throws IOException,
-            ClassNotFoundException {
-        return load(in, level, new DefaultStreetVertexIndexFactory());
+        return load(new FileInputStream(file));
     }
 
     /**
@@ -703,6 +672,10 @@ public class Graph implements Serializable, AddBuilderAnnotation {
             this.transitLayer = transitLayerMapper.map(this);
         }
     }
+
+    public void index(StreetVertexIndexFactory indexFactory) {
+        index(indexFactory, false);
+    }
     
     public static Graph load(InputStream in) {
         // TODO store version information, halt load if versions mismatch
@@ -732,7 +705,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         }
 
         LOG.info("Main graph read. |V|={} |E|={}", graph.countVertices(), graph.countEdges());
-        graph.index(new DefaultStreetVertexIndexFactory());
+        graph.index(new DefaultStreetVertexIndexFactory(), true);
         return graph;
     }
 

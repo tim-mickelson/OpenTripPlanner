@@ -924,6 +924,12 @@
             <artifactId>spark-core</artifactId>
             <version>2.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>2.3.0</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
@@ -946,7 +952,7 @@
             </properties>
             <build>
                 <!-- Missing fabric8:apply, as this crashed (probably due to missing fabric8) -->
-                <defaultGoal>clean install docker:build docker:push fabric8:json</defaultGoal>
+                <defaultGoal>clean install docker:build docker:push fabric8:jso</defaultGoal>
             </build>
         </profile>
         <profile>

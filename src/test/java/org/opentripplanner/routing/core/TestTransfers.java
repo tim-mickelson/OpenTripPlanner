@@ -88,7 +88,7 @@ class Context {
         graph = spy(new Graph());
         PatternHopFactory factory = new PatternHopFactory(context);
         factory.run(graph);
-        graph.index(new DefaultStreetVertexIndexFactory());
+        graph.index(new DefaultStreetVertexIndexFactory(), false);
         graph.putService(
                 CalendarServiceData.class,
                 createCalendarServiceData(context.getTransitBuilder())

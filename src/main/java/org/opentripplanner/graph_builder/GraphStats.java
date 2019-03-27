@@ -53,7 +53,7 @@ public class GraphStats {
 
     @Parameter(names = { "-v", "--verbose" }, description = "Verbose output")
     private boolean verbose = false;
-   
+
     @Parameter(names = { "-d", "--debug"}, description = "Debug mode")
     private boolean debug = false;
 
@@ -66,29 +66,29 @@ public class GraphStats {
     @Parameter(names = { "-o", "--out"}, description = "output file")
     private String outPath;
 
-    private CommandEndpoints commandEndpoints = new CommandEndpoints(); 
-    
-    private CommandSpeedStats commandSpeedStats = new CommandSpeedStats();  
+    private CommandEndpoints commandEndpoints = new CommandEndpoints();
 
-    private CommandPatternStats commandPatternStats = new CommandPatternStats();  
+    private CommandSpeedStats commandSpeedStats = new CommandSpeedStats();
+
+    private CommandPatternStats commandPatternStats = new CommandPatternStats();
 
     private JCommander jc;
-    
+
     private Graph graph;
-    
+
     private CsvWriter writer;
-    
+
     public static void main(String[] args) {
         GraphStats graphStats = new GraphStats(args);
         graphStats.run();
     }
-    
+
     private GraphStats(String[] args) {
         jc = new JCommander(this);
         jc.addCommand(commandEndpoints);
         jc.addCommand(commandSpeedStats);
         jc.addCommand(commandPatternStats);
-        
+
         try {
             jc.parse(args);
         } catch (Exception e) {
@@ -96,19 +96,19 @@ public class GraphStats {
             jc.usage();
             System.exit(1);
         }
-        
+
         if (help || jc.getParsedCommand() == null) {
             jc.usage();
             System.exit(0);
         }
     }
-   
+
     private void run() {
 
         /* open input graph (same for all commands) */
         File graphFile = new File(graphPath);
         try {
-            graph = Graph.load(graphFile, Graph.LoadLevel.FULL);
+            graph = Graph.load(graphFile);
         } catch (Exception e) {
             LOG.error("Exception while loading graph from " + graphFile);
             return;
@@ -126,7 +126,7 @@ public class GraphStats {
             writer = new CsvWriter(System.out, ',', Charset.forName("UTF8"));
         }
         LOG.info("done loading graph.");
-        
+
         String command = jc.getParsedCommand();
         if (command.equals("endpoints")) {
             commandEndpoints.run();
@@ -139,7 +139,7 @@ public class GraphStats {
 
     }
 
-    @Parameters(commandNames = "endpoints", commandDescription = "Generate random endpoints for performance testing") 
+    @Parameters(commandNames = "endpoints", commandDescription = "Generate random endpoints for performance testing")
     class CommandEndpoints {
 
         @Parameter(names = { "-r", "--radius"}, description = "perturbation radius in meters")
@@ -195,7 +195,7 @@ public class GraphStats {
                     Point2D dest = gc.getDestinationGeographicPoint();
                     String name = v.getName();
                     String[] entries = new String[] {
-                            Integer.toString(i), name, 
+                            Integer.toString(i), name,
                             Double.toString(dest.getX()), Double.toString(dest.getY())
                     };
                     writer.writeRecord(entries);
@@ -204,11 +204,11 @@ public class GraphStats {
             } catch (IOException ioe) {
                 LOG.error("Excpetion while writing CSV: {}", ioe.getMessage());
             }
-            LOG.info("done."); 
+            LOG.info("done.");
         }
     }
 
-    @Parameters(commandNames = "speedstats", commandDescription = "speed stats") 
+    @Parameters(commandNames = "speedstats", commandDescription = "speed stats")
     class CommandSpeedStats {
 
         public void run() {
@@ -231,8 +231,8 @@ public class GraphStats {
                             double speed = distance / time;
                             if (Double.isInfinite(speed) || Double.isNaN(speed))
                                 continue;
-                            String[] entries = new String[] { 
-                                    route, Double.toString(distance), Integer.toString(time), 
+                            String[] entries = new String[] {
+                                    route, Double.toString(distance), Integer.toString(time),
                                     Double.toString(speed)
                             };
                             writer.writeRecord(entries);
@@ -248,14 +248,14 @@ public class GraphStats {
 
     }
 
-    @Parameters(commandNames = "patternstats", commandDescription = "trip pattern stats") 
+    @Parameters(commandNames = "patternstats", commandDescription = "trip pattern stats")
     class CommandPatternStats {
-        
+
         public void run() {
             LOG.info("counting number of trips per pattern...");
             try {
                 writer.writeRecord( new String[] {
-                        "nTripsInPattern", "frequency", 
+                        "nTripsInPattern", "frequency",
                         "cumulativePatterns", "empiricalDistPatterns",
                         "cumulativeTrips", "empiricalDistTrips" } );
                 Set<TripPattern> patterns = new HashSet<TripPattern>();
@@ -282,12 +282,12 @@ public class GraphStats {
                     cPatterns += count.getCount();
                     cTrips += count.getCount() * count.getElement();
                     writer.writeRecord( new String[] {
-                        count.getElement().toString(),
-                        Integer.toString(count.getCount()),
-                        Integer.toString(cPatterns),
-                        Double.toString(cPatterns / (double) nPatterns),
-                        Integer.toString(cTrips),
-                        Double.toString(cTrips / (double) nTrips)
+                            count.getElement().toString(),
+                            Integer.toString(count.getCount()),
+                            Integer.toString(cPatterns),
+                            Double.toString(cPatterns / (double) nPatterns),
+                            Integer.toString(cTrips),
+                            Double.toString(cTrips / (double) nTrips)
                     } );
                 }
             } catch (IOException e) {

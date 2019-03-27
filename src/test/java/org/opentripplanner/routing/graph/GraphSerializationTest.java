@@ -1,7 +1,6 @@
 package org.opentripplanner.routing.graph;
 
-import com.conveyal.r5.GraphQLSchema;
-import com.conveyal.r5.diff.ObjectDiffer;
+import com.conveyal.object_differ.ObjectDiffer;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Polygon;
 import org.geotools.util.WeakValueHashMap;
@@ -47,7 +46,7 @@ public class GraphSerializationTest {
         List<Vertex> transitVertices = originalGraph.getVertices().stream()
                 .filter(v -> v instanceof TransitStation).collect(Collectors.toList());
         transitVertices.forEach(originalGraph::remove);
-        originalGraph.index(new DefaultStreetVertexIndexFactory());
+        originalGraph.index(new DefaultStreetVertexIndexFactory(), false);
         // The cached timezone in the graph is transient and lazy-initialized.
         // Previous tests may have caused a timezone to be cached.
         originalGraph.clearTimeZone();
@@ -82,7 +81,7 @@ public class GraphSerializationTest {
         // This graph does not make an ideal test because it doesn't have any street data.
         // TODO switch to another graph that has both GTFS and OSM data
         Graph originalGraph = ConstantsForTests.getInstance().getPortlandGraph();
-        originalGraph.index(new DefaultStreetVertexIndexFactory());
+        originalGraph.index(new DefaultStreetVertexIndexFactory(), false);
         // We can exclude relatively few classes here, because the object trees are of course perfectly identical.
         // We do skip edge lists - otherwise we trigger a depth-first search of the graph causing a stack overflow.
         // We also skip some deeply buried weak-value hash maps, which refuse to tell you what their keys are.

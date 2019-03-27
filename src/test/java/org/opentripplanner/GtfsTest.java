@@ -84,7 +84,7 @@ public abstract class GtfsTest extends TestCase {
         // Set the agency ID to be used for tests to the first one in the feed.
         agencyId = graph.getAgencies(feedId.getId()).iterator().next().getId();
         System.out.printf("Set the agency ID for this test to %s\n", agencyId);
-        graph.index(new DefaultStreetVertexIndexFactory());
+        graph.index(new DefaultStreetVertexIndexFactory(), false);
         timetableSnapshotSource = new TimetableSnapshotSource(graph);
         timetableSnapshotSource.purgeExpiredData = (false);
         graph.timetableSnapshotSource = (timetableSnapshotSource);

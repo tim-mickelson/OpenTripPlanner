@@ -74,7 +74,7 @@ public class TransitLayerMapper {
                     patternId++,
                     tripSchedules,
                     tripPattern.mode,
-                    tripPattern.getTransportSubmode(),
+                    null, // TODO Get submode
                     stopPattern
             );
 

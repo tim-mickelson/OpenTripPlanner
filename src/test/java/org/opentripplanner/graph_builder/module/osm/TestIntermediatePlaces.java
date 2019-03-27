@@ -47,7 +47,7 @@ public class TestIntermediatePlaces {
             Graph graph = FakeGraph.buildGraphNoTransit();
             FakeGraph.addPerpendicularRoutes(graph);
             FakeGraph.link(graph);
-            graph.index(new DefaultStreetVertexIndexFactory());
+            graph.index(new DefaultStreetVertexIndexFactory(), false);
 
             OTPServer otpServer = new OTPServer(new CommandLineParameters(), new GraphService());
             otpServer.getGraphService().registerGraph("A", new MemoryGraphSource("A", graph));
