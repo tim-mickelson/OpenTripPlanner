@@ -2,8 +2,10 @@
 
 : ${GRAPH_FILE_TARGET_PATH="/code/otpdata/norway/Graph.obj"}
 : ${FILE_TMP_PATH="/tmp/graph_obj_from_gcs"}
+: ${ROUTER_CONFIG="router-config.json"}
 # Notice ending slash here, it is correct
 : ${MARDUK_GCP_BASE="gs://marduk/"}
+: ${FILENAME="graphs/neon-graph/Graph.obj"}
 
 echo "Sleeping for 10 seconds..."
 sleep 10s
@@ -12,8 +14,6 @@ echo "GRAPH_FILE_TARGET_PATH: $GRAPH_FILE_TARGET_PATH"
 
 echo "Activating marduk blobstore service account"
 /code/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file /etc/marduk/marduk-blobstore-credentials.json
-
-FILENAME=$(/code/google-cloud-sdk/bin/gsutil cat ${MARDUK_GCP_BASE}graphs/current)
 
 DOWNLOAD="${MARDUK_GCP_BASE}${FILENAME}"
 echo "Downloading $DOWNLOAD"
