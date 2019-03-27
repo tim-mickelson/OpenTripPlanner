@@ -34,59 +34,58 @@ aliases:
 jobs:
   test:
     docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-      auth:
-        username: _json_key
-        password: $GCLOUD_SERVICE_KEY
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
-    - checkout
-    - restore_cache:
-        key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -q -s /tools/m2/settings.xml
-    - save_cache:
-        paths:
-        - ~/.m2
-        key: dep-cache-{{ checksum "pom.xml" }}
-    # Cannot use -o because of snapshot dependencies.
-    - run: mvn test -s /tools/m2/settings.xml
-    - run:
-        name: Save test results
-        command: |
-          mkdir -p ~/junit/
-          find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-        when: always
-    - store_test_results:
-        path: ~/junit
-    - store_artifacts:
-        path: ~/junit
+      - checkout
+      - restore_cache:
+          key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn test -s /tools/m2/settings.xml
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
   deploy-nexus:
     docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-      auth:
-        username: _json_key
-        password: $GCLOUD_SERVICE_KEY
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
-    - checkout
-    - restore_cache:
-        key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -q -s .circleci/settings.xml
-    - save_cache:
-        paths:
-        - ~/.m2
-        key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
-    - persist_to_workspace:
-        root: ~/project
-        paths:
-          - target
-          - pom.xml
-          - .circleci
-          - Dockerfile
-          - docker
+      - checkout
+      - restore_cache:
+          key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -q -s /tools/m2/settings.xml
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - target
+            - pom.xml
+            - .circleci
+            - Dockerfile
+            - docker
   notify-build:
     docker:
       - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
