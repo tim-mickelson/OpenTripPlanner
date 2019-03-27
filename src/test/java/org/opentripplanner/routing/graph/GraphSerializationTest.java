@@ -46,7 +46,7 @@ public class GraphSerializationTest {
         List<Vertex> transitVertices = originalGraph.getVertices().stream()
                 .filter(v -> v instanceof TransitStation).collect(Collectors.toList());
         transitVertices.forEach(originalGraph::remove);
-        originalGraph.index(new DefaultStreetVertexIndexFactory(), false);
+        originalGraph.index(new DefaultStreetVertexIndexFactory());
         // The cached timezone in the graph is transient and lazy-initialized.
         // Previous tests may have caused a timezone to be cached.
         originalGraph.clearTimeZone();
@@ -115,7 +115,7 @@ public class GraphSerializationTest {
         // Skip incoming and outgoing edge lists. These are unordered lists which will not compare properly.
         // The edges themselves will be compared via another field, and the edge lists are reconstructed after deserialization.
         // Some tests re-build the graph which will result in build times different by as little as a few milliseconds.
-        objectDiffer.ignoreFields("incoming", "outgoing", "buildTime", "indexSchema", "luceneIndex");
+        objectDiffer.ignoreFields("incoming", "outgoing", "buildTime", "indexSchema", "luceneIndex", "transitLayer");
         objectDiffer.useEquals(BitSet.class, LineString.class, Polygon.class, AgencyAndId.class);
         // HashGridSpatialIndex contains unordered lists in its bins. This is rebuilt after deserialization anyway.
         // The deduplicator in the loaded graph will be empty, because it is transient and only fills up when items
