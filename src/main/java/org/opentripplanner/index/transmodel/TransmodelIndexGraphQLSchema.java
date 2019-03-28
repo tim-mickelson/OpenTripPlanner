@@ -1032,7 +1032,7 @@ public class TransmodelIndexGraphQLSchema {
                                 "possible to find trips that start outside this range, but they will not be packed. " +
                                 "Maximum 240 minutes.")
                         .type(Scalars.GraphQLInt)
-                        .defaultValue(40)
+                        .defaultValue(1)
                         .build())
                 .argument(GraphQLArgument.newArgument()
                         .name("raptorSearchDays")
