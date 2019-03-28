@@ -86,10 +86,10 @@ public class RaptorRouter {
                 .addAccessStops(accessTimes)
                 .addEgressStops(egressTimes)
                 .boardSlackInSeconds(60)
-                .timetableEnabled(true);
+                .timetableEnabled(false);
 
         if(request.raptorProfile.is(RangeRaptorProfile.MULTI_CRITERIA)) {
-            //builder.enableOptimization(Optimization.PARETO_CHECK_AGAINST_DESTINATION);
+            builder.enableOptimization(Optimization.PARETO_CHECK_AGAINST_DESTINATION);
         }
 
 
