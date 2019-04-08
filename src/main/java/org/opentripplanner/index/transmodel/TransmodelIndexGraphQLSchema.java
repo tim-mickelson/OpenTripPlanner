@@ -1002,7 +1002,7 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .argument(GraphQLArgument.newArgument()
                         .name("walkReluctance")
-                        .description("DEPRECATED - ONLY FOR TESTING. Walk cost is multiplied by this value.")
+                        .description("Walk cost is multiplied by this value. This is the main parameter to use for limiting walking.")
                         .type(Scalars.GraphQLFloat)
                         .defaultValue(defaultRoutingRequest.walkReluctance)
                         .build())
@@ -1017,6 +1017,15 @@ public class TransmodelIndexGraphQLSchema {
                         .description("Ignore the MinimumBookingPeriod defined on the ServiceJourney and allow itineraries to start immediately after the current time.")
                         .type(Scalars.GraphQLBoolean)
                         .defaultValue(defaultRoutingRequest.ignoreDrtAdvanceBookMin)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("transitDistanceReluctance")
+                        .description("The extra cost per meter that is travelled by transit. This is a cost point peter meter, so it should in most\n" +
+                                "cases be a very small fraction. The purpose of assigning a cost to distance is often because it correlates with\n" +
+                                "fare prices and you want to avoid situations where you take detours or travel back again even if it is\n" +
+                                "technically faster. Setting this value to 0 turns off the feature altogether.")
+                        .type(Scalars.GraphQLFloat)
+                        .defaultValue(defaultRoutingRequest.transitDistanceReluctance)
                         .build())
                 .dataFetcher(environment -> new TransmodelGraphQLPlanner(mappingUtil).plan(environment)
                 )

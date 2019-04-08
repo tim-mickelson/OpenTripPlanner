@@ -52,11 +52,23 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
 
     private LineString geometry = null;
 
+    private double distance;
+
     protected PatternHop(PatternStopVertex from, PatternStopVertex to, Stop begin, Stop end, int stopIndex, RequestStops requestPickup, RequestStops requestDropoff, double serviceAreaRadius, Geometry serviceArea, boolean setInPattern) {
         super(from, to);
         this.begin = begin;
         this.end = end;
         this.stopIndex = stopIndex;
+        getPattern().setPatternHop(stopIndex, this);
+
+        double distance = 0;
+        LineString line = getGeometry();
+        for (int i = 0; i < line.getNumPoints() - 1; i++) {
+            Point p0 = line.getPointN(i), p1 = line.getPointN(i+1);
+            distance += SphericalDistanceLibrary.distance(p0.getCoordinate(), p1.getCoordinate());
+        }
+        this.distance = distance;
+
         if (setInPattern)
             getPattern().setPatternHop(stopIndex, this);
         this.requestPickup = requestPickup;
@@ -73,14 +85,7 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
         this(from, to, begin, end, stopIndex, 1, 1, 0d, null);
     }
 
-    // made more accurate
     public double getDistance() {
-        double distance = 0;
-        LineString line = getGeometry();
-        for (int i = 0; i < line.getNumPoints() - 1; i++) {
-            Point p0 = line.getPointN(i), p1 = line.getPointN(i+1);
-            distance += SphericalDistanceLibrary.distance(p0.getCoordinate(), p1.getCoordinate());
-        }
         return distance;
     }
 
@@ -110,7 +115,7 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
         
     	int runningTime = getPattern().scheduledTimetable.getBestRunningTime(stopIndex);
     	StateEditor s1 = state0.edit(this);
-    	s1.incrementWeight(options.getModeWeight(getMode()) * runningTime);
+    	s1.incrementWeight(options.getModeWeight(getMode()) * runningTime + (options.transitDistanceReluctance * distance));
     	s1.incrementTimeInSeconds(runningTime);
     	s1.setBackMode(getMode());
     	return s1.makeState();
@@ -143,7 +148,7 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
         }
         int runningTime = getRunningTime(s0);
         // TODO Make sure call-and-ride reluctance is added. Call TemporaryDirectPatternHop getWeight()
-        s1.incrementWeight(options.getModeWeight(getMode()) * runningTime);
+        s1.incrementWeight(options.getModeWeight(getMode()) * runningTime + (options.transitDistanceReluctance * distance));
         s1.incrementTimeInSeconds(runningTime);
         if (s0.getOptions().arriveBy)
             s1.setZone(getBeginStop().getZoneId());
