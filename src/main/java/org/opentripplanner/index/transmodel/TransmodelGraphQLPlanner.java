@@ -316,8 +316,9 @@ public class TransmodelGraphQLPlanner {
     private String getLocationOfFirstQuay(String vertexId, GraphIndex graphIndex) {
         Vertex vertex = graphIndex.vertexForId.get(vertexId);
         if (vertex instanceof TransitStation) {
-            return ((TransitStop)vertex.getOutgoing().stream()
-                    .filter(t -> t instanceof StationStopEdge).findFirst().get().getToVertex()).getStopId().toString();
+            AgencyAndId stopId = ((TransitStop)vertex.getOutgoing().stream()
+                    .filter(t -> t instanceof StationStopEdge).findFirst().get().getToVertex()).getStopId();
+            return stopId.getAgencyId().concat(":").concat(stopId.getId());
         } else {
             return vertexId;
         }
