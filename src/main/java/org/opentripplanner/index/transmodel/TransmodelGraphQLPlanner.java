@@ -198,6 +198,7 @@ public class TransmodelGraphQLPlanner {
         callWith.argument("bikeSpeed", (Double v) -> request.bikeSpeed = v);
         callWith.argument("bikeSwitchTime", (Integer v) -> request.bikeSwitchTime = v);
         callWith.argument("bikeSwitchCost", (Integer v) -> request.bikeSwitchCost = v);
+        callWith.argument("transitDistanceReluctance", (Double v) -> request.transitDistanceReluctance = v);
 
         OptimizeType optimize = environment.getArgument("optimize");
 
@@ -242,6 +243,10 @@ public class TransmodelGraphQLPlanner {
         callWith.argument("allowBikeRental", (Boolean v) -> request.allowBikeRental = v);
 
         callWith.argument("transferPenalty", (Integer v) -> request.transferPenalty = v);
+
+        callWith.argument("useFlex", (Boolean v) -> request.useFlexService = v);
+        callWith.argument("ignoreMinimumBookingPeriod", (Boolean v) -> request.ignoreDrtAdvanceBookMin = v);
+
         if (optimize == OptimizeType.TRANSFERS) {
             optimize = OptimizeType.QUICK;
             request.transferPenalty += 1800;
@@ -317,6 +322,9 @@ public class TransmodelGraphQLPlanner {
             request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);
         } else if (request.parkAndRide) {
             request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
+        } else if (request.useFlexService) {
+            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
+            request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);
         }
 
         return request;
@@ -330,8 +338,9 @@ public class TransmodelGraphQLPlanner {
     private String getLocationOfFirstQuay(String vertexId, GraphIndex graphIndex) {
         Vertex vertex = graphIndex.vertexForId.get(vertexId);
         if (vertex instanceof TransitStation) {
-            return ((TransitStop)vertex.getOutgoing().stream()
-                    .filter(t -> t instanceof StationStopEdge).findFirst().get().getToVertex()).getStopId().toString();
+            AgencyAndId stopId = ((TransitStop)vertex.getOutgoing().stream()
+                    .filter(t -> t instanceof StationStopEdge).findFirst().get().getToVertex()).getStopId();
+            return stopId.getAgencyId().concat(":").concat(stopId.getId());
         } else {
             return vertexId;
         }

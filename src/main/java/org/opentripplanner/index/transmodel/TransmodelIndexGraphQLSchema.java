@@ -21,15 +21,13 @@ import org.opentripplanner.index.model.StopTimesInPattern;
 import org.opentripplanner.index.model.TripTimeShort;
 import org.opentripplanner.index.transmodel.mapping.TransmodelMappingUtil;
 import org.opentripplanner.index.transmodel.model.TransmodelPlaceType;
-import org.opentripplanner.index.transmodel.model.scalars.DateScalarFactory;
-import org.opentripplanner.index.transmodel.model.scalars.DateTimeScalarFactory;
-import org.opentripplanner.index.transmodel.model.scalars.LocalTimeScalarFactory;
-import org.opentripplanner.index.transmodel.model.scalars.TimeScalarFactory;
+import org.opentripplanner.index.transmodel.model.scalars.*;
 import org.opentripplanner.index.util.TripTimeShortHelper;
 import org.opentripplanner.model.*;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
+import org.opentripplanner.routing.alertpatch.AlertUrl;
 import org.opentripplanner.routing.alertpatch.StopCondition;
 import org.opentripplanner.routing.bike_park.BikePark;
 import org.opentripplanner.routing.bike_rental.BikeRentalStation;
@@ -223,6 +221,12 @@ public class TransmodelIndexGraphQLSchema {
                     "This is much faster than a multi criteria search.")
             .value("multiCriteria", RangeRaptorProfile.MULTI_CRITERIA, "Route using multiple criteria.")
             //.value("multiCriteriaWithHeuristic", RaptorProfile.MULTI_CRITERIA_RANGE_RAPTOR_WITH_HEURISTICS, "Route using multiple criteria with a heuristic optimization.")
+            .build();
+
+    private static GraphQLEnumType stopTypeEnum = GraphQLEnumType.newEnum()
+            .name("StopType")
+            .value("regular", Stop.stopTypeEnumeration.REGULAR)
+            .value("flexible_area", Stop.stopTypeEnumeration.FLEXIBLE_AREA)
             .build();
 
 
@@ -991,6 +995,11 @@ public class TransmodelIndexGraphQLSchema {
                         .defaultValue(defaultRoutingRequest.maxPreTransitWalkDistance)
                         .build())
                 .argument(GraphQLArgument.newArgument()
+                        .name("useFlex")
+                        .type(Scalars.GraphQLBoolean)
+                        .defaultValue(defaultRoutingRequest.useFlexService)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
                         .name("banFirstServiceJourneysFromReuseNo")
                         .description("How many service journeys used in a tripPatterns should be banned from inclusion in successive tripPatterns. Counting from start of tripPattern.")
                         .type(Scalars.GraphQLInt)
@@ -1015,10 +1024,19 @@ public class TransmodelIndexGraphQLSchema {
                         .defaultValue(defaultRoutingRequest.waitReluctance)
                         .build())
                 .argument(GraphQLArgument.newArgument()
-                        .name("useFlex")
-                        .description("Not implemented.")
+                        .name("ignoreMinimumBookingPeriod")
+                        .description("Ignore the MinimumBookingPeriod defined on the ServiceJourney and allow itineraries to start immediately after the current time.")
                         .type(Scalars.GraphQLBoolean)
-                        .defaultValue(false)
+                        .defaultValue(defaultRoutingRequest.ignoreDrtAdvanceBookMin)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("transitDistanceReluctance")
+                        .description("The extra cost per meter that is travelled by transit. This is a cost point peter meter, so it should in most\n" +
+                                "cases be a very small fraction. The purpose of assigning a cost to distance is often because it correlates with\n" +
+                                "fare prices and you want to avoid situations where you take detours or travel back again even if it is\n" +
+                                "technically faster. Setting this value to 0 turns off the feature altogether.")
+                        .type(Scalars.GraphQLFloat)
+                        .defaultValue(defaultRoutingRequest.transitDistanceReluctance)
                         .build())
                 .argument(GraphQLArgument.newArgument()
                         .name("useRaptor")
@@ -1127,6 +1145,29 @@ public class TransmodelIndexGraphQLSchema {
                 .build();
 
 
+        GraphQLObjectType infoLinkType = GraphQLObjectType.newObject()
+                .name("infoLink")
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("uri")
+                        .type(Scalars.GraphQLString)
+                        .description("URI")
+                        .dataFetcher(environment -> {
+                            AlertUrl source = environment.getSource();
+                            return source.uri;
+                        })
+                        .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("label")
+                        .type(Scalars.GraphQLString)
+                        .description("Label")
+                        .dataFetcher(environment -> {
+                            AlertUrl source = environment.getSource();
+                            return source.label;
+                        })
+                        .build())
+                .build();
+
+
         ptSituationElementType = GraphQLObjectType.newObject()
                 .name("PtSituationElement")
                 .description("Simple public transport situation element")
@@ -1214,6 +1255,7 @@ public class TransmodelIndexGraphQLSchema {
                         .name("detail")
                         .type(new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(multilingualStringType))))
                         .description("Details of situation in all different translations available")
+                        .deprecate("Not allowed according to profile. Use ´advice´ instead.")
                         .dataFetcher(environment -> {
                             AlertPatch alertPatch = environment.getSource();
                             Alert alert = alertPatch.getAlert();
@@ -1227,10 +1269,33 @@ public class TransmodelIndexGraphQLSchema {
                         })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("advice")
+                        .type(new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(multilingualStringType))))
+                        .description("Advice of situation in all different translations available")
+                        .dataFetcher(environment -> {
+                            AlertPatch alertPatch = environment.getSource();
+                            Alert alert = alertPatch.getAlert();
+                            if (alert.alertAdviceText instanceof TranslatedString) {
+                                return ((TranslatedString) alert.alertAdviceText).getTranslations();
+                            } else if (alert.alertAdviceText != null) {
+                                return Arrays.asList(new AbstractMap.SimpleEntry<>(null, alert.alertAdviceText.toString()));
+                            } else {
+                                return emptyList();
+                            }
+                        })
+                        .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("infoLink")
                         .type(Scalars.GraphQLString)
+                        .deprecate("Use the attribute infoLinks instead.")
                         .description("Url with more information")
                         .dataFetcher(environment -> ((AlertPatch) environment.getSource()).getAlert().alertUrl)
+                        .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("infoLinks")
+                        .type(new GraphQLList(infoLinkType))
+                        .description("Optional links to more information.")
+                        .dataFetcher(environment -> ((AlertPatch) environment.getSource()).getAlert().getAlertUrlList())
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("validityPeriod")
@@ -1658,6 +1723,17 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(dataFetchingEnvironment -> index.getAlertsForStop(
                                 dataFetchingEnvironment.getSource()))
                         .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("stopType")
+                        .type(stopTypeEnum)
+                        .dataFetcher(environment -> (((Stop) environment.getSource()).getStopType()))
+                        .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("flexibleArea")
+                        .description("Geometry for flexible area.")
+                        .type(GeoJSONCoordinatesScalar.getGraphQGeoJSONCoordinatesScalar())
+                        .dataFetcher(environment -> (((Stop) environment.getSource()).getArea() != null ? ((Stop) environment.getSource()).getArea().getCoordinates() : null))
+                        .build())
                 .build();
 
         timetabledPassingTimeType = GraphQLObjectType.newObject()
@@ -1945,6 +2021,13 @@ public class TransmodelIndexGraphQLSchema {
                          .dataFetcher(environment ->  getBookingArrangementForTripTimeShort(environment.getSource()))
                          .type(bookingArrangementType)
                          .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("flexible")
+                        .type(Scalars.GraphQLBoolean)
+                        .description("Whether this call is part of a flexible trip. This means that arrival or departure " +
+                                "times are not scheduled but estimated within specified operating hours.")
+                        .dataFetcher(environment -> ((TripTimeShort) environment.getSource()).isFlexible())
+                        .build())
                 .build();
 
         serviceJourneyType = GraphQLObjectType.newObject()
@@ -2843,17 +2926,17 @@ public class TransmodelIndexGraphQLSchema {
                         .argument(GraphQLArgument.newArgument()
                                 .name("latitude")
                                 .description("Latitude of the location")
-                                .type(Scalars.GraphQLFloat)
+                                .type(new GraphQLNonNull(Scalars.GraphQLFloat))
                                 .build())
                         .argument(GraphQLArgument.newArgument()
                                 .name("longitude")
                                 .description("Longitude of the location")
-                                .type(Scalars.GraphQLFloat)
+                                .type(new GraphQLNonNull(Scalars.GraphQLFloat))
                                 .build())
                         .argument(GraphQLArgument.newArgument()
                                 .name("radius")
                                 .description("Radius (in meters) to search for from the specified location")
-                                .type(Scalars.GraphQLInt)
+                                .type(new GraphQLNonNull(Scalars.GraphQLInt))
                                 .build())
                         .argument(GraphQLArgument.newArgument()
                                 .name("authority")
@@ -3411,8 +3494,12 @@ public class TransmodelIndexGraphQLSchema {
     private static void filterSituationsByDateAndStopConditions(Collection<AlertPatch> alertPatches, Date fromTime, Date toTime, List<StopCondition> stopConditions) {
         if (alertPatches != null) {
 
+            // First and last period
             alertPatches.removeIf(alert -> alert.getAlert().effectiveStartDate.after(toTime) ||
                     (alert.getAlert().effectiveEndDate != null && alert.getAlert().effectiveEndDate.before(fromTime)));
+
+            // Handle repeating validityPeriods
+            alertPatches.removeIf(alertPatch -> !alertPatch.displayDuring(fromTime.getTime()/1000, toTime.getTime()/1000));
 
             alertPatches.removeIf(alert -> {
                 boolean removeByStopCondition = false;

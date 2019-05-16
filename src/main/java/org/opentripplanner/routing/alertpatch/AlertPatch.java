@@ -97,9 +97,13 @@ public class AlertPatch implements Serializable {
     }
 
     public boolean displayDuring(State state) {
+        return displayDuring(state.getStartTimeSeconds(), state.getTimeSeconds());
+    }
+
+    public boolean displayDuring(long startTimeSeconds, long endTimeSeconds) {
         for (TimePeriod timePeriod : timePeriods) {
-            if (state.getTimeSeconds() >= timePeriod.startTime) {
-                if (state.getStartTimeSeconds() < timePeriod.endTime) {
+            if (endTimeSeconds >= timePeriod.startTime) {
+                if (startTimeSeconds < timePeriod.endTime) {
                     return true;
                 }
             }

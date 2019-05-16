@@ -19,8 +19,10 @@ import org.opentripplanner.util.NonLocalizedString;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 
 @XmlType
 public class Alert implements Serializable {
@@ -36,7 +38,12 @@ public class Alert implements Serializable {
     public I18NString alertDetailText;
 
     @XmlElement
+    public I18NString alertAdviceText;
+
+    @XmlElement
     public I18NString alertUrl;
+
+    private List<AlertUrl> alertUrlList = new ArrayList<>();
 
     //null means unknown
     @XmlElement
@@ -53,6 +60,14 @@ public class Alert implements Serializable {
     //null means unknown
     @XmlElement
     public String severity;
+
+    public List<AlertUrl> getAlertUrlList() {
+        return alertUrlList;
+    }
+
+    public void setAlertUrlList(List<AlertUrl> alertUrlList) {
+        this.alertUrlList = alertUrlList;
+    }
 
     public static HashSet<Alert> newSimpleAlertSet(String text) {
         Alert note = createSimpleAlerts(text);
@@ -90,6 +105,15 @@ public class Alert implements Serializable {
                 return false;
             }
         }
+        if (alertAdviceText == null) {
+            if (ao.alertAdviceText != null) {
+                return false;
+            }
+        } else {
+            if (!alertAdviceText.equals(ao.alertAdviceText)) {
+                return false;
+            }
+        }
         if (alertHeaderText == null) {
             if (ao.alertHeaderText != null) {
                 return false;
@@ -109,6 +133,7 @@ public class Alert implements Serializable {
     public int hashCode() {
         return (alertDescriptionText == null ? 0 : alertDescriptionText.hashCode())
                 + (alertDetailText == null ? 0 : alertDetailText.hashCode())
+                + (alertAdviceText == null ? 0 : alertAdviceText.hashCode())
                 + (alertHeaderText == null ? 0 : alertHeaderText.hashCode())
                 + (alertUrl == null ? 0 : alertUrl.hashCode());
     }
@@ -119,6 +144,7 @@ public class Alert implements Serializable {
                 + (alertHeaderText != null ? alertHeaderText.toString()
                         : alertDescriptionText != null ? alertDescriptionText.toString()
                         : alertDetailText != null ? alertDetailText.toString()
+                        : alertAdviceText != null ? alertAdviceText.toString()
                                 : "?") + "')";
     }
 }
