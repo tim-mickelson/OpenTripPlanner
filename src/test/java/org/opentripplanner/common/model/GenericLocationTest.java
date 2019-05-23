@@ -1,9 +1,12 @@
 package org.opentripplanner.common.model;
 
-import static org.junit.Assert.*;
 import org.junit.Test;
-
 import org.locationtech.jts.geom.Coordinate;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class GenericLocationTest {
 
@@ -146,7 +149,7 @@ public class GenericLocationTest {
         assertFalse(loc.hasHeading());
         
         assertFalse(loc.hasName());
-        assertFalse(loc.hasPlace());   
+        assertFalse(loc.hasPlace());
     }
     
     @Test

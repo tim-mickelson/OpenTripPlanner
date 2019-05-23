@@ -1,18 +1,17 @@
 package org.opentripplanner.routing.graph;
 
 import graphql.ExecutionResult;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.opentripplanner.GtfsTest;
+import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.GtfsTest;
-import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.vertextype.TransitStop;
-
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
 
 import java.util.List;
 import java.util.Map;
@@ -212,14 +211,4 @@ public class GraphIndexTest extends GtfsTest {
         ExecutionResult result = graph.index.graphQL.execute(query);
         assertTrue(result.getErrors().isEmpty());
     }
-
-
-    public void testParentStations() {
-        // graph.index.stopsForParentStation;
-    }
-
-    public void testLucene() {
-        // graph.index.luceneIndex
-    }
-
 }

@@ -10,6 +10,7 @@ import org.opentripplanner.api.resource.ServerInfo;
 import org.opentripplanner.api.resource.UpdaterStatusResource;
 import org.opentripplanner.ext.examples.statistics.api.resource.GraphStatisticsResource;
 import org.opentripplanner.index.IndexAPI;
+import org.opentripplanner.index.transmodel.TransmodelIndexAPI;
 import org.opentripplanner.util.OTPFeature;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import static org.opentripplanner.util.OTPFeature.APIGraphInspectorTile;
 import static org.opentripplanner.util.OTPFeature.APIRouters;
 import static org.opentripplanner.util.OTPFeature.APIServerInfo;
 import static org.opentripplanner.util.OTPFeature.APIUpdaterStatus;
+import static org.opentripplanner.util.OTPFeature.SandboxAPITransmodelIndex;
 import static org.opentripplanner.util.OTPFeature.SandboxExampleAPIGraphStatistics;
 
 /**
@@ -40,16 +42,17 @@ public class APIEndpoints {
 
         // Add feature enabled APIs, these can be enabled by default, some is not.
         // See the OTPFeature enum for details.
-        addIfEnabled(APIExternalGeocoder, ExternalGeocoderResource.class);
-        addIfEnabled(APIBikeRental, BikeRental.class);
         addIfEnabled(APIAlertPatcher, AlertPatcher.class);
+        addIfEnabled(APIBikeRental, BikeRental.class);
+        addIfEnabled(APIExternalGeocoder, ExternalGeocoderResource.class);
+        addIfEnabled(APIGraphInspectorTile, GraphInspectorTileResource.class);
         addIfEnabled(APIRouters, Routers.class);
         addIfEnabled(APIServerInfo, ServerInfo.class);
-        addIfEnabled(APIGraphInspectorTile, GraphInspectorTileResource.class);
         addIfEnabled(APIUpdaterStatus, UpdaterStatusResource.class);
 
         // Sandbox extension APIs
         addIfEnabled(SandboxExampleAPIGraphStatistics, GraphStatisticsResource.class);
+        addIfEnabled(SandboxAPITransmodelIndex, TransmodelIndexAPI.class);
     }
 
     /**

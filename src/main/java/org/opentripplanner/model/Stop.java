@@ -25,7 +25,7 @@ public final class Stop extends IdentityBean<FeedScopedId> {
 
     private int locationType = 0;
 
-    private String parentStation;
+    private FeedScopedId parentStationId;
 
     private int wheelchairBoarding = 0;
 
@@ -51,7 +51,7 @@ public final class Stop extends IdentityBean<FeedScopedId> {
         this.zoneId = obj.zoneId;
         this.url = obj.url;
         this.locationType = obj.locationType;
-        this.parentStation = obj.parentStation;
+        this.parentStationId = obj.parentStationId;
         this.wheelchairBoarding = obj.wheelchairBoarding;
         this.direction = obj.direction;
         this.timezone = obj.timezone;
@@ -131,12 +131,26 @@ public final class Stop extends IdentityBean<FeedScopedId> {
         this.locationType = locationType;
     }
 
+    /**
+     * @deprecated This method return the id without feed scope, this lead to hole
+     *              set of special handling, also this is part of the API; Hence need
+     *              care before we can remove it. This should realy be replaced with
+     *              a reference to the parent stop it self, so the need to lookup
+     *              the parent in every place it is used kan be simplified.
+     */
+    @Deprecated
     public String getParentStation() {
-        return parentStation;
+        return parentStationId == null ? null : parentStationId.getId();
     }
 
     public void setParentStation(String parentStation) {
-        this.parentStation = parentStation;
+        parentStationId = parentStation == null
+                ? null
+                : new FeedScopedId(id.getAgencyId(), parentStation);
+    }
+
+    public FeedScopedId getParentStationId(){
+        return parentStationId;
     }
 
     @Override

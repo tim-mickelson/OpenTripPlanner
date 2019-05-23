@@ -24,6 +24,8 @@ public enum OTPFeature {
     APIUpdaterStatus(true),
 
     // Sandbox extension features - Must be turned OFF by default
+    // TODO OTP2 - Turn this off by default
+    SandboxAPITransmodelIndex(true),
     SandboxExampleAPIGraphStatistics(false),
     TransferAnalyzer(false);
 

@@ -40,6 +40,7 @@ import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.spt.DominanceFunction;
 import org.opentripplanner.routing.trippattern.FrequencyEntry;
 import org.opentripplanner.routing.trippattern.TripTimes;
+import org.opentripplanner.routing.vertextype.TransitStation;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.opentripplanner.util.HttpToGraphQLMapper;
 import org.slf4j.Logger;
@@ -77,6 +78,7 @@ public class GraphIndex {
     public final Map<FeedScopedId, Operator> operatorForId = Maps.newHashMap();
     public final Map<String, FeedInfo> feedInfoForId = Maps.newHashMap();
     public final Map<FeedScopedId, Stop> stopForId = Maps.newHashMap();
+    public final Map<FeedScopedId, Stop> stationForId = Maps.newHashMap();
     public final Map<FeedScopedId, Trip> tripForId = Maps.newHashMap();
     public final Map<FeedScopedId, Route> routeForId = Maps.newHashMap();
     public final Map<FeedScopedId, String> serviceForId = Maps.newHashMap();
@@ -86,6 +88,7 @@ public class GraphIndex {
     public final Multimap<String, TripPattern> patternsForFeedId = ArrayListMultimap.create();
     public final Multimap<Route, TripPattern> patternsForRoute = ArrayListMultimap.create();
     public final Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
+    public final Multimap<FeedScopedId, Stop> stopsForParentStation = ArrayListMultimap.create();
     final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<>();
     public final Map<FeedScopedId, Notice> noticeForId = Maps.newHashMap();
     public final Multimap<FeedScopedId, Notice> noticeAssignmentForId = ArrayListMultimap.create();
@@ -139,6 +142,15 @@ public class GraphIndex {
                 Stop stop = transitStop.getStop();
                 stopForId.put(stop.getId(), stop);
                 stopVertexForStop.put(stop, transitStop);
+                if (stop.getParentStation() != null) {
+                    stopsForParentStation.put(
+                            stop.getParentStationId(), stop);
+                }
+            }
+            else if(vertex instanceof TransitStation) {
+                TransitStation transitStation = (TransitStation) vertex;
+                Stop stop = transitStation.getStop();
+                stationForId.put(stop.getId(), stop);
             }
         }
         for (TransitStop stopVertex : stopVertexForStop.values()) {
@@ -216,6 +228,11 @@ public class GraphIndex {
         }
     }
 
+    public enum PlaceType {
+        STOP, DEPARTURE_ROW, BICYCLE_RENT, BIKE_PARK, CAR_PARK;
+    }
+
+
     static private class StopFinderTraverseVisitor implements TraverseVisitor {
         List<StopAndDistance> stopsFound = new ArrayList<>();
         @Override public void visitEdge(Edge edge, State state) { }
@@ -268,10 +285,10 @@ public class GraphIndex {
     }
 
     /**
-     * Fetch upcoming vehicle departures from a stop.
-     * It goes though all patterns passing the stop for the previous, current and next service date.
-     * It uses a priority queue to keep track of the next departures. The queue is shared between all dates, as services
-     * from the previous service date can visit the stop later than the current service date's services. This happens
+     * Fetch upcoming vehicle departures from a stop. It goes though all patterns passing the stop
+     * for the previous, current and next service date. It uses a priority queue to keep track of
+     * the next departures. The queue is shared between all dates, as services from the previous
+     * service date can visit the stop later than the current service date's services. This happens
      * eg. with sleeper trains.
      *
      * TODO: Add frequency based trips
@@ -400,6 +417,17 @@ public class GraphIndex {
             ret.add(stopTimes);
         }
         return ret;
+    }
+
+    // TODO OTP2 - Add support for includeRealtimeUpdates
+    public Collection<TripPattern> getPatternsForStop(Stop stop, boolean includeRealtimeUpdates) {
+        List<TripPattern> tripPatterns = new ArrayList<>(patternsForStop.get(stop));
+        /*
+        if (includeRealtimeUpdates && graph.timetableSnapshotSource != null) {
+            tripPatterns.addAll(graph.timetableSnapshotSource.getAddedTripPatternsForStop(stop));
+        }
+         */
+        return tripPatterns;
     }
 
     /**
