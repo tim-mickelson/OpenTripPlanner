@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import static org.opentripplanner.model.FeedScopedId.convertFromString;
 
 class TransferMapper {
-    private static final Logger LOG = LoggerFactory.getLogger(AgencyMapper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TransferMapper.class);
 
     Transfer mapTransfer(ServiceJourneyInterchange interchange,
             OtpTransitServiceBuilder transitBuilder, NetexImportDataIndex netexIndex) {

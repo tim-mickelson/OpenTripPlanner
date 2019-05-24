@@ -20,7 +20,9 @@ import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.IdentityBean;
 import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
@@ -48,7 +50,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,6 +74,7 @@ public class GraphIndex {
     // TODO: consistently key on model object or id string
     public final Map<String, Vertex> vertexForId = Maps.newHashMap();
     public final Map<String, Map<String, Agency>> agenciesForFeedId = Maps.newHashMap();
+    public final Map<FeedScopedId, Operator> operatorForId = Maps.newHashMap();
     public final Map<String, FeedInfo> feedInfoForId = Maps.newHashMap();
     public final Map<FeedScopedId, Stop> stopForId = Maps.newHashMap();
     public final Map<FeedScopedId, Trip> tripForId = Maps.newHashMap();
@@ -86,7 +88,7 @@ public class GraphIndex {
     public final Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
     final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<>();
     public final Map<FeedScopedId, Notice> noticeForId = Maps.newHashMap();
-    private final Map<FeedScopedId, List<Notice>> noticeAssignmentForId = Maps.newHashMap();
+    public final Multimap<FeedScopedId, Notice> noticeAssignmentForId = ArrayListMultimap.create();
 
     /* Should eventually be replaced with new serviceId indexes. */
     private final CalendarService calendarService;
@@ -112,8 +114,13 @@ public class GraphIndex {
             this.feedInfoForId.put(feedId, graph.getFeedInfo(feedId));
         }
 
+        for (Operator operator : graph.getOperators()) {
+            this.operatorForId.put(operator.getId(), operator);
+        }
+
+
         Collection<Edge> edges = graph.getEdges();
-        /* We will keep a separate set of all vertices in case some have the same label. 
+        /* We will keep a separate set of all vertices in case some have the same label.
          * Maybe we should just guarantee unique labels. */
         Set<Vertex> vertices = Sets.newHashSet();
         for (Edge edge : edges) {
@@ -155,7 +162,11 @@ public class GraphIndex {
         }
 
         if(graph.noticeMap != null) noticeForId.putAll(graph.noticeMap);
-        if(graph.noticeAssignmentMap != null) noticeAssignmentForId.putAll(graph.noticeAssignmentMap);
+        if(graph.noticeAssignmentMap != null) {
+            for (Map.Entry<FeedScopedId, List<Notice>> it : graph.noticeAssignmentMap.entrySet()) {
+                noticeAssignmentForId.putAll(it.getKey(), it.getValue());
+            }
+        }
 
         // Copy these two service indexes from the graph until we have better ones.
         calendarService = graph.getCalendarService();
@@ -446,10 +457,20 @@ public class GraphIndex {
         }
         return allAgencies;
     }
+    /**
+     * Get a list of all operators spanning across all feeds.
+     */
+    public Collection<Operator> getAllOperators() {
+        return operatorForId.values();
+    }
 
-    public Collection<Notice> getNoticesForElement(FeedScopedId id) {
-        return this.noticeAssignmentForId.containsKey(id)
-                ? this.noticeAssignmentForId.get(id)
-                : Collections.emptyList();
+    /**
+     * Construct a list of all Agencies and Operators in this graph, spanning across all feed IDs.
+     */
+    public Collection<IdentityBean> getAllOrganizations() {
+        List<IdentityBean> all = new ArrayList<>();
+        all.addAll(getAllAgencies());
+        all.addAll(getAllOperators());
+        return all;
     }
 }

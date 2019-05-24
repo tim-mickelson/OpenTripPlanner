@@ -148,9 +148,9 @@ public class OtpTransitServiceBuilderTest {
         return first(builder.getAgenciesById().values());
     }
 
-    private static FareAttribute createFareAttribute(Agency agency) {
+    private static FareAttribute createFareAttribute(Agency organization) {
         FareAttribute fa = new FareAttribute();
-        fa.setId(new FeedScopedId(agency.getId(), "FA"));
+        fa.setId(new FeedScopedId(organization.getId(), "FA"));
         return fa;
     }
 

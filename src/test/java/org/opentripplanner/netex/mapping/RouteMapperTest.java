@@ -5,17 +5,21 @@ import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
-import org.rutebanken.netex.model.*;
+import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
+import org.rutebanken.netex.model.Authority;
+import org.rutebanken.netex.model.Line;
+import org.rutebanken.netex.model.MultilingualString;
+import org.rutebanken.netex.model.Network;
 
 import java.util.TimeZone;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 // TODO OTP2 - Test route color
 
 public class RouteMapperTest {
 
-    RouteMapper routeMapper = new RouteMapper();
+    private RouteMapper routeMapper = new RouteMapper();
 
     @Test
     public void mapRouteWithDefaultAgency() {
@@ -44,7 +48,7 @@ public class RouteMapperTest {
         Authority authority = new Authority();
         authority.setId("RUT:Authority:1");
         authority.setName(new MultilingualString().withValue("Ruter"));
-        Agency agency = AgencyMapper.mapAgency(authority, TimeZone.getDefault().toString());
+        Agency agency = AuthorityToAgencyMapper.mapAuthority(authority, TimeZone.getDefault().toString());
         transitBuilder.getAgenciesById().add(agency);
 
         netexIndex.authoritiesByNetworkId.add(network.getId(), authority);

@@ -10,31 +10,35 @@ import static org.opentripplanner.netex.support.NetexObjectDecorator.withOptiona
  * for the establishment of a public transport service." In NeTEx this is not the same as an operator. A default
  * authority can be created if none is present.
  */
-class AgencyMapper {
+class AuthorityToAgencyMapper {
+
+    /** private to prevent creating new instance of utility class with static methods only */
+    private AuthorityToAgencyMapper() {}
+
     /**
      * Map authority and time zone to OTP agency.
      */
-    static Agency mapAgency(Authority authority, String timeZone){
-        Agency agency = new Agency();
+    static Agency mapAuthority(Authority source, String timeZone){
+        Agency target = new Agency();
 
-        agency.setId(authority.getId());
-        agency.setName(authority.getName().getValue());
-        agency.setTimezone(timeZone);
+        target.setId(source.getId());
+        target.setName(source.getName().getValue());
+        target.setTimezone(timeZone);
 
-        withOptional(authority.getContactDetails(), c -> {
-            agency.setUrl(c.getUrl());
-            agency.setPhone(c.getPhone());
+        withOptional(source.getContactDetails(), c -> {
+            target.setUrl(c.getUrl());
+            target.setPhone(c.getPhone());
         });
-        return agency;
+        return target;
     }
 
     /**
-     * Create a new default agency with time zone set. All other values are set to
-     * "N/A".
+     * Create a new dummy agency with time zone set. All other values are set to
+     * "N/A" and id set to {@code "Dummy-" + timeZone}.
      */
-    static Agency createDefaultAgency(String timeZone){
+    static Agency createDummyAgency(String timeZone){
         Agency agency = new Agency();
-        agency.setId("N/A");
+        agency.setId("Dummy-" + timeZone);
         agency.setName("N/A");
         agency.setTimezone(timeZone);
         agency.setUrl("N/A");

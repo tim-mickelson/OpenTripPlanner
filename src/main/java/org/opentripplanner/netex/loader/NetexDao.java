@@ -1,11 +1,9 @@
 package org.opentripplanner.netex.loader;
 
-import org.opentripplanner.netex.loader.util.HierarchicalElement;
-import org.opentripplanner.netex.loader.util.HierarchicalMap;
-import org.opentripplanner.netex.loader.util.HierarchicalMapById;
-import org.opentripplanner.netex.loader.util.HierarchicalMultimap;
-import org.opentripplanner.netex.loader.util.HierarchicalMultimapById;
-import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
+import org.opentripplanner.netex.loader.support.HierarchicalMap;
+import org.opentripplanner.netex.loader.support.HierarchicalMapById;
+import org.opentripplanner.netex.loader.support.HierarchicalMultimap;
+import org.opentripplanner.netex.loader.support.HierarchicalMultimapById;
 import org.rutebanken.netex.model.Authority;
 import org.rutebanken.netex.model.DayType;
 import org.rutebanken.netex.model.DayTypeAssignment;
@@ -28,131 +26,141 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class holds indexes of Netex objects for lookup during the NeTEx import.
+ * This class holds indexes of Netex objects for lookup during
+ * the NeTEx import.
  * <p>
- * A NeTEx import is grouped into several levels: <em>shard data</em>, <em>group of shared data</em>,
- * and <em>single files</em>. We create a hierarchy of {@code NetexImportDataIndex} to avoid keeping everything
- * in memory and to be able to override values in a more specific(lower) level.
- * <p/>
- * There is one instance of this class for <em>shard data</em> - the ROOT.
- * For each <em>group of shared data</em> a new {@code NetexImportDataIndex} is created with the ROOT as a
- * parent. When such <em>group of shared data</em> is not needed any more it is discard and become
- * ready for garbage collection.
- * For each <em>single files</em> a new {@code NetexImportDataIndex} is created with the corresponding
- * <em>group of shared data</em> as parent. The <em>single files</em> object is thrown away when
- * the file is loaded.
- * <p/>
- * This hierarchy make it possible to override values in child instances of the {@code NetexImportDataIndex}
- * and save memory during the load operation, because data not needed any more can be thrown away.
- * <p/>
- * The hierarchy implementation is delegated to the
- * {@link org.opentripplanner.netex.loader.util.AbstractHierarchicalMap} and the
- * {@link HierarchicalElement} classes.
+ * A NeTEx import is grouped into several levels: <em>shard data</em>, <em>group shared data</em>,
+ * and <em>singel files</em>. To discard objects not needed any more; this class support the
+ * creation of multiple levels, by storing a refernece to a parent at an higher level. The
+ * <code>HierarchicalMap.lookup</code> method first look in the local index, and then if nothing is found
+ * delegate the lookup to its parent.
+ * <p>
  */
-public class NetexImportDataIndex {
-    public final HierarchicalMapById<Authority> authoritiesById;
+public class NetexDao {
     public final HierarchicalMap<String, Authority> authoritiesByGroupOfLinesId;
+    public final HierarchicalMapById<Authority> authoritiesById;
     public final HierarchicalMap<String, Authority> authoritiesByNetworkId;
-    public final HierarchicalMapById<DayType> dayTypeById;
     public final HierarchicalMultimap<String, DayTypeAssignment> dayTypeAssignmentByDayTypeId;
-    /**
-     * TODO OTP2 - Verify this
-     * DayTypeRefs is only needed in the local scope, no need to lookup values in the parent.
-     * */
-    public final Set<DayTypeRefsToServiceIdAdapter> dayTypeRefs;
+    public final HierarchicalMap<String, Boolean> dayTypeAvailable;
+    public final HierarchicalMapById<DayType> dayTypeById;
     public final HierarchicalMapById<DestinationDisplay> destinationDisplayById;
     public final HierarchicalMapById<GroupOfLines> groupOfLinesById;
     public final HierarchicalMap<String, GroupOfLines> groupOfLinesByLineId;
-    public final HierarchicalMapById<ServiceJourneyInterchange> interchanges;
+    public final HierarchicalMap<String, ServiceJourneyInterchange> interchanges;
     public final HierarchicalMapById<JourneyPattern> journeyPatternsById;
-    public final HierarchicalMapById<JourneyPattern> journeyPatternsByStopPointId;
+    public final HierarchicalMap<String, JourneyPattern> journeyPatternsByStopPointId;
     public final HierarchicalMapById<Line> lineById;
+    // TODO OTP2 - Support for multi-modulal stop
+    // public final HierarchicalMapById<StopPlace> multimodalStopPlaceById;
     public final HierarchicalMapById<Network> networkById;
     public final HierarchicalMap<String, Network> networkByLineId;
-    public final HierarchicalMapById<Notice> noticeById;
     public final HierarchicalMapById<NoticeAssignment> noticeAssignmentById;
+    public final HierarchicalMapById<Notice> noticeById;
+    public final HierarchicalMapById<Route> routeById;
     public final HierarchicalMapById<OperatingPeriod> operatingPeriodById;
     public final HierarchicalMapById<Operator> operatorsById;
+    // TODO OTP2 - Support for parking
+    // public final HierarchicalMultimapById<Parking> parkingById;
     public final HierarchicalMultimapById<Quay> quayById;
     public final HierarchicalMap<String, String> quayIdByStopPointRef;
-    public final HierarchicalMapById<Route> routeById;
     public final HierarchicalMultimap<String, ServiceJourney> serviceJourneyByPatternId;
     public final HierarchicalMultimapById<StopPlace> stopPlaceById;
-    public final HierarchicalElement<String> timeZone;
+    // TODO OTP2 - Not used jet
+    // public final HierarchicalMapById<StopPointInJourneyPattern> stopPointInJourneyPatternById;
+
+    private final Set<String> calendarServiceIds = new HashSet<>();
+
+    private String timeZone = null;
+
+    private final NetexDao parent;
 
     /**
      * Create a root node.
      */
-    public NetexImportDataIndex() {
-        this.authoritiesById = new HierarchicalMapById<>();
+    NetexDao() {
+        this.parent = null;
+
         this.authoritiesByGroupOfLinesId = new HierarchicalMap<>();
+        this.authoritiesById = new HierarchicalMapById<>();
         this.authoritiesByNetworkId = new HierarchicalMap<>();
-        this.dayTypeById = new HierarchicalMapById<>();
         this.dayTypeAssignmentByDayTypeId = new HierarchicalMultimap<>();
-        this.dayTypeRefs = new HashSet<>();
+        this.dayTypeAvailable = new HierarchicalMap<>();
+        this.dayTypeById = new HierarchicalMapById<>();
         this.destinationDisplayById = new HierarchicalMapById<>();
         this.groupOfLinesById = new HierarchicalMapById<>();
         this.groupOfLinesByLineId = new HierarchicalMap<>();
-        this.interchanges = new HierarchicalMapById<>();
+        this.interchanges = new HierarchicalMap<>();
         this.journeyPatternsById = new HierarchicalMapById<>();
-        this.journeyPatternsByStopPointId = new HierarchicalMapById<>();
+        this.journeyPatternsByStopPointId = new HierarchicalMap<>();
         this.lineById = new HierarchicalMapById<>();
+        // this.multimodalStopPlaceById = new HierarchicalMapById<>();
         this.networkById = new HierarchicalMapById<>();
         this.networkByLineId = new HierarchicalMap<>();
-        this.noticeById = new HierarchicalMapById<>();
         this.noticeAssignmentById = new HierarchicalMapById<>();
+        this.noticeById = new HierarchicalMapById<>();
         this.operatingPeriodById = new HierarchicalMapById<>();
         this.operatorsById = new HierarchicalMapById<>();
+        // this.parkingById = new HierarchicalMultimapById<>();
         this.quayById = new HierarchicalMultimapById<>();
         this.quayIdByStopPointRef = new HierarchicalMap<>();
         this.routeById = new HierarchicalMapById<>();
         this.serviceJourneyByPatternId = new HierarchicalMultimap<>();
         this.stopPlaceById = new HierarchicalMultimapById<>();
-        this.timeZone = new HierarchicalElement<>();
+        // this.stopPointInJourneyPatternById = new HierarchicalMapById<>();
     }
 
     /**
      * Create a child node.
      * @param parent can not be <code>null</code>.
      */
-    NetexImportDataIndex(NetexImportDataIndex parent) {
-        this.authoritiesById = new HierarchicalMapById<>(parent.authoritiesById);
+    NetexDao(NetexDao parent) {
+        this.parent = parent;
         this.authoritiesByGroupOfLinesId = new HierarchicalMap<>(parent.authoritiesByGroupOfLinesId);
+        this.authoritiesById = new HierarchicalMapById<>(parent.authoritiesById);
         this.authoritiesByNetworkId = new HierarchicalMap<>(parent.authoritiesByNetworkId);
-        this.dayTypeById = new HierarchicalMapById<>(parent.dayTypeById);
         this.dayTypeAssignmentByDayTypeId = new HierarchicalMultimap<>(parent.dayTypeAssignmentByDayTypeId);
-        this.dayTypeRefs = new HashSet<>();
+        this.dayTypeAvailable = new HierarchicalMap<>(parent.dayTypeAvailable);
+        this.dayTypeById = new HierarchicalMapById<>(parent.dayTypeById);
         this.destinationDisplayById = new HierarchicalMapById<>(parent.destinationDisplayById);
         this.groupOfLinesById = new HierarchicalMapById<>(parent.groupOfLinesById);
         this.groupOfLinesByLineId = new HierarchicalMap<>(parent.groupOfLinesByLineId);
-        this.interchanges = new HierarchicalMapById<>(parent.interchanges);
+        this.interchanges = new HierarchicalMap<>(parent.interchanges);
         this.journeyPatternsById = new HierarchicalMapById<>(parent.journeyPatternsById);
-        this.journeyPatternsByStopPointId = new HierarchicalMapById<>(parent.journeyPatternsByStopPointId);
+        this.journeyPatternsByStopPointId = new HierarchicalMap<>(parent.journeyPatternsByStopPointId);
         this.lineById = new HierarchicalMapById<>(parent.lineById);
+        // this.multimodalStopPlaceById = new HierarchicalMapById<>(parent.multimodalStopPlaceById);
         this.networkById = new HierarchicalMapById<>(parent.networkById);
         this.networkByLineId = new HierarchicalMap<>(parent.networkByLineId);
-        this.noticeById = new HierarchicalMapById<>(parent.noticeById);
         this.noticeAssignmentById = new HierarchicalMapById<>(parent.noticeAssignmentById);
+        this.noticeById = new HierarchicalMapById<>(parent.noticeById);
         this.operatingPeriodById = new HierarchicalMapById<>(parent.operatingPeriodById);
         this.operatorsById = new HierarchicalMapById<>(parent.operatorsById);
+        // this.parkingById = new HierarchicalMultimapById<>(parent.parkingById);
         this.quayById = new HierarchicalMultimapById<>(parent.quayById);
         this.quayIdByStopPointRef = new HierarchicalMap<>(parent.quayIdByStopPointRef);
         this.routeById = new HierarchicalMapById<>(parent.routeById);
         this.serviceJourneyByPatternId = new HierarchicalMultimap<>(parent.serviceJourneyByPatternId);
         this.stopPlaceById = new HierarchicalMultimapById<>(parent.stopPlaceById);
-        this.timeZone = new HierarchicalElement<>(parent.timeZone);
+        //this.stopPointInJourneyPatternById = new HierarchicalMapById<>(parent.stopPointInJourneyPatternById);
     }
 
-    // TODO OTP2 - Unit test
+
+    public void addCalendarServiceId(String serviceId) {
+        calendarServiceIds.add(serviceId);
+    }
+
+    public Iterable<String> getCalendarServiceIds() {
+        return calendarServiceIds;
+    }
+
     /**
-     * Search {@code groupOfLines} first, then {@code network} to find an authority. If no
-     * authority is found {@code null} is returned.
+     * Retrive timezone from this class, if not found delegate up to the parent NetexDao.
      */
-    public Authority lookupAuthority(GroupOfLines groupOfLines, Network network) {
-        if(groupOfLines != null) {
-            Authority a = authoritiesByGroupOfLinesId.lookup(groupOfLines.getId());
-            if(a != null) return a;
-        }
-        return network != null ? authoritiesByNetworkId.lookup(network.getId()) : null;
+    public String getTimeZone() {
+        return (timeZone != null || parent == null) ? timeZone : parent.getTimeZone();
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
 }

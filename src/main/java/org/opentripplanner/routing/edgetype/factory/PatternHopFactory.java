@@ -27,6 +27,8 @@ import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.NoticeAssignment;
 import org.opentripplanner.model.OtpTransitService;
 import org.opentripplanner.model.Pathway;
 import org.opentripplanner.model.Route;
@@ -35,8 +37,6 @@ import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Transfer;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.model.Notice;
-import org.opentripplanner.model.NoticeAssignment;
 import org.opentripplanner.routing.core.StopTransfer;
 import org.opentripplanner.routing.core.TransferTable;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -143,6 +143,8 @@ public class PatternHopFactory {
         loadPathways(graph);
         loadFeedInfo(graph);
         loadAgencies(graph);
+        loadOperators(graph);
+
         // TODO: Why is there cached "data", and why are we clearing it? Due to a general lack of comments, I have no idea.
         // Perhaps it is to allow name collisions with previously loaded feeds.
         clearCachedData(); 
@@ -537,6 +539,10 @@ public class PatternHopFactory {
         for (Agency agency : transitService.getAllAgencies()) {
             graph.addAgency(feedId.getId(), agency);
         }
+    }
+
+    private void loadOperators(Graph graph) {
+        graph.getOperators().addAll(transitService.getAllOperators());
     }
 
     private void loadFeedInfo(Graph graph) {

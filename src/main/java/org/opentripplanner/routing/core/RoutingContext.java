@@ -1,14 +1,13 @@
 package org.opentripplanner.routing.core;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.locationtech.jts.geom.LineString;
-import org.opentripplanner.model.Stop;
+import org.opentripplanner.api.resource.DebugOutput;
+import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.FeedScopedId;
-import org.opentripplanner.api.resource.DebugOutput;
-import org.opentripplanner.common.geometry.GeometryUtils;
+import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.algorithm.strategies.EuclideanRemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.strategies.RemainingWeightHeuristic;
@@ -31,7 +30,12 @@ import org.opentripplanner.util.NonLocalizedString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -309,11 +313,9 @@ public class RoutingContext implements Cloneable {
 
         for (String feedId : graph.getFeedIds()) {
             for (Agency agency : graph.getAgencies(feedId)) {
-                addIfNotExists(this.serviceDays, new ServiceDay(graph, serviceDate.previous(),
-                        calendarService, agency.getId()));
+                addIfNotExists(this.serviceDays, new ServiceDay(graph, serviceDate.previous(), calendarService, agency.getId()));
                 addIfNotExists(this.serviceDays, new ServiceDay(graph, serviceDate, calendarService, agency.getId()));
-                addIfNotExists(this.serviceDays, new ServiceDay(graph, serviceDate.next(),
-                        calendarService, agency.getId()));
+                addIfNotExists(this.serviceDays, new ServiceDay(graph, serviceDate.next(), calendarService, agency.getId()));
             }
         }
     }

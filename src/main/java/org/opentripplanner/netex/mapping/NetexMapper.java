@@ -15,14 +15,13 @@ import org.rutebanken.netex.model.StopPlace;
 
 import java.util.Collection;
 
-import static org.opentripplanner.netex.mapping.AgencyMapper.mapAgency;
+import static org.opentripplanner.netex.mapping.AuthorityToAgencyMapper.mapAuthority;
 import static org.opentripplanner.netex.mapping.CalendarMapper.mapToCalendarDates;
 import static org.opentripplanner.netex.mapping.StopMapper.mapParentAndChildStops;
 
 // TODO OTP2 - Add Unit tests
 // TODO OTP2 - JavaDoc needed
 public class NetexMapper {
-
     private final RouteMapper routeMapper = new RouteMapper();
     private final TransferMapper transferMapper = new TransferMapper();
     private final TripPatternMapper tripPatternMapper = new TripPatternMapper();
@@ -41,9 +40,14 @@ public class NetexMapper {
 
         for (Authority authority : netexIndex.authoritiesById.localValues()) {
             transitBuilder.getAgenciesById().add(
-                    mapAgency(authority, netexIndex.timeZone.get())
+                    mapAuthority(authority, netexIndex.timeZone.get())
             );
         }
+
+        for (org.rutebanken.netex.model.Operator operator : netexIndex.operatorsById.localValues()) {
+            transitBuilder.getOperatorsById().add(OperatorToAgencyMapper.mapOperator(operator));
+        }
+
 
         for (Line line : netexIndex.lineById.localValues()) {
             Route route = routeMapper.mapRoute(

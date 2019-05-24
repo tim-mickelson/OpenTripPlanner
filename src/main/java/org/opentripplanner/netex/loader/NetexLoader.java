@@ -28,6 +28,7 @@ import org.rutebanken.netex.model.Notice;
 import org.rutebanken.netex.model.NoticeAssignment;
 import org.rutebanken.netex.model.OperatingPeriod;
 import org.rutebanken.netex.model.OperatingPeriod_VersionStructure;
+import org.rutebanken.netex.model.Operator;
 import org.rutebanken.netex.model.PassengerStopAssignment;
 import org.rutebanken.netex.model.PublicationDeliveryStructure;
 import org.rutebanken.netex.model.Quay;
@@ -107,7 +108,7 @@ public class NetexLoader {
 
         // Add a global(this zip file) shared NeTEX DAO  
         netexIndex.addFirst(new NetexImportDataIndex());
-        
+
         // Load global shared files
         loadFiles("shared file", entries.sharedEntries(), zipFile);
         mapCurrentNetexObjectsIntoOtpTransitObjects();
@@ -289,8 +290,7 @@ public class NetexLoader {
                     for (GroupOfLines group : groupOfLines) {
                         index().groupOfLinesById.add(group);
                         if (authority != null) {
-                            index().authoritiesByGroupOfLinesId.add(group.getId(),
-                                    authority);
+                            index().authoritiesByGroupOfLinesId.add(group.getId(), authority);
                         }
                     }
                 }
@@ -310,11 +310,9 @@ public class NetexLoader {
                             index().networkByLineId.add(line.getId(), network2);
                         }
                         else {
-                            GroupOfLines groupOfLines = index().groupOfLinesById
-                                    .lookup(groupRef);
+                            GroupOfLines groupOfLines = index().groupOfLinesById.lookup(groupRef);
                             if (groupOfLines != null) {
-                                index().groupOfLinesByLineId.add(line.getId(),
-                                        groupOfLines);
+                                index().groupOfLinesByLineId.add(line.getId(), groupOfLines);
                             }
                         }
                     }
@@ -328,8 +326,7 @@ public class NetexLoader {
                         .getJourneyPattern_OrJourneyPatternView();
                 for (JAXBElement pattern : journeyPattern_orJourneyPatternView) {
                     if (pattern.getValue() instanceof JourneyPattern) {
-                        index().journeyPatternsById.add(
-                                (JourneyPattern) pattern.getValue());
+                        index().journeyPatternsById.add((JourneyPattern) pattern.getValue());
                     }
                 }
             }
@@ -347,7 +344,7 @@ public class NetexLoader {
                     index().noticeById.add(notice);
                 }
             }
-
+            // TODO OTP2 - What about NoticeAssignments ?
         }
     }
 
@@ -461,6 +458,10 @@ public class NetexLoader {
                 if(element.getValue() instanceof Authority){
                     Authority authority = (Authority) element.getValue();
                     index().authoritiesById.add(authority);
+                }
+                if(element.getValue() instanceof Operator) {
+                    Operator operator = (Operator) element.getValue();
+                    index().operatorsById.add(operator);
                 }
             }
         }

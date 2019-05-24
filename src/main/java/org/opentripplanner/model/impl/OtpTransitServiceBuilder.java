@@ -11,6 +11,7 @@ import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Frequency;
 import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.NoticeAssignment;
+import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.OtpTransitService;
 import org.opentripplanner.model.Pathway;
 import org.opentripplanner.model.Route;
@@ -57,6 +58,8 @@ public class OtpTransitServiceBuilder {
 
     private final EntityById<FeedScopedId, NoticeAssignment> noticeAssignmentsById = new EntityById<>();
 
+    private final EntityById<FeedScopedId, Operator> operatorsById = new EntityById<>();
+
     private final List<Pathway> pathways = new ArrayList<>();
 
     private final EntityById<FeedScopedId, Route> routesById = new EntityById<>();
@@ -84,6 +87,10 @@ public class OtpTransitServiceBuilder {
 
     public EntityById<String, Agency> getAgenciesById() {
         return agenciesById;
+    }
+
+    public Agency findAgencyById(String id) {
+        return agenciesById.get(id);
     }
 
     public List<ServiceCalendarDate> getCalendarDates() {
@@ -116,6 +123,10 @@ public class OtpTransitServiceBuilder {
 
     public EntityById<FeedScopedId, NoticeAssignment> getNoticeAssignmentsById() {
         return noticeAssignmentsById;
+    }
+
+    public EntityById<FeedScopedId, Operator> getOperatorsById() {
+        return operatorsById;
     }
 
     public List<Pathway> getPathways() {

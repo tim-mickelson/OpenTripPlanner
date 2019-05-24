@@ -9,7 +9,7 @@ import org.rutebanken.netex.model.MultilingualString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-public class AgencyMapperTest {
+public class AuthorityToAgencyMapperTest {
 
     private static final String ID = "ID";
     private static final String NAME = "Olsen";
@@ -23,7 +23,7 @@ public class AgencyMapperTest {
         Authority authority = authority(ID, NAME, URL, PHONE);
 
         // When mapped
-        Agency a = AgencyMapper.mapAgency(authority, TIME_ZONE);
+        Agency a = AuthorityToAgencyMapper.mapAuthority(authority, TIME_ZONE);
 
         // Then expect
         assertEquals(ID, a.getId());
@@ -38,7 +38,7 @@ public class AgencyMapperTest {
         Authority authority = authority(ID, NAME, null, null);
 
         // When mapped
-        Agency a = AgencyMapper.mapAgency(authority, TIME_ZONE);
+        Agency a = AuthorityToAgencyMapper.mapAuthority(authority, TIME_ZONE);
 
         // Then expect
         assertNull(a.getUrl());
@@ -47,10 +47,10 @@ public class AgencyMapperTest {
 
     @Test public void getDefaultAgency() {
         // When mapped
-        Agency a = AgencyMapper.createDefaultAgency(TIME_ZONE);
+        Agency a = AuthorityToAgencyMapper.createDummyAgency(TIME_ZONE);
 
         // Then expect
-        assertEquals(N_A, a.getId());
+        assertEquals("Dummy-" + a.getTimezone(), a.getId());
         assertEquals(N_A, a.getName());
         assertEquals(TIME_ZONE, a.getTimezone());
         assertEquals(N_A, a.getUrl());
