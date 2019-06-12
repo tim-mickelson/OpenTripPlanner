@@ -1,14 +1,10 @@
 package org.opentripplanner.routing.core;
 
-import java.util.Date;
-import java.util.Random;
-
 import junit.framework.TestCase;
-
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.gtfs.GtfsContext;
+import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.routing.algorithm.AStar;
 import org.opentripplanner.routing.edgetype.OnBoardDepartPatternHop;
 import org.opentripplanner.routing.edgetype.PatternHop;
@@ -24,7 +20,9 @@ import org.opentripplanner.routing.vertextype.PatternArriveVertex;
 import org.opentripplanner.routing.vertextype.PatternStopVertex;
 import org.opentripplanner.util.TestUtils;
 
-import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
+import java.util.Date;
+import java.util.Random;
+
 import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 
 /**
@@ -46,8 +44,7 @@ public class TestOnBoardRouting extends TestCase {
         PatternHopFactory factory = new PatternHopFactory(context);
         factory.run(graph);
         graph.putService(
-                CalendarServiceData.class,
-                createCalendarServiceData(context.getTransitBuilder())
+                CalendarServiceData.class, context.getCalendarServiceData()
         );
     }
 

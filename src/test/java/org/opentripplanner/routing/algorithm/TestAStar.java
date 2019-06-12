@@ -1,10 +1,9 @@
 package org.opentripplanner.routing.algorithm;
 
 import junit.framework.TestCase;
-
-import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.gtfs.GtfsContext;
+import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.edgetype.factory.PatternHopFactory;
 import org.opentripplanner.routing.graph.Graph;
@@ -13,7 +12,6 @@ import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.util.TestUtils;
 
-import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
 import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 
 public class TestAStar extends TestCase {
@@ -28,8 +26,7 @@ public class TestAStar extends TestCase {
         PatternHopFactory factory = new PatternHopFactory(context);
         factory.run(gg);
         gg.putService(
-                CalendarServiceData.class,
-                createCalendarServiceData(context.getTransitBuilder())
+                CalendarServiceData.class, context.getCalendarServiceData()
         );
         RoutingRequest options = new RoutingRequest();
 

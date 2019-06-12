@@ -1,6 +1,5 @@
 package org.opentripplanner.graph_builder.module;
 
-import org.opentripplanner.calendar.impl.MultiCalendarServiceImpl;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
@@ -42,20 +41,19 @@ public class NetexModule implements GraphBuilderModule {
     public void buildGraph(Graph graph, HashMap<Class<?>, Object> extra) {
 
         graph.clearTimeZone();
-        MultiCalendarServiceImpl calendarService = new MultiCalendarServiceImpl();
+        CalendarServiceData calendarServiceData = new CalendarServiceData();
         GtfsStopContext stopContext = new GtfsStopContext();
 
         try {
             for (NetexBundle netexBundle : netexBundles) {
-                OtpTransitServiceBuilder daoBuilder = new NetexLoader(netexBundle).loadBundle();
-
-                calendarService.addData(daoBuilder);
+                OtpTransitServiceBuilder transitBuilder = new NetexLoader(netexBundle).loadBundle();
+                calendarServiceData.add(transitBuilder.buildCalendarServiceData());
 
                 PatternHopFactory hf = new PatternHopFactory(
                         new GtfsFeedId.Builder()
                                 .id(netexBundle.netexParameters.netexFeedId)
                                 .build(),
-                        daoBuilder.build(),
+                        transitBuilder.build(),
                         fareServiceFactory,
                         netexBundle.getMaxStopToShapeSnapDistance(),
                         netexBundle.subwayAccessTime,
@@ -75,9 +73,8 @@ public class NetexModule implements GraphBuilderModule {
             throw new RuntimeException(e);
         }
 
-        CalendarServiceData data = calendarService.getData();
-        graph.putService(CalendarServiceData.class, data);
-        graph.updateTransitFeedValidity(data);
+        graph.putService(CalendarServiceData.class, calendarServiceData);
+        graph.updateTransitFeedValidity(calendarServiceData);
 
         graph.hasTransit = true;
         graph.calculateTransitCenter();

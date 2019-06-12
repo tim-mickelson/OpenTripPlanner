@@ -1,13 +1,10 @@
 package org.opentripplanner.routing.algorithm;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
-
-import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.gtfs.GtfsContext;
+import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.edgetype.factory.PatternHopFactory;
@@ -18,7 +15,8 @@ import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.opentripplanner.util.TestUtils;
 
-import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
+import java.util.List;
+
 import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 
 public class TestGraphPath extends TestCase {
@@ -33,8 +31,7 @@ public class TestGraphPath extends TestCase {
         PatternHopFactory hl = new PatternHopFactory(context);
         hl.run(graph);
         graph.putService(
-                CalendarServiceData.class,
-                createCalendarServiceData(context.getTransitBuilder())
+                CalendarServiceData.class, context.getCalendarServiceData()
         );
     }
 
