@@ -104,6 +104,7 @@ class TripPatternMapper {
         TripPattern tripPattern = new TripPattern(otpRoute, stopPattern);
         tripPattern.code = journeyPattern.getId();
         tripPattern.name = journeyPattern.getName() == null ? "" : journeyPattern.getName().getValue();
+        tripPattern.id = createFeedScopedId(journeyPattern.getId());
         transitBuilder.getTripPatterns().put(tripPattern.stopPattern, tripPattern);
         createTripTimes(transitBuilder, trips, tripPattern);
     }
@@ -183,6 +184,7 @@ class TripPatternMapper {
             HierarchicalMapById<DestinationDisplay> destinationDisplayById
     ) {
         StopTime stopTime = new StopTime();
+
         stopTime.setTrip(trip);
         stopTime.setStopSequence(stopSequence);
         stopTime.setStop(stop);

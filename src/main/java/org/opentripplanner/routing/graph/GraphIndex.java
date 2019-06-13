@@ -20,6 +20,7 @@ import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,8 +84,9 @@ public class GraphIndex {
     public final Multimap<String, TripPattern> patternsForFeedId = ArrayListMultimap.create();
     public final Multimap<Route, TripPattern> patternsForRoute = ArrayListMultimap.create();
     public final Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
-    public final Multimap<String, Stop> stopsForParentStation = ArrayListMultimap.create();
-    final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<TransitStop>();
+    final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<>();
+    public final Map<FeedScopedId, Notice> noticeForId = Maps.newHashMap();
+    private final Map<FeedScopedId, List<Notice>> noticeAssignmentForId = Maps.newHashMap();
 
     /* Should eventually be replaced with new serviceId indexes. */
     private final CalendarService calendarService;
@@ -129,7 +132,6 @@ public class GraphIndex {
                 Stop stop = transitStop.getStop();
                 stopForId.put(stop.getId(), stop);
                 stopVertexForStop.put(stop, transitStop);
-                stopsForParentStation.put(stop.getParentStation(), stop);
             }
         }
         for (TransitStop stopVertex : stopVertexForStop.values()) {
@@ -151,6 +153,9 @@ public class GraphIndex {
         for (Route route : patternsForRoute.asMap().keySet()) {
             routeForId.put(route.getId(), route);
         }
+
+        if(graph.noticeMap != null) noticeForId.putAll(graph.noticeMap);
+        if(graph.noticeAssignmentMap != null) noticeAssignmentForId.putAll(graph.noticeAssignmentMap);
 
         // Copy these two service indexes from the graph until we have better ones.
         calendarService = graph.getCalendarService();
@@ -442,4 +447,9 @@ public class GraphIndex {
         return allAgencies;
     }
 
+    public Collection<Notice> getNoticesForElement(FeedScopedId id) {
+        return this.noticeAssignmentForId.containsKey(id)
+                ? this.noticeAssignmentForId.get(id)
+                : Collections.emptyList();
+    }
 }

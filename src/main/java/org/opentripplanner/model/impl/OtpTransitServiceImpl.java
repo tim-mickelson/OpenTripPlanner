@@ -7,6 +7,8 @@ import org.opentripplanner.model.FareRule;
 import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.OtpTransitService;
+import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.NoticeAssignment;
 import org.opentripplanner.model.Pathway;
 import org.opentripplanner.model.ShapePoint;
 import org.opentripplanner.model.Stop;
@@ -22,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.groupingBy;
 
 /**
@@ -46,6 +49,10 @@ class OtpTransitServiceImpl implements OtpTransitService {
     private final Collection<FareRule> fareRules;
 
     private final Collection<FeedInfo> feedInfos;
+
+    private final Collection<Notice> notices;
+
+    private final Collection<NoticeAssignment> noticeAssignments;
 
     private final Collection<Pathway> pathways;
 
@@ -77,6 +84,8 @@ class OtpTransitServiceImpl implements OtpTransitService {
         this.fareAttributes = immutableList(builder.getFareAttributes());
         this.fareRules = immutableList(builder.getFareRules());
         this.feedInfos = immutableList(builder.getFeedInfos());
+        this.notices = immutableList(builder.getNoticesById().values());
+        this.noticeAssignments = immutableList(builder.getNoticeAssignmentsById().values());
         this.pathways = immutableList(builder.getPathways());
         this.serviceIds = immutableList(builder.findAllServiceIds());
         this.shapePointsByShapeId = mapShapePoints(builder.getShapePoints());
@@ -106,6 +115,12 @@ class OtpTransitServiceImpl implements OtpTransitService {
     public Collection<FeedInfo> getAllFeedInfos() {
         return feedInfos;
     }
+
+    @Override
+    public Collection<Notice> getNotices() { return notices; }
+
+    @Override
+    public Collection<NoticeAssignment> getNoticeAssignments() { return noticeAssignments; }
 
     @Override
     public Collection<Pathway> getAllPathways() {

@@ -39,6 +39,7 @@ import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GraphBundle;
+import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
@@ -107,6 +108,10 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     private final Map<Edge, List<TurnRestriction>> turnRestrictions = Maps.newHashMap();
 
     public final StreetNotesService streetNotesService = new StreetNotesService();
+
+    public Map<FeedScopedId, Notice> noticeMap = new HashMap<>();
+
+    public Map<FeedScopedId, List<Notice>> noticeAssignmentMap = new HashMap<>();
 
     // transit feed validity information in seconds since epoch
     private long transitServiceStarts = Long.MAX_VALUE;

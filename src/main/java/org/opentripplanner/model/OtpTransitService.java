@@ -18,6 +18,10 @@ public interface OtpTransitService {
 
     Collection<FeedInfo> getAllFeedInfos();
 
+    Collection<NoticeAssignment> getNoticeAssignments();
+
+    Collection<Notice> getNotices();
+
     Collection<Pathway> getAllPathways();
 
     /** @return all ids for both Calendars and CalendarDates merged into on list without duplicates */
