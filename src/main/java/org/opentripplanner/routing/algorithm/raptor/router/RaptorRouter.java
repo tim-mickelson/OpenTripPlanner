@@ -56,7 +56,7 @@ public class RaptorRouter {
         );
         LOG.info("Filtering tripPatterns took {} ms", System.currentTimeMillis() - startTime);
         this.transitLayer = transitLayer;
-        this.request = request;
+        this.request = request.clone();
     }
 
     public Collection<Itinerary> route() {
