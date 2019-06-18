@@ -80,7 +80,8 @@ public class ItineraryMapper {
             Map<Stop, Transfer> egressTransfers) {
         this.transitLayer = transitLayer;
         this.startOfTime = startOfTime;
-        this.request = request;
+        this.request = request.clone();
+        this.request.maxTransferWalkDistance = Integer.MAX_VALUE;
         this.accessTransfers = accessTransfers;
         this.egressTransfers = egressTransfers;
     }
@@ -206,7 +207,7 @@ public class ItineraryMapper {
 
     private void mapNonTransitLeg(Itinerary itinerary, PathLeg<TripSchedule> pathLeg, Transfer transfer, Place from, Place to, boolean onlyIfNonZeroDistance) {
         List<Edge> edges = transfer.getEdges();
-        if (edges.isEmpty()) {
+        if (edges == null || edges.isEmpty()) {
             Leg leg = new Leg();
             leg.from = from;
             leg.to = to;
