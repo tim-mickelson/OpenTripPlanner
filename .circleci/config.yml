@@ -136,7 +136,7 @@ workflows:
             only:
               - entur_raptor
               - rutebanken_develop
-              - otp-2
+              - otp2_entur_develop
     - deploy-docker:
         context: org-carbon
         requires:
