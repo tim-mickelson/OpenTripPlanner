@@ -14,6 +14,8 @@ import org.opentripplanner.standalone.CommandLineParameters;
 import org.opentripplanner.standalone.OTPServer;
 import org.opentripplanner.standalone.Router;
 import org.opentripplanner.standalone.config.OTPConfiguration;
+import org.opentripplanner.updater.GraphUpdater;
+import org.opentripplanner.updater.PollingGraphUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -113,6 +117,18 @@ public class Routers {
             }
         }
         return routerList;
+    }
+
+    /**
+     * Checks that graphs are ready, and that blocking PollingUpdaters reports as initialized
+     * TODO: Add actual checks
+     */
+    @GET @Path("/ready")
+    @Produces({ MediaType.TEXT_PLAIN})
+    public Response isReady() {
+        return Response.status(Status.OK)
+                .entity("Ready.\n").type("text/plain")
+                .build();
     }
 
     /** 
