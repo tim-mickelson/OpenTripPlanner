@@ -7,8 +7,6 @@ import org.rutebanken.netex.model.ServiceJourneyInterchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.opentripplanner.model.FeedScopedId.convertFromString;
-
 class TransferMapper {
     private static final Logger LOG = LoggerFactory.getLogger(TransferMapper.class);
 
@@ -22,17 +20,17 @@ class TransferMapper {
         String toStopId = netexIndex.quayIdByStopPointRef.lookup(interchange.getToPointRef().getRef());
 
         transfer.setFromStop(
-                transitBuilder.getStops().get(convertFromString(fromStopId)));
+                transitBuilder.getStops().get(FeedScopedIdFactory.createFeedScopedId(fromStopId)));
         transfer.setToStop(
-                transitBuilder.getStops().get(convertFromString(toStopId)));
+                transitBuilder.getStops().get(FeedScopedIdFactory.createFeedScopedId(toStopId)));
 
         transfer.setFromTrip(
-                transitBuilder.getTripsById().get(convertFromString(
+                transitBuilder.getTripsById().get(FeedScopedIdFactory.createFeedScopedId(
                         interchange.getFromJourneyRef().getRef())
                 )
         );
         transfer.setToTrip(transitBuilder.getTripsById()
-                .get(convertFromString(interchange.getToJourneyRef().getRef())));
+                .get(FeedScopedIdFactory.createFeedScopedId(interchange.getToJourneyRef().getRef())));
 
         if (transfer.getFromTrip() == null || transfer.getToTrip() == null) {
             LOG.warn("Trips not found for transfer " + interchange.getId());

@@ -246,8 +246,10 @@ public class PatternHopFactory {
             if (graph.noticeAssignmentMap.containsKey(noticeAssignment.getElementId())) {
                 graph.noticeAssignmentMap.get(noticeAssignment.getElementId()).add(notice);
             } else {
+                ArrayList<Notice> noticeList = new ArrayList<>();
+                noticeList.add(notice);
                 graph.noticeAssignmentMap
-                        .put(noticeAssignment.getElementId(), Arrays.asList(notice));
+                        .put(noticeAssignment.getElementId(), noticeList);
             }
         }
 
