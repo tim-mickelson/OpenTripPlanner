@@ -6,19 +6,23 @@ import graphql.schema.DataFetchingEnvironment;
 import org.apache.commons.lang3.StringUtils;
 import org.opentripplanner.api.common.Message;
 import org.opentripplanner.api.common.ParameterException;
+import org.opentripplanner.api.model.Itinerary;
 import org.opentripplanner.api.model.Place;
 import org.opentripplanner.api.model.TripPlan;
 import org.opentripplanner.api.model.error.PlannerError;
 import org.opentripplanner.api.parameter.QualifiedModeSet;
 import org.opentripplanner.api.resource.DebugOutput;
 import org.opentripplanner.api.resource.GraphPathToTripPlanConverter;
+import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.index.transmodel.mapping.TransmodelMappingUtil;
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.core.OptimizeType;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.edgetype.StationStopEdge;
+import org.opentripplanner.routing.error.PathNotFoundException;
 import org.opentripplanner.routing.graph.GraphIndex;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.impl.GraphPathFinder;
@@ -30,16 +34,7 @@ import org.opentripplanner.standalone.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -57,7 +52,6 @@ public class TransmodelGraphQLPlanner {
     public Map<String, Object> plan(DataFetchingEnvironment environment) {
         Router router = environment.getContext();
         RoutingRequest request = createRequest(environment);
-        GraphPathFinder gpFinder = new GraphPathFinder(router);
 
         TripPlan plan = new TripPlan(
                                             new Place(request.from.lng, request.from.lat, request.getFromPlace().name),
@@ -67,8 +61,30 @@ public class TransmodelGraphQLPlanner {
         DebugOutput debugOutput = new DebugOutput();
 
         try {
-            List<GraphPath> paths = gpFinder.graphPathFinderEntryPoint(request);
-            plan = GraphPathToTripPlanConverter.generatePlan(paths, request);
+            List<Itinerary> itineraries = new ArrayList<>();
+
+            /*
+            if (request.modes.getNonTransitSet().isValid()) {
+                double distance = SphericalDistanceLibrary.distance(request.rctx.origin.getCoordinate(), request.rctx.target.getCoordinate());
+                double limit = request.maxWalkDistance * 2;
+                // Handle int overflow, in which case the multiplication will be less than zero
+                if (limit < 0 || distance < limit) {
+                    itineraries.addAll(findNonTransitItineraries(request, router));
+                }
+            }
+            */
+
+
+            if (request.modes.isTransit()) {
+                RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
+                itineraries.addAll(raptorRouter.route());
+            }
+
+            if (itineraries.isEmpty()) {
+                throw new PathNotFoundException();
+            }
+
+            plan = createTripPlan(request, itineraries);
         } catch (Exception e) {
             PlannerError error = new PlannerError(e);
             if (!PlannerError.isPlanningError(e.getClass()))
@@ -307,6 +323,8 @@ public class TransmodelGraphQLPlanner {
         }
          */
 
+        request.setRoutingContext(router.graph);
+
         return request;
     }
 
@@ -332,6 +350,38 @@ public class TransmodelGraphQLPlanner {
 
     public static <T> boolean hasArgument(Map<String, T> m, String name) {
         return m.containsKey(name) && m.get(name) != null;
+    }
+
+    private List<Itinerary> findNonTransitItineraries(RoutingRequest request, Router router) {
+        RoutingRequest nonTransitRequest = request.clone();
+        nonTransitRequest.modes.setTransit(false);
+
+        try {
+            // we could also get a persistent router-scoped GraphPathFinder but there's no setup cost here
+            GraphPathFinder gpFinder = new GraphPathFinder(router);
+            List<GraphPath> paths = gpFinder.graphPathFinderEntryPoint(nonTransitRequest);
+
+            /* Convert the internal GraphPaths to a TripPlan object that is included in an OTP web service Response. */
+            TripPlan plan = GraphPathToTripPlanConverter.generatePlan(paths, request);
+            return plan.itinerary;
+        } catch (PathNotFoundException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private TripPlan createTripPlan(RoutingRequest request, List<Itinerary> itineraries) {
+        Place from = new Place();
+        Place to = new Place();
+        if (!itineraries.isEmpty()) {
+            from = itineraries.get(0).legs.get(0).from;
+            to = itineraries.get(0).legs.get(itineraries.get(0).legs.size() - 1).to;
+        }
+        TripPlan tripPlan = new TripPlan(from, to, request.getDateTime());
+        itineraries = itineraries.stream().sorted(Comparator.comparing(i -> i.endTime))
+                .limit(request.numItineraries).collect(Collectors.toList());
+        tripPlan.itinerary = itineraries;
+        LOG.info("Returning {} itineraries", itineraries.size());
+        return tripPlan;
     }
 
 }
