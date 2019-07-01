@@ -2,21 +2,7 @@ package org.opentripplanner.netex.loader.parser;
 
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.loader.util.ReadOnlyHierarchicalVersionMapById;
-import org.rutebanken.netex.model.DestinationDisplay;
-import org.rutebanken.netex.model.DestinationDisplaysInFrame_RelStructure;
-import org.rutebanken.netex.model.GroupOfLines;
-import org.rutebanken.netex.model.GroupsOfLinesInFrame_RelStructure;
-import org.rutebanken.netex.model.JourneyPattern;
-import org.rutebanken.netex.model.JourneyPatternsInFrame_RelStructure;
-import org.rutebanken.netex.model.Line;
-import org.rutebanken.netex.model.LinesInFrame_RelStructure;
-import org.rutebanken.netex.model.Network;
-import org.rutebanken.netex.model.PassengerStopAssignment;
-import org.rutebanken.netex.model.Quay;
-import org.rutebanken.netex.model.Route;
-import org.rutebanken.netex.model.RoutesInFrame_RelStructure;
-import org.rutebanken.netex.model.ServiceFrame;
-import org.rutebanken.netex.model.StopAssignmentsInFrame_RelStructure;
+import org.rutebanken.netex.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +34,8 @@ class ServiceFrameParser {
 
     private final Map<String, String> quayIdByStopPointRef = new HashMap<>();
 
+    private final Collection<Notice> notices = new ArrayList<>();
+
     ServiceFrameParser(ReadOnlyHierarchicalVersionMapById<Quay> quayById) {
         this.quayById = quayById;
     }
@@ -59,6 +47,7 @@ class ServiceFrameParser {
         parseLines(sf.getLines());
         parseJourneyPatterns(sf.getJourneyPatterns());
         parseDestinationDisplays(sf.getDestinationDisplays());
+        parseNotices(sf.getNotices());
     }
 
     void setResultOnIndex(NetexImportDataIndex index) {
@@ -70,6 +59,7 @@ class ServiceFrameParser {
         index.networkById.addAll(networks);
         index.quayIdByStopPointRef.addAll((quayIdByStopPointRef));
         index.routeById.addAll(routes);
+        index.noticeById.addAll(notices);
 
         // update references
         index.networkIdByGroupOfLineId.addAll(networkIdByGroupOfLineId);
@@ -148,5 +138,12 @@ class ServiceFrameParser {
         if (destDisplays == null) return;
 
         this.destinationDisplays.addAll(destDisplays.getDestinationDisplay());
+    }
+
+
+    private void parseNotices(NoticesInFrame_RelStructure notices) {
+        if (notices == null) return;
+
+        this.notices.addAll(notices.getNotice());
     }
 }

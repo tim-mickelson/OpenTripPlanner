@@ -24,17 +24,7 @@ import org.opentripplanner.graph_builder.annotation.NonStationParentStation;
 import org.opentripplanner.graph_builder.module.GtfsFeedId;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.gtfs.GtfsLibrary;
-import org.opentripplanner.model.Agency;
-import org.opentripplanner.model.FeedInfo;
-import org.opentripplanner.model.FeedScopedId;
-import org.opentripplanner.model.OtpTransitService;
-import org.opentripplanner.model.Pathway;
-import org.opentripplanner.model.Route;
-import org.opentripplanner.model.ShapePoint;
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.StopTime;
-import org.opentripplanner.model.Transfer;
-import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.*;
 import org.opentripplanner.routing.core.StopTransfer;
 import org.opentripplanner.routing.core.TransferTable;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -218,6 +208,8 @@ public class PatternHopFactory {
 
         /* Interpret the transfers explicitly defined in transfers.txt. */
         loadTransfers(graph);
+
+        loadNotices(graph);
 
         /* Store parent stops in graph, even if not linked. These are needed for clustering*/
         for (TransitStationStop stop : context.stationStopNodes.values()) {
@@ -584,6 +576,19 @@ public class PatternHopFactory {
         geometriesByShapeId.clear();
         distancesByShapeId.clear();
         geometriesByShapeSegmentKey.clear();
+    }
+
+    private void loadNotices(Graph graph) {
+        graph.setNoticeMap(transitService.getNoticeById());
+        for (NoticeAssignment noticeAssignment : transitService.getNoticeAssignmentById().values()) {
+            Notice notice = transitService.getNoticeById().get(noticeAssignment.getNoticeId());
+            if (graph.getNoticeAssignmentMap().containsKey(noticeAssignment.getElementId())) {
+                graph.getNoticeAssignmentMap().get(noticeAssignment.getElementId()).add(notice);
+            } else {
+                graph.getNoticeAssignmentMap()
+                        .put(noticeAssignment.getElementId(), new ArrayList(Arrays.asList(notice)));
+            }
+        }
     }
 
     private void loadTransfers(Graph graph) {

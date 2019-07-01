@@ -5,10 +5,7 @@ import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
-import org.rutebanken.netex.model.Authority;
-import org.rutebanken.netex.model.JourneyPattern;
-import org.rutebanken.netex.model.Line;
-import org.rutebanken.netex.model.StopPlace;
+import org.rutebanken.netex.model.*;
 
 import java.util.Collection;
 
@@ -81,6 +78,18 @@ public class NetexMapper {
             transitBuilder.getCalendarDates().addAll(
                     mapToCalendarDates(dayTypeRefs, netexIndex)
             );
+        }
+
+        for (Notice notice : netexIndex.noticeById.localValues()) {
+            org.opentripplanner.model.Notice otpNotice = NoticeMapper.map(notice);
+            transitBuilder. getNoticesById().add(otpNotice);
+        }
+
+        for (org.rutebanken.netex.model.NoticeAssignment noticeAssignment : netexIndex.noticeAssignmentById.localValues()) {
+            Collection<org.opentripplanner.model.NoticeAssignment> otpNoticeAssignments = NoticeAssignmentMapper.map(noticeAssignment, netexIndex);
+            for (org.opentripplanner.model.NoticeAssignment otpNoticeAssignment : otpNoticeAssignments) {
+                transitBuilder.getNoticeAssignmentsById().add(otpNoticeAssignment);
+            }
         }
     }
 }

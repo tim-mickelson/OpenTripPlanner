@@ -1,18 +1,7 @@
 /* This file is based on code copied from project OneBusAway, see the LICENSE file for further information. */
 package org.opentripplanner.model.impl;
 
-import org.opentripplanner.model.Agency;
-import org.opentripplanner.model.FareAttribute;
-import org.opentripplanner.model.FareRule;
-import org.opentripplanner.model.FeedInfo;
-import org.opentripplanner.model.FeedScopedId;
-import org.opentripplanner.model.OtpTransitService;
-import org.opentripplanner.model.Pathway;
-import org.opentripplanner.model.ShapePoint;
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.StopTime;
-import org.opentripplanner.model.Transfer;
-import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.*;
 import org.opentripplanner.routing.edgetype.TripPattern;
 
 import java.util.ArrayList;
@@ -47,6 +36,10 @@ class OtpTransitServiceImpl implements OtpTransitService {
 
     private final Collection<FeedInfo> feedInfos;
 
+    private final Map<FeedScopedId, Notice> notices;
+
+    private final Map<FeedScopedId, NoticeAssignment> noticeAssignment;
+
     private final Collection<Pathway> pathways;
 
     private final Collection<FeedScopedId> serviceIds;
@@ -77,6 +70,8 @@ class OtpTransitServiceImpl implements OtpTransitService {
         this.fareAttributes = immutableList(builder.getFareAttributes());
         this.fareRules = immutableList(builder.getFareRules());
         this.feedInfos = immutableList(builder.getFeedInfos());
+        this.notices = builder.getNoticesById().asImmutableMap();
+        this.noticeAssignment = builder.getNoticeAssignmentsById().asImmutableMap();
         this.pathways = immutableList(builder.getPathways());
         this.serviceIds = immutableList(builder.findAllServiceIds());
         this.shapePointsByShapeId = mapShapePoints(builder.getShapePoints());
@@ -105,6 +100,16 @@ class OtpTransitServiceImpl implements OtpTransitService {
     @Override
     public Collection<FeedInfo> getAllFeedInfos() {
         return feedInfos;
+    }
+
+    @Override
+    public Map<FeedScopedId, Notice> getNoticeById() {
+        return notices;
+    }
+
+    @Override
+    public Map<FeedScopedId, NoticeAssignment> getNoticeAssignmentById() {
+        return noticeAssignment;
     }
 
     @Override

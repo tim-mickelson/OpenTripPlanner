@@ -12,6 +12,8 @@ public final class StopTime implements Serializable, Comparable<StopTime> {
 
     public static final int MISSING_VALUE = -999;
 
+    private int id;
+
     private Trip trip;
 
     private Stop stop;
@@ -53,6 +55,14 @@ public final class StopTime implements Serializable, Comparable<StopTime> {
         this.stopSequence = st.stopSequence;
         this.timepoint = st.timepoint;
         this.trip = st.trip;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public Integer setId(Integer id) {
+        this.id = id;
     }
 
     public Trip getTrip() {

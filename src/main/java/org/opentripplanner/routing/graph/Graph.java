@@ -34,12 +34,7 @@ import org.opentripplanner.common.geometry.GraphUtils;
 import org.opentripplanner.graph_builder.annotation.GraphBuilderAnnotation;
 import org.opentripplanner.graph_builder.annotation.NoFutureDates;
 import org.opentripplanner.kryo.HashBiMapSerializer;
-import org.opentripplanner.model.Agency;
-import org.opentripplanner.model.CalendarService;
-import org.opentripplanner.model.FeedInfo;
-import org.opentripplanner.model.FeedScopedId;
-import org.opentripplanner.model.GraphBundle;
-import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.*;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.calendar.impl.CalendarServiceImpl;
@@ -107,6 +102,10 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     private final Map<Edge, List<TurnRestriction>> turnRestrictions = Maps.newHashMap();
 
     public final StreetNotesService streetNotesService = new StreetNotesService();
+
+    private Map<FeedScopedId, org.opentripplanner.model.Notice> noticeMap = new HashMap<>();
+
+    private Map<FeedScopedId, List<Notice>> noticeAssignmentMap = new HashMap<>();
 
     // transit feed validity information in seconds since epoch
     private long transitServiceStarts = Long.MAX_VALUE;
@@ -968,5 +967,22 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     public long getTransitServiceEnds() {
         return transitServiceEnds;
+    }
+
+    public Map<FeedScopedId, Notice> getNoticeMap() {
+        return noticeMap;
+    }
+
+    public Map<FeedScopedId, List<Notice>> getNoticeAssignmentMap() {
+        return noticeAssignmentMap;
+    }
+
+    public void setNoticeMap(Map<FeedScopedId, org.opentripplanner.model.Notice> noticeMap) {
+        this.noticeMap = noticeMap;
+    }
+
+    public void setNoticeAssignmentMap(
+            Map<FeedScopedId, List<org.opentripplanner.model.Notice>> noticeAssignmentMap) {
+        this.noticeAssignmentMap = noticeAssignmentMap;
     }
 }
