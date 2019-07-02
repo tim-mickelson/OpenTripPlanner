@@ -5,18 +5,23 @@ import com.google.common.collect.Multimap;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.loader.util.ReadOnlyHierarchicalMap;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
+import org.rutebanken.netex.model.Interchange_VersionStructure;
+import org.rutebanken.netex.model.JourneyInterchangesInFrame_RelStructure;
 import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.Journey_VersionStructure;
 import org.rutebanken.netex.model.JourneysInFrame_RelStructure;
 import org.rutebanken.netex.model.ServiceJourney;
-import org.rutebanken.netex.model.Timetable_VersionFrameStructure;
+import org.rutebanken.netex.model.ServiceJourneyInterchange;
+import org.rutebanken.netex.model.TimetableFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-class TimeTableFrameParser extends NetexParser<Timetable_VersionFrameStructure> {
+class TimeTableFrameParser extends NetexParser<TimetableFrame> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TimeTableFrameParser.class);
 
@@ -26,13 +31,17 @@ class TimeTableFrameParser extends NetexParser<Timetable_VersionFrameStructure> 
 
     private final Multimap<String, ServiceJourney> serviceJourneyByPatternId = ArrayListMultimap.create();
 
+    private final Collection<ServiceJourneyInterchange> serviceJourneyInterchanges = new ArrayList<>();
+
     TimeTableFrameParser(ReadOnlyHierarchicalMap<String, JourneyPattern> journeyPatternById) {
         this.journeyPatternById = journeyPatternById;
     }
 
     @Override
-    void parse(Timetable_VersionFrameStructure frame) {
+    void parse(TimetableFrame frame) {
         parseJourneys(frame.getVehicleJourneys());
+        parseInterchanges(frame.getJourneyInterchanges());
+
 
         warnOnMissingMapping(LOG, frame.getNetworkView());
         warnOnMissingMapping(LOG, frame.getLineView());
@@ -71,6 +80,8 @@ class TimeTableFrameParser extends NetexParser<Timetable_VersionFrameStructure> 
     void setResultOnIndex(NetexImportDataIndex netexIndex) {
         netexIndex.dayTypeRefs.addAll(dayTypeRefs);
         netexIndex.serviceJourneyByPatternId.addAll(serviceJourneyByPatternId);
+        netexIndex.interchangesById.addAll(serviceJourneyInterchanges);
+
     }
 
     private void parseJourneys(JourneysInFrame_RelStructure element) {
@@ -109,6 +120,17 @@ class TimeTableFrameParser extends NetexParser<Timetable_VersionFrameStructure> 
             }
         } else {
             LOG.warn("JourneyPattern not found. " + journeyPatternId);
+        }
+    }
+
+    private void parseInterchanges(JourneyInterchangesInFrame_RelStructure interchanges) {
+        if (interchanges == null) return;
+
+        for (Interchange_VersionStructure it : interchanges.getServiceJourneyPatternInterchangeOrServiceJourneyInterchange()) {
+            if (it instanceof ServiceJourneyInterchange) {
+                this.serviceJourneyInterchanges.add((ServiceJourneyInterchange)it);
+            }
+            // TODO OTP2 - Add warning on unhandeled type
         }
     }
 }

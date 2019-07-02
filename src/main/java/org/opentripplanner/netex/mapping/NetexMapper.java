@@ -2,6 +2,7 @@ package org.opentripplanner.netex.mapping;
 
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.Transfer;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
@@ -22,7 +23,6 @@ import static org.opentripplanner.netex.mapping.CalendarMapper.mapToCalendarDate
  * In some cases the result is returned and added to the transit builder, while in other cases a more complex structure
  * has to be added, so the transit builder is passed into the mapper and objects are added there.
  */
-
 public class NetexMapper {
 
     private final OtpTransitServiceBuilder transitBuilder;
@@ -81,6 +81,13 @@ public class NetexMapper {
             transitBuilder.getCalendarDates().addAll(
                     mapToCalendarDates(dayTypeRefs, netexIndex)
             );
+        }
+
+        for (org.rutebanken.netex.model.ServiceJourneyInterchange it : netexIndex.interchangesById.localValues()) {
+            Transfer transfer = TransferMapper.map(it, transitBuilder, netexIndex);
+            if (transfer != null) {
+                transitBuilder.getTransfers().add(transfer);
+            }
         }
     }
 }
