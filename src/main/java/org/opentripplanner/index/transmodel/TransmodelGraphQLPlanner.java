@@ -63,7 +63,6 @@ public class TransmodelGraphQLPlanner {
         try {
             List<Itinerary> itineraries = new ArrayList<>();
 
-            /*
             if (request.modes.getNonTransitSet().isValid()) {
                 double distance = SphericalDistanceLibrary.distance(request.rctx.origin.getCoordinate(), request.rctx.target.getCoordinate());
                 double limit = request.maxWalkDistance * 2;
@@ -72,8 +71,6 @@ public class TransmodelGraphQLPlanner {
                     itineraries.addAll(findNonTransitItineraries(request, router));
                 }
             }
-            */
-
 
             if (request.modes.isTransit()) {
                 RaptorRouter raptorRouter = new RaptorRouter(request, router.graph.transitLayer);
