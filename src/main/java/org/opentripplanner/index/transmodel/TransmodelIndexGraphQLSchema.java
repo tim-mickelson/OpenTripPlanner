@@ -4016,7 +4016,7 @@ public class TransmodelIndexGraphQLSchema {
                         .name("distance")
                         .description("Total distance for the trip, in meters. NOT IMPLEMENTED")
                         .type(Scalars.GraphQLFloat)
-                        .dataFetcher(environment -> 0)
+                        .dataFetcher(environment -> 2000)
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("walkTime")
