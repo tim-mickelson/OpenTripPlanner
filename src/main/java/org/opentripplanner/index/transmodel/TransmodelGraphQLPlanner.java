@@ -63,7 +63,7 @@ public class TransmodelGraphQLPlanner {
         try {
             List<Itinerary> itineraries = new ArrayList<>();
 
-            if (request.modes.getNonTransitSet().isValid()) {
+            if (request.modes.getNonTransitSet().isValid() && !request.modes.isTransit()) {
                 double distance = SphericalDistanceLibrary.distance(request.rctx.origin.getCoordinate(), request.rctx.target.getCoordinate());
                 double limit = request.maxWalkDistance * 2;
                 // Handle int overflow, in which case the multiplication will be less than zero
