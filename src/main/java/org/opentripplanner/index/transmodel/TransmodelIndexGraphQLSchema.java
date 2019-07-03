@@ -2342,7 +2342,14 @@ public class TransmodelIndexGraphQLSchema {
                         .name("publicCode")
                         .type(Scalars.GraphQLString)
                         .description("Publicly announced code for line, differentiating it from other lines for the same operator.")
-                        .dataFetcher(environment -> (((Route) environment.getSource()).getShortName()))
+                        .dataFetcher(environment -> {
+                            String shortName = ((Route) environment.getSource()).getShortName();
+                            if (shortName != null) {
+                                return shortName;
+                            } else {
+                                return "";
+                            }
+                        })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("name")

@@ -37,7 +37,12 @@ class RouteMapper {
         otpRoute.setAgency(findAuthorityForRoute(transitBuilder, netexIndex, line, timeZone));
         otpRoute.setOperator(findLineOperator(line, transitBuilder));
         otpRoute.setLongName(line.getName().getValue());
-        otpRoute.setShortName(line.getPublicCode());
+        if (line.getPublicCode() != null) {
+            otpRoute.setShortName(line.getPublicCode());
+        } else {
+            otpRoute.setShortName("");
+        }
+
         otpRoute.setType(transportModeMapper.getTransportMode(line.getTransportMode(), line.getTransportSubmode()));
 
         if (line.getPresentation() != null) {
