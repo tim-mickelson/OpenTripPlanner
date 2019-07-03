@@ -21,6 +21,7 @@ import org.opentripplanner.routing.core.RoutingRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -118,6 +119,12 @@ public class RaptorRouter {
 
         List<Itinerary> itineraries = paths.stream()
                 .map(itineraryMapper::createItinerary)
+                .collect(Collectors.toList());
+
+        itineraries = itineraries.stream()
+                .filter(t -> t.startTime.getTime().toInstant()
+                        .isBefore(request.getDateTime().toInstant()
+                        .plus(Duration.ofSeconds(request.raptorSearchWindow))))
                 .collect(Collectors.toList());
 
         LOG.info("Creating itineraries took {} ms", itineraries.size(), System.currentTimeMillis() - startItineraries);
