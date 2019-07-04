@@ -3904,7 +3904,19 @@ public class TransmodelIndexGraphQLSchema {
                         .name("intermediateQuays")
                         .description("For ride legs, intermediate quays between the Place where the leg originates and the Place where the leg ends. For non-ride legs, empty list.")
                         .type(new GraphQLNonNull(new GraphQLList(quayType)))
-                        .dataFetcher(environment -> new ArrayList<>())
+                        .dataFetcher(environment -> {
+                                List<Place> stops = ((Leg) environment.getSource()).stop;
+                                if (stops == null) {
+                                    return new ArrayList<>();
+                                }
+                                else {
+                                    return (stops.stream()
+                                            .filter(place -> place.stopId != null)
+                                            .map(placeWithStop -> index.stopForId.get(placeWithStop.stopId))
+                                            .filter(Objects::nonNull)
+                                            .collect(Collectors.toList()));
+                                }
+                            })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("intermediateEstimatedCalls")
