@@ -308,7 +308,7 @@ public class RoutingRequest implements Cloneable, Serializable {
     /**
      * Raptor search window in seconds.
      */
-    public int raptorSearchWindow = 40 * 60;
+    public int raptorSearchWindow = 60 * 60;
 
     /**
      * Extensions to the trip planner will require additional traversal options beyond the default 
