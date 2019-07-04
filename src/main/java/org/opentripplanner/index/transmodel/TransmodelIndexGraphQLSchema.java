@@ -986,14 +986,6 @@ public class TransmodelIndexGraphQLSchema {
                         .type(localeEnum)
                         .defaultValue("no")
                         .build())
-                /*
-                .argument(GraphQLArgument.newArgument()
-                        .name("heuristicStepsPerMainStep")
-                        .description("Search algorithm tuning parameter.")
-                        .type(Scalars.GraphQLInt)
-                        .defaultValue(defaultRoutingRequest.heuristicStepsPerMainStep)
-                        .build())
-                 */
                 .argument(GraphQLArgument.newArgument()
                         .name("compactLegsByReversedSearch")
                         .description("Whether legs should be compacted by performing a reversed search. Experimental argument, will be removed!.")
@@ -1051,22 +1043,10 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                  */
                 .argument(GraphQLArgument.newArgument()
-                        .name("walkBoardCost")
-                        .description("DEPRECATED - ONLY FOR TESTING. Cost applied each time transit is boarded.")
-                        .type(Scalars.GraphQLInt)
-                        .defaultValue(defaultRoutingRequest.walkBoardCost)
-                        .build())
-                .argument(GraphQLArgument.newArgument()
                         .name("walkReluctance")
                         .description("Walk cost is multiplied by this value. This is the main parameter to use for limiting walking.")
                         .type(Scalars.GraphQLFloat)
                         .defaultValue(defaultRoutingRequest.walkReluctance)
-                        .build())
-                .argument(GraphQLArgument.newArgument()
-                        .name("waitReluctance")
-                        .description("DEPRECATED - ONLY FOR TESTING. Wait cost is multiplied by this value.")
-                        .type(Scalars.GraphQLFloat)
-                        .defaultValue(defaultRoutingRequest.waitReluctance)
                         .build())
                 /*
                 .argument(GraphQLArgument.newArgument()
@@ -3931,7 +3911,19 @@ public class TransmodelIndexGraphQLSchema {
                         .name("intermediateQuays")
                         .description("For ride legs, intermediate quays between the Place where the leg originates and the Place where the leg ends. For non-ride legs, empty list.")
                         .type(new GraphQLNonNull(new GraphQLList(quayType)))
-                        .dataFetcher(environment -> new ArrayList<>())
+                        .dataFetcher(environment -> {
+                                List<Place> stops = ((Leg) environment.getSource()).stop;
+                                if (stops == null) {
+                                    return new ArrayList<>();
+                                }
+                                else {
+                                    return (stops.stream()
+                                            .filter(place -> place.stopId != null)
+                                            .map(placeWithStop -> index.stopForId.get(placeWithStop.stopId))
+                                            .filter(Objects::nonNull)
+                                            .collect(Collectors.toList()));
+                                }
+                            })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("intermediateEstimatedCalls")
