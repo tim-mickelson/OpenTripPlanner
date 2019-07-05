@@ -103,15 +103,14 @@ public class TransmodelIndexGraphQLSchema {
             .value("notPossible", 2, "Wheelchair boarding/alighting is not possible at this stop.")
             .build();
 
-    /* TODO OTP2 - Stop interchangeWeightingEnumeration does not exist
     private static GraphQLEnumType interchangeWeightingEnum = GraphQLEnumType.newEnum()
             .name("InterchangeWeighting")
-            .value("preferredInterchange", Stop.interchangeWeightingEnumeration.PREFERRED_INTERCHANGE, "Highest priority interchange.")
-            .value("recommendedInterchange", Stop.interchangeWeightingEnumeration.RECOMMENDED_INTERCHANGE, "Second highest priority interchange.")
-            .value("interchangeAllowed", Stop.interchangeWeightingEnumeration.INTERCHANGE_ALLOWED, "Third highest priority interchange.")
-            .value("noInterchange", Stop.interchangeWeightingEnumeration.NO_INTERCHANGE, "Interchange not allowed.")
+            .value("preferredInterchange", 2, "Highest priority interchange.")
+            .value("recommendedInterchange", 1, "Second highest priority interchange.")
+            .value("interchangeAllowed",0, "Third highest priority interchange.")
+            .value("noInterchange", -1, "Interchange not allowed.")
             .build();
-    */
+
     private static GraphQLEnumType bikesAllowedEnum = GraphQLEnumType.newEnum()
             .name("BikesAllowed")
             .value("noInformation", 0, "There is no bike information for the trip.")
@@ -1427,14 +1426,12 @@ public class TransmodelIndexGraphQLSchema {
                         .description("Whether this stop place is suitable for wheelchair boarding.")
                         .type(wheelchairBoardingEnum)
                         .build())
-                /*
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("weighting")
-                        .description("Relative weighting of this stop with regards to interchanges.")
+                        .description("Relative weighting of this stop with regards to interchanges. NOT IMPLEMENTED")
                         .type(interchangeWeightingEnum)
-                        .dataFetcher(environment -> (((Stop) environment.getSource()).getWeight()))
+                        .dataFetcher(environment -> 0)
                         .build())
-                        */
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("tariffZones")
                         .type(new GraphQLNonNull(new GraphQLList(tariffZoneType)))
@@ -1447,13 +1444,13 @@ public class TransmodelIndexGraphQLSchema {
                         .type(transportModeEnum)
                         .dataFetcher(environment -> mappingUtil.mapVehicleTypeToTraverseMode(((Stop) environment.getSource()).getVehicleType()))
                         .build())
-                /*
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")
-                        .description("The transport submode serviced by this stop place.")
+                        .description("The transport submode serviced by this stop place. NOT IMPLEMENTED")
                         .type(transportSubmode)
-                        .dataFetcher(environment -> ((Stop) environment.getSource()).getTransportSubmode())
+                        .dataFetcher(environment -> TransmodelTransportSubmode.UNDEFINED)
                         .build())
+                /*
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("adjacentSites")
                         .description("This stop place's adjacent sites")
@@ -1730,14 +1727,13 @@ public class TransmodelIndexGraphQLSchema {
                                 .collect(Collectors.toList());
                         })
                         .build())
-                /*
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("Get all situations active for the quay")
+                        .description("Get all situations active for the quay. NOT IMPLEMENTED")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .dataFetcher(dataFetchingEnvironment -> index.getAlertsForStop(
-                                dataFetchingEnvironment.getSource()))
+                        .dataFetcher(dataFetchingEnvironment -> new ArrayList<>())
                         .build())
+                /*
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("stopType")
                         .type(stopTypeEnum)
