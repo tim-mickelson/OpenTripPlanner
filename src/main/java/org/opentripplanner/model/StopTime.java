@@ -12,7 +12,7 @@ public final class StopTime implements Serializable, Comparable<StopTime> {
 
     public static final int MISSING_VALUE = -999;
 
-    private int id;
+    private FeedScopedId id;
 
     private Trip trip;
 
@@ -58,11 +58,11 @@ public final class StopTime implements Serializable, Comparable<StopTime> {
         this.trip = st.trip;
     }
 
-    public Integer getId() {
+    public FeedScopedId getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(FeedScopedId id) {
         this.id = id;
     }
 

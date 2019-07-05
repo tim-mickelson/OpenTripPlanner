@@ -269,9 +269,9 @@ public class TransmodelIndexGraphQLSchema {
     private static GraphQLEnumType purchaseWhenEnum = TransmodelIndexGraphQLSchema.createEnum("PurchaseWhen", BookingArrangement.PurchaseWhenEnum.values(), (t -> t.name()));
 
     private static GraphQLEnumType bookingAccessEnum = TransmodelIndexGraphQLSchema.createEnum("BookingAccess", BookingArrangement.BookingAccessEnum.values(), (t -> t.name()));
-
-    private static GraphQLEnumType bookingMethodEnum = TransmodelIndexGraphQLSchema.createEnum("BookingMethod", BookingArrangement.BookingMethodEnum.values(), (t -> t.name()));
 */
+    private static GraphQLEnumType bookingMethodEnum = TransmodelIndexGraphQLSchema.createEnum("BookingMethod", BookingArrangement.BookingMethodEnum.values(), (t -> t.name()));
+
 
     private static <T extends Enum> GraphQLEnumType createEnum(String name, T[] values, Function<T, String> mapping) {
         GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name(name);
@@ -596,11 +596,13 @@ public class TransmodelIndexGraphQLSchema {
                                                         .description("Who has access to book service?")
                                                         .type(bookingAccessEnum)
                                                         .build())
+                */
                                          .field(GraphQLFieldDefinition.newFieldDefinition()
                                                         .name("bookingMethods")
                                                         .description("How should service be booked?")
                                                         .type(new GraphQLList(bookingMethodEnum))
                                                         .build())
+                /*
                                          .field(GraphQLFieldDefinition.newFieldDefinition()
                                                         .name("bookWhen")
                                                         .description("When should service be booked?")
@@ -2002,7 +2004,7 @@ public class TransmodelIndexGraphQLSchema {
                         .name("situations")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
                         .description("Get all relevant situations for this EstimatedCall. NOT IMPLEMENTED")
-                        .dataFetcher(environment -> null)
+                        .dataFetcher(environment -> new ArrayList<>())
                         .build())
                  .field(GraphQLFieldDefinition.newFieldDefinition()
                          .name("bookingArrangements")
@@ -2411,18 +2413,20 @@ public class TransmodelIndexGraphQLSchema {
                         .type(new GraphQLList(keyValueType))
                         .dataFetcher(environment -> ((Route) environment.getSource()).getKeyValues())
                         .build())
-                           .field(GraphQLFieldDefinition.newFieldDefinition()
-                                          .name("flexibleLineType")
-                                          .description("Type of flexible line, or null if line is not flexible.")
-                                          .type(flexibleLineTypeEnum)
-                                          .dataFetcher(environment -> ((Route) environment.getSource()).getFlexibleRouteType())
-                                          .build())
+                   .field(GraphQLFieldDefinition.newFieldDefinition()
+                                  .name("flexibleLineType")
+                                  .description("Type of flexible line, or null if line is not flexible.")
+                                  .type(flexibleLineTypeEnum)
+                                  .dataFetcher(environment -> ((Route) environment.getSource()).getFlexibleRouteType())
+                                  .build())
+
+                 */
                            .field(GraphQLFieldDefinition.newFieldDefinition()
                                           .name("bookingArrangements")
                                           .description("Booking arrangements for flexible line.")
                                           .type(bookingArrangementType)
                                           .build())
-                 */
+
                 .build();
 
         organisationType = GraphQLObjectType.newObject()

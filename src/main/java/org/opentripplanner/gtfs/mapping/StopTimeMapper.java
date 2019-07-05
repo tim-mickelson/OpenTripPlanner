@@ -1,6 +1,7 @@
 package org.opentripplanner.gtfs.mapping;
 
 import org.opentripplanner.model.StopTime;
+import org.opentripplanner.netex.mapping.FeedScopedIdFactory;
 import org.opentripplanner.util.MapUtils;
 
 import java.util.Collection;
@@ -32,7 +33,7 @@ class StopTimeMapper {
     private StopTime doMap(org.onebusaway.gtfs.model.StopTime rhs) {
         StopTime lhs = new StopTime();
 
-        lhs.setId(rhs.getId());
+        lhs.setId(FeedScopedIdFactory.createFeedScopedId(rhs.getId().toString()));
         lhs.setTrip(tripMapper.map(rhs.getTrip()));
         lhs.setStop(stopMapper.map(rhs.getStop()));
         lhs.setArrivalTime(rhs.getArrivalTime());
