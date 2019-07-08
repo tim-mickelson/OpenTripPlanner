@@ -37,10 +37,11 @@ public class NoticeAssignmentMapper {
     Multimap<FeedScopedId, Notice> map(org.rutebanken.netex.model.NoticeAssignment netexNoticeAssignment){
         Multimap<FeedScopedId, Notice> noticesByElementId = HashMultimap.create();
 
-        String journeyPatternRef = netexNoticeAssignment.getNoticedObjectRef().getRef();
+        String noticedObjectId = netexNoticeAssignment.getNoticedObjectRef().getRef();
+        String noticeId = netexNoticeAssignment.getNotice().getId();
 
         if (getObjectType(netexNoticeAssignment).equals("StopPointInJourneyPattern")) {
-            JourneyPattern journeyPattern = journeyPatternsByStopPointId.lookup(journeyPatternRef);
+            JourneyPattern journeyPattern = journeyPatternsByStopPointId.lookup(noticedObjectId);
 
             if (journeyPattern != null) {
                 boolean serviceJourneyFound = false;
@@ -52,16 +53,16 @@ public class NoticeAssignmentMapper {
                             noticesByid.get(createFeedScopedId(serviceJourney.getId())));
                 }
                 if(!serviceJourneyFound){
-                    LOG.warn("ServiceJourney for journeyPatternRef " + journeyPatternRef + " not found when mapping notices.");
+                    LOG.warn("ServiceJourney for journeyPatternRef " + noticedObjectId + " not found when mapping notices.");
                 }
             }
             else {
-                LOG.warn("JourneyPattern " + journeyPatternRef + " not found when mapping notices.");
+                LOG.warn("JourneyPattern " + noticedObjectId + " not found when mapping notices.");
             }
         } else {
             noticesByElementId.put(
-                    createFeedScopedId(netexNoticeAssignment.getNoticedObjectRef().getRef()),
-                    noticesByid.get(createFeedScopedId(journeyPatternRef)));
+                    createFeedScopedId(noticedObjectId),
+                    noticesByid.get(createFeedScopedId(noticeId)));
         }
 
         return noticesByElementId;
