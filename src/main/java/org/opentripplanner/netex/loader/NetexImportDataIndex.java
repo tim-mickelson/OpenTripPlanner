@@ -58,6 +58,7 @@ public class NetexImportDataIndex {
     public final HierarchicalVersionMapById<StopPlace> stopPlaceById;
     public final HierarchicalMapById<Notice> noticeById;
     public final HierarchicalMapById<NoticeAssignment> noticeAssignmentById;
+    public final HierarchicalMapById<StopPointInJourneyPattern> stopPointsInJourneyPatternById;
 
 
     // Relations between entities - The Netex XML sometimes rely on the the
@@ -92,6 +93,7 @@ public class NetexImportDataIndex {
         this.stopPlaceById = new HierarchicalVersionMapById<>();
         this.noticeById = new HierarchicalMapById<>();
         this.noticeAssignmentById = new HierarchicalMapById<>();
+        this.stopPointsInJourneyPatternById = new HierarchicalMapById<>();
         this.timeZone = new HierarchicalElement<>();
     }
 
@@ -119,6 +121,7 @@ public class NetexImportDataIndex {
         this.stopPlaceById = new HierarchicalVersionMapById<>(parent.stopPlaceById);
         this.noticeById = new HierarchicalMapById<>(parent.noticeById);
         this.noticeAssignmentById = new HierarchicalMapById<>(parent.noticeAssignmentById);
+        this.stopPointsInJourneyPatternById = new HierarchicalMapById<>(parent.stopPointsInJourneyPatternById);
         this.timeZone = new HierarchicalElement<>(parent.timeZone);
     }
 

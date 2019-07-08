@@ -8,14 +8,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.ExternalizableSerializer;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
 import gnu.trove.impl.hash.TPrimitiveHash;
 import gnu.trove.list.TDoubleList;
@@ -103,9 +96,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     public final StreetNotesService streetNotesService = new StreetNotesService();
 
-    private Map<FeedScopedId, org.opentripplanner.model.Notice> noticeMap = new HashMap<>();
-
-    private Map<FeedScopedId, List<Notice>> noticeAssignmentMap = new HashMap<>();
+    private Multimap<FeedScopedId, Notice> noticesByElementId = HashMultimap.create();
 
     // transit feed validity information in seconds since epoch
     private long transitServiceStarts = Long.MAX_VALUE;
@@ -969,20 +960,11 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         return transitServiceEnds;
     }
 
-    public Map<FeedScopedId, Notice> getNoticeMap() {
-        return noticeMap;
+    public Multimap<FeedScopedId, Notice> getNoticesByElementId() {
+        return noticesByElementId;
     }
 
-    public Map<FeedScopedId, List<Notice>> getNoticeAssignmentMap() {
-        return noticeAssignmentMap;
-    }
-
-    public void setNoticeMap(Map<FeedScopedId, org.opentripplanner.model.Notice> noticeMap) {
-        this.noticeMap = noticeMap;
-    }
-
-    public void setNoticeAssignmentMap(
-            Map<FeedScopedId, List<org.opentripplanner.model.Notice>> noticeAssignmentMap) {
-        this.noticeAssignmentMap = noticeAssignmentMap;
+    public void setNoticesByElementId(Multimap<FeedScopedId, Notice> noticesByElementId) {
+        this.noticesByElementId = noticesByElementId;
     }
 }

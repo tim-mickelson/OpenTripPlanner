@@ -1,45 +1,57 @@
 package org.opentripplanner.netex.mapping;
 
-import org.opentripplanner.model.NoticeAssignment;
-import org.opentripplanner.netex.loader.NetexImportDataIndex;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.impl.EntityById;
+import org.opentripplanner.netex.loader.util.HierarchicalMap;
+import org.opentripplanner.netex.loader.util.HierarchicalMultimap;
 import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.ServiceJourney;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
 
 import static org.opentripplanner.netex.mapping.FeedScopedIdFactory.createFeedScopedId;
 
 
-class NoticeAssignmentMapper {
+public class NoticeAssignmentMapper {
+
+    private final HierarchicalMap<String, JourneyPattern> journeyPatternsByStopPointId;
+
+    private final HierarchicalMultimap<String, ServiceJourney> serviceJourneyByPatternId;
+
+    private final EntityById<FeedScopedId, Notice> noticesByid;
 
     private static final Logger LOG = LoggerFactory.getLogger(NoticeAssignmentMapper.class);
 
-    private NoticeAssignmentMapper() {}
+    NoticeAssignmentMapper(HierarchicalMap<String, JourneyPattern> journeyPatternsByStopPointId,
+                                   HierarchicalMultimap<String, ServiceJourney> serviceJourneyByPatternId,
+                                   EntityById<FeedScopedId, Notice> noticesByid) {
+        this.journeyPatternsByStopPointId = journeyPatternsByStopPointId;
+        this.serviceJourneyByPatternId = serviceJourneyByPatternId;
+        this.noticesByid = noticesByid;
+    }
 
-    static Collection<NoticeAssignment> map(org.rutebanken.netex.model.NoticeAssignment netexNoticeAssignment, NetexImportDataIndex netexIndex){
-        Collection<NoticeAssignment> noticeAssignments = new ArrayList<>();
+    Multimap<FeedScopedId, Notice> map(org.rutebanken.netex.model.NoticeAssignment netexNoticeAssignment){
+        Multimap<FeedScopedId, Notice> noticesByElementId = HashMultimap.create();
+
         String journeyPatternRef = netexNoticeAssignment.getNoticedObjectRef().getRef();
 
         if (getObjectType(netexNoticeAssignment).equals("StopPointInJourneyPattern")) {
-            JourneyPattern journeyPattern = netexIndex.journeyPatternsByStopPointId.lookup(journeyPatternRef);
+            JourneyPattern journeyPattern = journeyPatternsByStopPointId.lookup(journeyPatternRef);
 
             if (journeyPattern != null) {
-                boolean serviceJourneyNotFound = true;
+                boolean serviceJourneyFound = false;
                 // Map notice from StopPointInJourneyPattern to corresponding TimeTabledPassingTimes
-                for (ServiceJourney serviceJourney : netexIndex.serviceJourneyByPatternId.lookup(journeyPattern.getId())) {
-                    serviceJourneyNotFound = false;
-                    org.opentripplanner.model.NoticeAssignment otpNoticeAssignment = new org.opentripplanner.model.NoticeAssignment();
-
-                    otpNoticeAssignment.setId(createFeedScopedId(netexNoticeAssignment.getId()));
-                    otpNoticeAssignment.setNoticeId(createFeedScopedId(netexNoticeAssignment.getNoticeRef().getRef()));
-                    otpNoticeAssignment.setElementId(createFeedScopedId(serviceJourney.getId()));
-
-                    noticeAssignments.add(otpNoticeAssignment);
+                for (ServiceJourney serviceJourney : serviceJourneyByPatternId.lookup(journeyPattern.getId())) {
+                    serviceJourneyFound = true;
+                    noticesByElementId.put(
+                            createFeedScopedId(serviceJourney.getId()),
+                            noticesByid.get(createFeedScopedId(serviceJourney.getId())));
                 }
-                if(serviceJourneyNotFound){
+                if(!serviceJourneyFound){
                     LOG.warn("ServiceJourney for journeyPatternRef " + journeyPatternRef + " not found when mapping notices.");
                 }
             }
@@ -47,16 +59,12 @@ class NoticeAssignmentMapper {
                 LOG.warn("JourneyPattern " + journeyPatternRef + " not found when mapping notices.");
             }
         } else {
-            org.opentripplanner.model.NoticeAssignment otpNoticeAssignment = new org.opentripplanner.model.NoticeAssignment();
-
-            otpNoticeAssignment.setId(createFeedScopedId(netexNoticeAssignment.getId()));
-            otpNoticeAssignment.setNoticeId(createFeedScopedId(netexNoticeAssignment.getNoticeRef().getRef()));
-            otpNoticeAssignment.setElementId(createFeedScopedId(journeyPatternRef));
-
-            noticeAssignments.add(otpNoticeAssignment);
+            noticesByElementId.put(
+                    createFeedScopedId(netexNoticeAssignment.getNoticedObjectRef().getRef()),
+                    noticesByid.get(createFeedScopedId(journeyPatternRef)));
         }
 
-        return noticeAssignments;
+        return noticesByElementId;
     }
 
     private static String getObjectType (org.rutebanken.netex.model.NoticeAssignment netexNoticeAssignment) {

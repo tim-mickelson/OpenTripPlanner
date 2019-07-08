@@ -88,6 +88,7 @@ class StopTimesMapper {
             HierarchicalMapById<DestinationDisplay> destinationDisplayById
     ) {
         StopTime stopTime = new StopTime();
+        stopTime.setId(FeedScopedIdFactory.createFeedScopedId(passingTime.getId()));
         stopTime.setTrip(trip);
         stopTime.setStopSequence(stopSequence);
         stopTime.setStop(stop);

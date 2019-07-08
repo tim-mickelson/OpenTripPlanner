@@ -1,6 +1,7 @@
 /* This file is based on code copied from project OneBusAway, see the LICENSE file for further information. */
 package org.opentripplanner.model.impl;
 
+import com.google.common.collect.Multimap;
 import org.opentripplanner.model.*;
 import org.opentripplanner.routing.edgetype.TripPattern;
 
@@ -38,7 +39,7 @@ class OtpTransitServiceImpl implements OtpTransitService {
 
     private final Map<FeedScopedId, Notice> notices;
 
-    private final Map<FeedScopedId, NoticeAssignment> noticeAssignment;
+    private final Multimap<FeedScopedId, Notice> noticesByElementId;
 
     private final Collection<Pathway> pathways;
 
@@ -71,7 +72,7 @@ class OtpTransitServiceImpl implements OtpTransitService {
         this.fareRules = immutableList(builder.getFareRules());
         this.feedInfos = immutableList(builder.getFeedInfos());
         this.notices = builder.getNoticesById().asImmutableMap();
-        this.noticeAssignment = builder.getNoticeAssignmentsById().asImmutableMap();
+        this.noticesByElementId = builder.getNoticesByElementId();
         this.pathways = immutableList(builder.getPathways());
         this.serviceIds = immutableList(builder.findAllServiceIds());
         this.shapePointsByShapeId = mapShapePoints(builder.getShapePoints());
@@ -108,8 +109,8 @@ class OtpTransitServiceImpl implements OtpTransitService {
     }
 
     @Override
-    public Map<FeedScopedId, NoticeAssignment> getNoticeAssignmentById() {
-        return noticeAssignment;
+    public Multimap<FeedScopedId, Notice> getNoticesByElementId() {
+        return noticesByElementId;
     }
 
     @Override

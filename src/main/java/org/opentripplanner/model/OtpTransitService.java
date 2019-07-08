@@ -1,5 +1,6 @@
 package org.opentripplanner.model;
 
+import com.google.common.collect.Multimap;
 import org.opentripplanner.routing.edgetype.TripPattern;
 
 import java.util.Collection;
@@ -21,7 +22,7 @@ public interface OtpTransitService {
 
     Map<FeedScopedId, Notice> getNoticeById();
 
-    Map<FeedScopedId, NoticeAssignment> getNoticeAssignmentById();
+    Multimap<FeedScopedId, Notice> getNoticesByElementId();
 
     Collection<Pathway> getAllPathways();
 

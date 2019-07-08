@@ -36,6 +36,12 @@ class ServiceFrameParser {
 
     private final Collection<Notice> notices = new ArrayList<>();
 
+    private final Collection<NoticeAssignment> noticeAssignments = new ArrayList<>();
+
+    private final Map<String, JourneyPattern> journeyPatternByStopPointId = new HashMap<>();
+
+    private final Collection<StopPointInJourneyPattern> stopPointsInJourneyPattern = new ArrayList<>();
+
     ServiceFrameParser(ReadOnlyHierarchicalVersionMapById<Quay> quayById) {
         this.quayById = quayById;
     }
@@ -48,6 +54,7 @@ class ServiceFrameParser {
         parseJourneyPatterns(sf.getJourneyPatterns());
         parseDestinationDisplays(sf.getDestinationDisplays());
         parseNotices(sf.getNotices());
+        parseNoticeAssignments(sf.getNoticeAssignments());
     }
 
     void setResultOnIndex(NetexImportDataIndex index) {
@@ -60,6 +67,9 @@ class ServiceFrameParser {
         index.quayIdByStopPointRef.addAll((quayIdByStopPointRef));
         index.routeById.addAll(routes);
         index.noticeById.addAll(notices);
+        index.noticeAssignmentById.addAll(noticeAssignments);
+        index.journeyPatternsByStopPointId.addAll(journeyPatternByStopPointId);
+        index.stopPointsInJourneyPatternById.addAll(stopPointsInJourneyPattern);
 
         // update references
         index.networkIdByGroupOfLineId.addAll(networkIdByGroupOfLineId);
@@ -129,7 +139,18 @@ class ServiceFrameParser {
 
         for (JAXBElement pattern : journeyPatterns.getJourneyPattern_OrJourneyPatternView()) {
             if (pattern.getValue() instanceof JourneyPattern) {
-                this.journeyPatterns.add((JourneyPattern) pattern.getValue());
+                JourneyPattern journeyPattern = (JourneyPattern) pattern.getValue();
+                this.journeyPatterns.add(journeyPattern);
+                for (PointInLinkSequence_VersionedChildStructure pointInLinkSequence_versionedChildStructure
+                        : journeyPattern.getPointsInSequence()
+                        .getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern()) {
+                    if (pointInLinkSequence_versionedChildStructure instanceof StopPointInJourneyPattern) {
+                        StopPointInJourneyPattern stopPointInJourneyPattern =
+                                (StopPointInJourneyPattern) pointInLinkSequence_versionedChildStructure;
+                        journeyPatternByStopPointId.put(stopPointInJourneyPattern.getId(), journeyPattern);
+                        stopPointsInJourneyPattern.add(stopPointInJourneyPattern);
+                    }
+                }
             }
         }
     }
@@ -145,5 +166,17 @@ class ServiceFrameParser {
         if (notices == null) return;
 
         this.notices.addAll(notices.getNotice());
+    }
+
+    private void parseNoticeAssignments(NoticeAssignmentsInFrame_RelStructure na) {
+        if (na == null) return;
+
+        for (JAXBElement<? extends DataManagedObjectStructure> noticeAssignmentElement : na.getNoticeAssignment_()) {
+            NoticeAssignment noticeAssignment = (NoticeAssignment) noticeAssignmentElement.getValue();
+
+            if (noticeAssignment.getNoticeRef() != null && noticeAssignment.getNoticedObjectRef() != null) {
+                this.noticeAssignments.add(noticeAssignment);
+            }
+        }
     }
 }

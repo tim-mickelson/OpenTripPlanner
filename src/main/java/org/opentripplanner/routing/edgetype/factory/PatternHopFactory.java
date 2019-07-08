@@ -579,16 +579,7 @@ public class PatternHopFactory {
     }
 
     private void loadNotices(Graph graph) {
-        graph.setNoticeMap(transitService.getNoticeById());
-        for (NoticeAssignment noticeAssignment : transitService.getNoticeAssignmentById().values()) {
-            Notice notice = transitService.getNoticeById().get(noticeAssignment.getNoticeId());
-            if (graph.getNoticeAssignmentMap().containsKey(noticeAssignment.getElementId())) {
-                graph.getNoticeAssignmentMap().get(noticeAssignment.getElementId()).add(notice);
-            } else {
-                graph.getNoticeAssignmentMap()
-                        .put(noticeAssignment.getElementId(), new ArrayList(Arrays.asList(notice)));
-            }
-        }
+        graph.setNoticesByElementId(transitService.getNoticesByElementId());
     }
 
     private void loadTransfers(Graph graph) {

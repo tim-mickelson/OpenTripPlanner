@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.loader.util.ReadOnlyHierarchicalMap;
+import org.opentripplanner.netex.mapping.NoticeAssignmentMapper;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
 import org.rutebanken.netex.model.*;
 import org.slf4j.Logger;

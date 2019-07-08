@@ -1,7 +1,9 @@
 package org.opentripplanner.model;
 
 /**
- * TODO OTP2 - Add JavaDoc
+ * This is an element that originates from the NeTEx specification and is described as "Text-based notification
+ * describing circumstances which cannot be modelled as structured data." Any NeTEx element can have a notice attached,
+ * although not all are supported in OTP.
  */
 public class Notice extends IdentityBean<FeedScopedId> {
 

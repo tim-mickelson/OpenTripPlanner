@@ -119,6 +119,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         final int[] departures = new int[nStops];
         final int[] arrivals   = new int[nStops];
         final int[] sequences  = new int[nStops];
+        this.stopTimeIds = new FeedScopedId[nStops];
         final BitSet timepoints = new BitSet(nStops);
         // Times are always shifted to zero. This is essential for frequencies and deduplication.
         timeShift = stopTimes.iterator().next().getArrivalTime();
@@ -126,6 +127,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         for (final StopTime st : stopTimes) {
             departures[s] = st.getDepartureTime() - timeShift;
             arrivals[s] = st.getArrivalTime() - timeShift;
+            stopTimeIds[s] = st.getId();
             sequences[s] = st.getStopSequence();
             timepoints.set(s, st.getTimepoint() == 1);
             s++;

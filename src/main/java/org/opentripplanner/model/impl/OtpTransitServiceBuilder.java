@@ -1,6 +1,7 @@
 package org.opentripplanner.model.impl;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import org.opentripplanner.model.*;
@@ -37,7 +38,7 @@ public class OtpTransitServiceBuilder {
 
     private final EntityById<FeedScopedId, Notice> noticesById = new EntityById<>();
 
-    private final EntityById<FeedScopedId, NoticeAssignment> noticeAssignmentsById = new EntityById<>();
+    private final Multimap<FeedScopedId, Notice> noticesByElementId = HashMultimap.create();
 
     private final List<Pathway> pathways = new ArrayList<>();
 
@@ -94,8 +95,8 @@ public class OtpTransitServiceBuilder {
         return noticesById;
     }
 
-    public EntityById<FeedScopedId, NoticeAssignment> getNoticeAssignmentsById() {
-        return noticeAssignmentsById;
+    public Multimap<FeedScopedId, Notice> getNoticesByElementId() {
+        return noticesByElementId;
     }
 
     public List<Pathway> getPathways() {
