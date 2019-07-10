@@ -5,7 +5,6 @@ import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.NetexBundle;
 import org.opentripplanner.netex.loader.NetexLoader;
-import org.opentripplanner.routing.edgetype.factory.GtfsStopContext;
 import org.opentripplanner.routing.edgetype.factory.PatternHopFactory;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.impl.DefaultFareServiceFactory;
@@ -42,7 +41,6 @@ public class NetexModule implements GraphBuilderModule {
 
         graph.clearTimeZone();
         CalendarServiceData calendarServiceData = new CalendarServiceData();
-        GtfsStopContext stopContext = new GtfsStopContext();
 
         try {
             for (NetexBundle netexBundle : netexBundles) {
@@ -59,7 +57,6 @@ public class NetexModule implements GraphBuilderModule {
                         netexBundle.subwayAccessTime,
                         netexBundle.maxInterlineDistance
                 );
-                hf.setStopContext(stopContext);
                 hf.run(graph);
 
                 if (netexBundle.linkStopsToParentStations) {

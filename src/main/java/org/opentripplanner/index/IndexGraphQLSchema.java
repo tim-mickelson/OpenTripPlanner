@@ -163,7 +163,7 @@ public class IndexGraphQLSchema {
             .field(GraphQLFieldDefinition.newFieldDefinition()
                 .name("pattern")
                 .type(patternType)
-                .dataFetcher(environment -> index.patternForId
+                .dataFetcher(environment -> index.graph.tripPatternForId
                     .get(((StopTimesInPattern) environment.getSource()).pattern.id))
                 .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -909,7 +909,7 @@ public class IndexGraphQLSchema {
                     return index.routeForId.get(GtfsLibrary.convertIdFromString(id.getId()));
                 }
                 if (id.getType().equals(patternType.getName())) {
-                    return index.patternForId.get(id.getId());
+                    return index.graph.tripPatternForId.get(id.getId());
                 }
                 if (id.getType().equals(agencyType.getName())) {
                     return index.getAgencyWithoutFeedId(id.getId());
@@ -1146,7 +1146,7 @@ public class IndexGraphQLSchema {
                 .name("patterns")
                 .description("Get all patterns for the specified graph")
                 .type(new GraphQLList(patternType))
-                .dataFetcher(environment -> new ArrayList<>(index.patternForId.values()))
+                .dataFetcher(environment -> new ArrayList<>(index.graph.tripPatternForId.values()))
                 .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
                 .name("pattern")
@@ -1156,7 +1156,7 @@ public class IndexGraphQLSchema {
                     .name("id")
                     .type(new GraphQLNonNull(Scalars.GraphQLString))
                     .build())
-                .dataFetcher(environment -> index.patternForId.get(environment.getArgument("id")))
+                .dataFetcher(environment -> index.graph.tripPatternForId.get(environment.getArgument("id")))
                 .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
                 .name("viewer")

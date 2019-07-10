@@ -8,6 +8,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.ExternalizableSerializer;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
@@ -42,6 +43,7 @@ import org.opentripplanner.model.GraphBundle;
 import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.calendar.impl.CalendarServiceImpl;
@@ -58,7 +60,6 @@ import org.opentripplanner.routing.services.StreetVertexIndexFactory;
 import org.opentripplanner.routing.services.StreetVertexIndexService;
 import org.opentripplanner.routing.services.notes.StreetNotesService;
 import org.opentripplanner.routing.trippattern.Deduplicator;
-import org.opentripplanner.routing.vertextype.PatternArriveVertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.opentripplanner.updater.GraphUpdaterConfigurator;
 import org.opentripplanner.updater.GraphUpdaterManager;
@@ -223,6 +224,12 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     /** Parent stops **/
     public Map<FeedScopedId, Stop> parentStopById = new HashMap<>();
 
+    // TripPatterns used to be reached through hop edges, but we're not creating on-board transit vertices/edges anymore.
+    public Map<String, TripPattern> tripPatternForId = Maps.newHashMap();
+
+    /** Interlining relationships between trips. */
+    public final BiMap<Trip,Trip> interlinedTrips = HashBiMap.create();
+
     /** Data model for Raptor routing */
     public transient TransitLayer transitLayer;
 
@@ -236,7 +243,8 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     }
 
     /**
-     * Add the given vertex to the graph. Ideally, only vertices should add themselves to the graph, when they are constructed or deserialized.
+     * Add the given vertex to the graph. Ideally, only vertices should add themselves to the graph,
+     * when they are constructed or deserialized.
      */
     public void addVertex(Vertex v) {
         Vertex old = vertices.put(v.getLabel(), v);
@@ -245,21 +253,6 @@ public class Graph implements Serializable, AddBuilderAnnotation {
                 LOG.error("repeatedly added the same vertex: {}", v);
             else
                 LOG.error("duplicate vertex label in graph (added vertex to graph anyway): {}", v);
-        }
-    }
-
-    /**
-     * Removes a vertex from the graph.
-     *
-     * Called from streetutils, must be public for now
-     *
-     * @param v
-     */
-    public void removeVertex(Vertex v) {
-        if (vertices.remove(v.getLabel()) != v) {
-            LOG.error(
-                    "attempting to remove vertex that is not in graph (or mapping value was null): {}",
-                    v);
         }
     }
 
@@ -626,12 +619,9 @@ public class Graph implements Serializable, AddBuilderAnnotation {
         streetIndex = indexFactory.newIndex(this);
         LOG.debug("street index built.");
         LOG.debug("Rebuilding edge and vertex indices.");
-        Set<TripPattern> tableTripPatterns = Sets.newHashSet();
-        for (PatternArriveVertex pav : Iterables.filter(this.getVertices(), PatternArriveVertex.class)) {
-            tableTripPatterns.add(pav.getTripPattern());
-        }
-        for (TripPattern ttp : tableTripPatterns) {
-            if (ttp != null) ttp.scheduledTimetable.finish(); // skip frequency-based patterns with no table (null)
+        for (TripPattern tp : tripPatternForId.values()) {
+            // Skip frequency-based patterns which have no timetable (null)
+            if (tp != null) tp.scheduledTimetable.finish();
         }
         // TODO: Move this ^ stuff into the graph index
         this.index = new GraphIndex(this);

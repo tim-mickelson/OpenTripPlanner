@@ -330,17 +330,6 @@ public class TransmodelGraphQLPlanner {
         return new HashMap<>(bannedTrips);
     }
 
-    private String getLocationOfFirstQuay(String vertexId, GraphIndex graphIndex) {
-        Vertex vertex = graphIndex.vertexForId.get(vertexId);
-        if (vertex instanceof TransitStation) {
-            FeedScopedId stopId = ((TransitStop)vertex.getOutgoing().stream()
-                    .filter(t -> t instanceof StationStopEdge).findFirst().get().getToVertex()).getStopId();
-            return stopId.getAgencyId().concat(":").concat(stopId.getId());
-        } else {
-            return vertexId;
-        }
-    }
-
     public static boolean hasArgument(DataFetchingEnvironment environment, String name) {
         return environment.containsArgument(name) && environment.getArgument(name) != null;
     }
