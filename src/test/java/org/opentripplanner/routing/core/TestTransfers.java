@@ -6,6 +6,8 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship;
 import junit.framework.TestCase;
+
+import org.junit.Ignore;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.model.FeedScopedId;
@@ -112,7 +114,9 @@ class Context {
 
 /**
  * Test transfers, mostly stop-to-stop transfers.
+ * TODO OTP2 - Test is too close to the implementation and will need to be reimplemented.
  */
+@Ignore
 public class TestTransfers extends TestCase {
     private Graph graph;
 

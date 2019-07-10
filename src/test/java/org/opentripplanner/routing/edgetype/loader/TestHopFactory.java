@@ -2,6 +2,9 @@ package org.opentripplanner.routing.edgetype.loader;
 
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
+
+import org.junit.Ignore;
+import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.model.calendar.CalendarServiceData;
@@ -20,6 +23,10 @@ import java.util.List;
 
 import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 
+/**
+ * TODO OTP2 - Test is too close to the implementation and will need to be reimplemented.
+ */
+@Ignore
 public class TestHopFactory extends TestCase {
 
     private Graph graph;

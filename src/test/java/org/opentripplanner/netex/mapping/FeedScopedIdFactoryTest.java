@@ -8,6 +8,7 @@ import static org.junit.Assert.*;
 public class FeedScopedIdFactoryTest {
     @Test
     public void setFeedScope() {
+        FeedScopedIdFactory.setFeedId("NETEX_AGENCY_ID_NOT_SET");
         FeedScopedId feedScopedId1 = FeedScopedIdFactory.createFeedScopedId("NSR:StopPlace:1");
         FeedScopedIdFactory.setFeedId("RB");
         FeedScopedId feedScopedId2 = FeedScopedIdFactory.createFeedScopedId("NSR:StopPlace:2");

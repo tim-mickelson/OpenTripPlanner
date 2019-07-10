@@ -1,10 +1,12 @@
 package org.opentripplanner.routing.alertpatch;
 
 import junit.framework.TestCase;
-import org.opentripplanner.ConstantsForTests;
-import org.opentripplanner.gtfs.GtfsContext;
+
+import org.junit.Ignore;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.calendar.CalendarServiceData;
+import org.opentripplanner.ConstantsForTests;
+import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.routing.algorithm.AStar;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;
@@ -23,6 +25,10 @@ import java.util.LinkedList;
 
 import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 
+/**
+ * TODO OTP2 - Test is too close to the implementation and will need to be reimplemented.
+ */
+@Ignore
 public class AlertPatchTest extends TestCase {
     private Graph graph;
 
