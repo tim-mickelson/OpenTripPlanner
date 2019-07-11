@@ -52,6 +52,7 @@ public class NetexMapper {
         NoticeAssignmentMapper noticeAssignmentMapper = new NoticeAssignmentMapper(
                 netexIndex.journeyPatternsByStopPointId,
                 netexIndex.serviceJourneyByPatternId,
+                netexIndex.stopPointsInJourneyPatternById,
                 transitBuilder.getNoticesById()
         );
 

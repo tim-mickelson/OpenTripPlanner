@@ -4,7 +4,9 @@ import org.opentripplanner.model.Notice;
 
 import static org.opentripplanner.netex.mapping.FeedScopedIdFactory.createFeedScopedId;
 
-
+/**
+ * Maps NeTEx notice to OTP notice.
+ */
 class NoticeMapper {
 
     private NoticeMapper() {}
