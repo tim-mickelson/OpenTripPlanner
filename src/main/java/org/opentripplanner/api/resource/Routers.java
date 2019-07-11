@@ -126,9 +126,14 @@ public class Routers {
     @GET @Path("/ready")
     @Produces({ MediaType.TEXT_PLAIN})
     public Response isReady() {
-        return Response.status(Status.OK)
-                .entity("Ready.\n").type("text/plain")
-                .build();
+        if (otpServer.getGraphService().getRouter().graph != null) {
+            return Response.status(Status.OK)
+                    .entity("Ready.\n").type("text/plain")
+                    .build();
+        }
+        else {
+            return null;
+        }
     }
 
     /** 
