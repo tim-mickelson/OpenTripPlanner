@@ -80,33 +80,33 @@ public class StreetEdge extends Edge implements Cloneable {
      * factor of 2.0 will be considered in term of safety cost as the same as a 150m street with a
      * safety factor of 1.0.
      */
-    protected float bicycleSafetyFactor;
+    protected static final float bicycleSafetyFactor = 0f;
 
     private int[] compactGeometry;
     
-    private I18NString name;
+    private String name;
 
     private StreetTraversalPermission permission;
 
     /** The OSM way ID from whence this came - needed to reference traffic data */
-    public long wayId;
+    public static final long wayId = 0;
 
-    private int streetClass = CLASS_OTHERPATH;
+    private static final int streetClass = CLASS_STREET;
     
     /**
      * The speed (meters / sec) at which an automobile can traverse
      * this street segment.
      */
-    private float carSpeed;
+    private static final float carSpeed = DEFAULT_CAR_SPEED;
 
     /**
      * The angle at the start of the edge geometry.
      * Internal representation is -180 to +179 integer degrees mapped to -128 to +127 (brads)
      */
-    private byte inAngle;
+    private static final byte inAngle = 0;
 
     /** The angle at the start of the edge geometry. Internal representation like that of inAngle. */
-    private byte outAngle;
+    private static final byte outAngle = 0;
 
     public StreetEdge(StreetVertex v1, StreetVertex v2, LineString geometry,
                       I18NString name, double length,
@@ -115,8 +115,8 @@ public class StreetEdge extends Edge implements Cloneable {
         this.setBack(back);
         this.setGeometry(geometry);
         this.length_mm = (int) (length * 1000); // CONVERT FROM FLOAT METERS TO FIXED MILLIMETERS
-        this.bicycleSafetyFactor = 1.0f;
-        this.name = name;
+        //this.bicycleSafetyFactor = 1.0f;
+        //this.name = name;
         this.setPermission(permission);
         this.setCarSpeed(DEFAULT_CAR_SPEED);
         this.setWheelchairAccessible(true); // accessible by default
@@ -137,13 +137,13 @@ public class StreetEdge extends Edge implements Cloneable {
                 // Range restriction happens automatically due to Java signed overflow behavior.
                 // 180 degrees exists as a negative rather than a positive due to the integer range.
                 double angleRadians = DirectionUtils.getLastAngle(geometry);
-                outAngle = (byte) Math.round(angleRadians * 128 / Math.PI + 128);
+                //outAngle = (byte) Math.round(angleRadians * 128 / Math.PI + 128);
                 angleRadians = DirectionUtils.getFirstAngle(geometry);
-                inAngle = (byte) Math.round(angleRadians * 128 / Math.PI + 128);
+                //inAngle = (byte) Math.round(angleRadians * 128 / Math.PI + 128);
             } catch (IllegalArgumentException iae) {
                 LOG.error("exception while determining street edge angles. setting to zero. there is probably something wrong with this street segment's geometry.");
-                inAngle = 0;
-                outAngle = 0;
+                //inAngle = 0;
+                //outAngle = 0;
             }
         }
     }
@@ -573,7 +573,7 @@ public class StreetEdge extends Edge implements Cloneable {
     }
 
     public void setBicycleSafetyFactor(float bicycleSafetyFactor) {
-        this.bicycleSafetyFactor = bicycleSafetyFactor;
+        //this.bicycleSafetyFactor = bicycleSafetyFactor;
     }
 
     public float getBicycleSafetyFactor() {
@@ -631,15 +631,15 @@ public class StreetEdge extends Edge implements Cloneable {
 	* @return non-localized Name
 	*/
 	public I18NString getRawName() {
-		return this.name;
+		return new NonLocalizedString(this.name);
 	}
 
 	public String getName(Locale locale) {
-		return this.name.toString(locale);
+		return this.name;
 	}
 
 	public void setName(I18NString name) {
-		this.name = name;
+		//this.name = name;
 	}
 
 	public LineString getGeometry() {
@@ -679,7 +679,7 @@ public class StreetEdge extends Edge implements Cloneable {
 	}
 
 	public void setStreetClass(int streetClass) {
-		this.streetClass = streetClass;
+		//this.streetClass = streetClass;
 	}
 
 	/**
@@ -734,7 +734,7 @@ public class StreetEdge extends Edge implements Cloneable {
 	}
 
 	public void setCarSpeed(float carSpeed) {
-		this.carSpeed = carSpeed;
+		//this.carSpeed = carSpeed;
 	}
 
 	public boolean isSlopeOverride() {
@@ -787,8 +787,8 @@ public class StreetEdge extends Edge implements Cloneable {
             e2 = new StreetEdge(v, (StreetVertex) tov, geoms.second, name, 0, permission, this.isBack());
 
             // copy the wayId to the split edges, so we can trace them back to their parent if need be
-            e1.wayId = this.wayId;
-            e2.wayId = this.wayId;
+            //e1.wayId = this.wayId;
+            //e2.wayId = this.wayId;
 
             // figure the lengths, ensuring that they sum to the length of this edge
             e1.calculateLengthFromGeometry();
@@ -838,11 +838,11 @@ public class StreetEdge extends Edge implements Cloneable {
             }
         } else {
             if (((TemporarySplitterVertex) v).isEndVertex()) {
-                e1 = new TemporaryPartialStreetEdge(this, (StreetVertex) fromv, v, geoms.first, name);
+                e1 = new TemporaryPartialStreetEdge(this, (StreetVertex) fromv, v, geoms.first, new NonLocalizedString(name));
                 e1.setNoThruTraffic(this.isNoThruTraffic());
                 e1.setStreetClass(this.getStreetClass());
             } else {
-                e2 = new TemporaryPartialStreetEdge(this, v, (StreetVertex) tov, geoms.second, name);
+                e2 = new TemporaryPartialStreetEdge(this, v, (StreetVertex) tov, geoms.second, new NonLocalizedString(name));
                 e2.setNoThruTraffic(this.isNoThruTraffic());
                 e2.setStreetClass(this.getStreetClass());
             }

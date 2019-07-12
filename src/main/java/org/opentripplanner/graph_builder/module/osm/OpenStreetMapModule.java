@@ -1119,7 +1119,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
             }
 
             // save the way ID so we can match with OpenTraffic
-            street.wayId = way.getId();
+            //street.wayId = way.getId();
 
             return street;
         }

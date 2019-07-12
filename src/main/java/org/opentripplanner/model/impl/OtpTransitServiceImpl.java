@@ -215,8 +215,10 @@ class OtpTransitServiceImpl implements OtpTransitService {
         List<T> list;
         if (c instanceof List) {
             list = (List<T>) c;
-        } else {
+        } else if (c != null){
             list = new ArrayList<>(c);
+        } else {
+            list = new ArrayList<>();
         }
         return Collections.unmodifiableList(list);
     }

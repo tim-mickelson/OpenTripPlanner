@@ -36,7 +36,7 @@ public abstract class Vertex implements Serializable, Cloneable {
     private final String label;
     
     /* Longer human-readable name for the client */
-    private I18NString name;
+    private static final String name = "";
 
     private final double x;
 
@@ -56,12 +56,12 @@ public abstract class Vertex implements Serializable, Cloneable {
         if (g != null) {
             g.addVertex(this);
         }
-        this.name = new NonLocalizedString("(no name provided)");
+        //this.name = "(no name provided)";
     }
 
     protected Vertex(Graph g, String label, double x, double y, I18NString name) {
         this(g, label, x, y);
-        this.name = name;
+        //this.name = name.toString();
     }
 
     /* PUBLIC METHODS */
@@ -220,7 +220,7 @@ public abstract class Vertex implements Serializable, Cloneable {
      * in provided localization
      * @param locale wanted localization */
     public String getName(Locale locale) {
-        return this.name.toString(locale);
+        return this.name;
     }
 
     /* FIELD ACCESSOR METHODS : READ ONLY */

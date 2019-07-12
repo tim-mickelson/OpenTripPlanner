@@ -3,6 +3,8 @@ package org.opentripplanner.graph_builder;
 import com.google.common.collect.Lists;
 import org.opentripplanner.ext.transferanalyzer.DirectTransferAnalyzer;
 import org.opentripplanner.graph_builder.model.GtfsBundle;
+import org.opentripplanner.graph_builder.services.DouglasPeuckerStreetEdgeFactory;
+import org.opentripplanner.graph_builder.services.StreetEdgeFactory;
 import org.opentripplanner.netex.loader.NetexBundle;
 import org.opentripplanner.graph_builder.module.DirectTransferGenerator;
 import org.opentripplanner.graph_builder.module.EmbedConfig;
@@ -186,8 +188,8 @@ public class GraphBuilder implements Runnable {
                 osmProviders.add(osmProvider);
             }
             OpenStreetMapModule osmModule = new OpenStreetMapModule(osmProviders);
-            DefaultStreetEdgeFactory streetEdgeFactory = new DefaultStreetEdgeFactory();
-            streetEdgeFactory.useElevationData = builderParams.fetchElevationUS || (demFile != null);
+            StreetEdgeFactory streetEdgeFactory = new DouglasPeuckerStreetEdgeFactory();
+            streetEdgeFactory.setUseEleveationData(builderParams.fetchElevationUS || (demFile != null));
             osmModule.edgeFactory = streetEdgeFactory;
             osmModule.customNamer = builderParams.customNamer;
             osmModule.setDefaultWayPropertySetSource(builderParams.wayPropertySet);

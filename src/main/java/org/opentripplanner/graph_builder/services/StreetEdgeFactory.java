@@ -26,4 +26,6 @@ public interface StreetEdgeFactory {
             IntersectionVertex endEndpoint, LineString geometry, I18NString name, double length,
             StreetTraversalPermission permissions, boolean back, AreaEdgeList area);
 
+    void setUseEleveationData(boolean useEleveationData);
+
 }

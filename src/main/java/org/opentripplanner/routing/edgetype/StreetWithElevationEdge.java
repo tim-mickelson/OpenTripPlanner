@@ -68,8 +68,8 @@ public class StreetWithElevationEdge extends StreetEdge {
         flattened = costs.flattened;
         effectiveWalkFactor = costs.effectiveWalkFactor;
 
-        bicycleSafetyFactor *= costs.lengthMultiplier;
-        bicycleSafetyFactor += costs.slopeSafetyCost / getDistance();
+        //bicycleSafetyFactor *= costs.lengthMultiplier;
+        //bicycleSafetyFactor += costs.slopeSafetyCost / getDistance();
         return costs.flattened;
     }
 
