@@ -116,7 +116,7 @@ public class StreetEdge extends Edge implements Cloneable {
         this.setGeometry(geometry);
         this.length_mm = (int) (length * 1000); // CONVERT FROM FLOAT METERS TO FIXED MILLIMETERS
         //this.bicycleSafetyFactor = 1.0f;
-        //this.name = name;
+        this.name = name.toString();
         this.setPermission(permission);
         this.setCarSpeed(DEFAULT_CAR_SPEED);
         this.setWheelchairAccessible(true); // accessible by default
@@ -623,7 +623,7 @@ public class StreetEdge extends Edge implements Cloneable {
 
 	@Override
 	public String getName() {
-		return this.name.toString();
+		return this.name;
 	}
 
 	/**
@@ -639,7 +639,7 @@ public class StreetEdge extends Edge implements Cloneable {
 	}
 
 	public void setName(I18NString name) {
-		//this.name = name;
+		this.name = name.toString();
 	}
 
 	public LineString getGeometry() {
