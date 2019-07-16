@@ -1,6 +1,10 @@
 package org.opentripplanner.graph_builder.module;
 
 import com.google.common.collect.Iterables;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.graph_builder.annotation.StopNotLinkedForTransfers;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.routing.edgetype.PathwayEdge;
@@ -12,11 +16,7 @@ import org.opentripplanner.routing.vertextype.TransitStop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * {@link org.opentripplanner.graph_builder.services.GraphBuilderModule} module that links up the stops of a transit
@@ -94,6 +94,10 @@ public class DirectTransferGenerator implements GraphBuilderModule {
             LOG.debug("Linked stop {} to {} nearby stops on other patterns.", ts0.getStop(), n);
             if (n == 0) {
                 LOG.debug(graph.addBuilderAnnotation(new StopNotLinkedForTransfers(ts0)));
+                // Add edge linking to itself to avoid the stop vertex being lost during serialization
+                new SimpleTransfer(ts0, ts0, Double.MAX_VALUE,
+                        GeometryUtils.makeLineString(ts0.getCoordinate().x, ts0.getCoordinate().y,
+                                ts0.getCoordinate().x, ts0.getCoordinate().y), new ArrayList<>());
             }
             nTransfersTotal += n;
         }
