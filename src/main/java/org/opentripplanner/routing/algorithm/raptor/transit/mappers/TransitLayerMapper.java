@@ -127,8 +127,11 @@ public class TransitLayerMapper {
         // new Raptor TripPattern.
         // Get a frozen snapshot of timetable data so it isn't changed by incoming realtime data while we're iterating.
         TimetableSnapshot timetableSnapshot = null;
-        if (graph.timetableSnapshotSource != null) {
+        if (graph.timetableSnapshotSource == null) {
+            LOG.info("There is no timetable snapshot source. This TransitLayer will reflect scheduled service.");
+        } else {
             timetableSnapshot = graph.timetableSnapshotSource.getTimetableSnapshot();
+            LOG.info("Got timetable snapshot. This TransitLayer will reflect realtime updates.");
         }
         Set<ServiceDate> allServiceDates = serviceIdsForServiceDate.keySet();
         for (ServiceDate serviceDate : allServiceDates) {
@@ -173,7 +176,6 @@ public class TransitLayerMapper {
         }
         return tripPatternsForDates;
     }
-
 
     // TODO About 80% of the mapping time is spent in this method. Should be consider pre-sorting these before
     // TODO serializing the graph?
