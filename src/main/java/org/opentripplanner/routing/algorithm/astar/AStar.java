@@ -246,9 +246,6 @@ public class AStar {
                     break;
                 }
             }  else if (this.currentVertex == this.rctx.target && this.u.isFinal()) {
-                if (this.options.onlyTransitTrips && !this.u.isEverBoarded()) {
-                    continue;
-                }
                 this.targetAcceptedStates.add(this.u);
                 this.foundPathWeight = this.u.getWeight();
                 this.options.rctx.debugOutput.foundPath();
