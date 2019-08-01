@@ -9,7 +9,7 @@ import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Vertex;
 
 /**
- * A Euclidean remaining weight strategy that takes into account transit boarding costs where applicable.
+ * A Euclidean remaining weight strategy for non-transit searches.
  * 
  */
 public class EuclideanRemainingWeightHeuristic implements RemainingWeightHeuristic {
@@ -18,23 +18,27 @@ public class EuclideanRemainingWeightHeuristic implements RemainingWeightHeurist
 
     private double lat;
     private double lon;
-    private double maxStreetSpeed;
+    private double maxSpeed;
 
     @Override
     public void initialize(RoutingRequest options, long abortTime) {
-        RoutingRequest req = options;
-        Vertex target = req.rctx.target;
-        maxStreetSpeed = req.getStreetSpeedUpperBound();
+        Vertex target = options.rctx.target;
+        target = getConnectedStreetVertex(target);
 
+        lat = target.getLat();
+        lon = target.getLon();
+
+        maxSpeed = options.getStreetSpeedUpperBound();
+    }
+
+    private Vertex getConnectedStreetVertex(Vertex target) {
         if (target.getDegreeIn() == 1) {
             Edge edge = Iterables.getOnlyElement(target.getIncoming());
             if (edge instanceof FreeEdge) {
                 target = edge.getFromVertex();
             }
         }
-
-        lat = target.getLat();
-        lon = target.getLon();
+        return target;
     }
 
     /**
@@ -45,13 +49,6 @@ public class EuclideanRemainingWeightHeuristic implements RemainingWeightHeurist
         Vertex sv = s.getVertex();
         double euclideanDistance = SphericalDistanceLibrary.fastDistance(sv.getLat(), sv.getLon(), lat, lon);
         // all travel is on-street, no transit involved
-        return euclideanDistance / maxStreetSpeed;
+        return euclideanDistance / maxSpeed;
     }
-
-    @Override
-    public void reset() {}
-
-    @Override
-    public void doSomeWork() {}
-
 }
