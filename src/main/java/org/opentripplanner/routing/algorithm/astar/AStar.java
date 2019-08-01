@@ -55,15 +55,15 @@ public class AStar {
         BinHeap<State> pq;
         RemainingWeightHeuristic heuristic;
         public RoutingContext rctx;
-        public int nVisited;
-        public List<State> targetAcceptedStates;
+        private int nVisited;
+        private List<State> targetAcceptedStates;
         public RunStatus status;
         private RoutingRequest options;
         private SearchTerminationStrategy terminationStrategy;
-        public Vertex u_vertex;
+        private Vertex u_vertex;
         Double foundPathWeight = null;
 
-        public RunState(RoutingRequest options, SearchTerminationStrategy terminationStrategy) {
+        private RunState(RoutingRequest options, SearchTerminationStrategy terminationStrategy) {
             this.options = options;
             this.terminationStrategy = terminationStrategy;
         }
@@ -87,7 +87,7 @@ public class AStar {
     }
     
     /** set up a single-origin search */
-    public void startSearch(RoutingRequest options,
+    private void startSearch(RoutingRequest options,
             SearchTerminationStrategy terminationStrategy, long abortTime) {
         startSearch(options, terminationStrategy, abortTime, true);
     }
@@ -131,7 +131,7 @@ public class AStar {
         }
     }
 
-    boolean iterate(){
+    private boolean iterate(){
         // print debug info
         if (verbose) {
             double w = runState.pq.peek_min_key();
@@ -224,7 +224,7 @@ public class AStar {
         return true;
     }
     
-    void runSearch(long abortTime){
+    private void runSearch(long abortTime){
         /* the core of the A* algorithm */
         while (!runState.pq.empty()) { // Until the priority queue is empty:
             /*
