@@ -1,6 +1,5 @@
 package org.opentripplanner.index.model;
 
-import com.beust.jcommander.internal.Lists;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
@@ -9,7 +8,9 @@ import org.opentripplanner.routing.edgetype.Timetable;
 import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
 
+import java.util.ArrayList;
 import java.util.List;
+
 
 public class TripTimeShort {
 
@@ -64,7 +65,7 @@ public class TripTimeShort {
      */
     public static List<TripTimeShort> fromTripTimes (Timetable table, Trip trip) {
         TripTimes times = table.getTripTimes(table.getTripIndex(trip.getId()));        
-        List<TripTimeShort> out = Lists.newArrayList();
+        List<TripTimeShort> out = new ArrayList();
         // one per stop, not one per hop, thus the <= operator
         for (int i = 0; i < times.getNumStops(); ++i) {
             out.add(new TripTimeShort(times, i, table.pattern.getStop(i)));

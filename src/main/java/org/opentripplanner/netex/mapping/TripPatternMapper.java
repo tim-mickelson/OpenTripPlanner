@@ -105,6 +105,7 @@ class TripPatternMapper {
         TripPattern tripPattern = new TripPattern(lookupRoute(journeyPattern), stopPattern);
         tripPattern.code = journeyPattern.getId();
         tripPattern.name = journeyPattern.getName() == null ? "" : journeyPattern.getName().getValue();
+        tripPattern.id = createFeedScopedId(journeyPattern.getId());
 
         createTripTimes(trips, tripPattern);
 

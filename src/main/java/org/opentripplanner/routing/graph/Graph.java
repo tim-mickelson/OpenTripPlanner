@@ -111,7 +111,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
 
     public final StreetNotesService streetNotesService = new StreetNotesService();
 
-    private Multimap<FeedScopedId, Notice> noticesByElementId = HashMultimap.create();
+    private final Multimap<FeedScopedId, Notice> noticesByElementId = HashMultimap.create();
 
     // transit feed validity information in seconds since epoch
     private long transitServiceStarts = Long.MAX_VALUE;
@@ -980,6 +980,7 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     }
 
     public void setNoticesByElementId(Multimap<FeedScopedId, Notice> noticesByElementId) {
-        this.noticesByElementId = noticesByElementId;
+        this.noticesByElementId.clear();
+        this.noticesByElementId.putAll(noticesByElementId);
     }
 }

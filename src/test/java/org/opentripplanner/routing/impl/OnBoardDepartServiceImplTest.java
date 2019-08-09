@@ -1,21 +1,14 @@
 package org.opentripplanner.routing.impl;
 
+import com.google.common.collect.HashMultimap;
+import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.CoordinateSequenceFactory;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.TimeZone;
-
-import org.junit.Test;
+import org.opentripplanner.common.geometry.GeometryUtils;
+import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
@@ -23,8 +16,6 @@ import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.common.geometry.GeometryUtils;
-import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.routing.core.RoutingContext;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.ServiceDay;
@@ -41,8 +32,15 @@ import org.opentripplanner.routing.vertextype.PatternArriveVertex;
 import org.opentripplanner.routing.vertextype.PatternDepartVertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.TimeZone;
+
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /*
  * FIXME: This test has become seriously ugly after recent changes to OTP. Using mocks, which seemed
@@ -50,6 +48,10 @@ import static org.mockito.Mockito.mock;
  * longer valid. The idea of a decoupled unit test has certainly not worked out the way it should've
  * worked out in theory. It would be very wise to rewrite this test to be simpler and not use mocks.
  * FIXME too: Even worse, it didn't even fail when OnBoardDepartServiceImpl turned out to be broken.
+ * FIXME Having to use a mocks for internal classes in a test (internal dependencies)
+ * frequently lead to unmaintainable, false positive tests - and should be avoided. Using mocks
+ * for this is a symptom of poor design - it is often better NOT to test, than to use mockes in
+ * these situations.
  */
 public class OnBoardDepartServiceImplTest {
     OnBoardDepartServiceImpl onBoardDepartServiceImpl = new OnBoardDepartServiceImpl();
@@ -138,6 +140,7 @@ public class OnBoardDepartServiceImplTest {
         routingRequest.from = new GenericLocation();
         routingRequest.startingTransitTripId = id;
         when(serviceDay.secondsSinceMidnight(anyInt())).thenReturn(9);
+        when(graph.getNoticesByElementId()).thenReturn(HashMultimap.create());
 
         patternHop0.setGeometry(geometry);
         tripPattern.add(tripTimes);
@@ -182,6 +185,7 @@ public class OnBoardDepartServiceImplTest {
         routingRequest.modes = new TraverseModeSet("WALK,TRANSIT");
 
         when(graph.getTimeZone()).thenReturn(TimeZone.getTimeZone("GMT"));
+        when(graph.getNoticesByElementId()).thenReturn(HashMultimap.create());
         when(station0.getX()).thenReturn(coordinates[0].x);
         when(station0.getY()).thenReturn(coordinates[0].y);
         when(station1.getX()).thenReturn(coordinates[1].x);
@@ -258,6 +262,7 @@ public class OnBoardDepartServiceImplTest {
         routingRequest.modes = new TraverseModeSet("WALK,TRANSIT");
 
         when(graph.getTimeZone()).thenReturn(TimeZone.getTimeZone("GMT"));
+        when(graph.getNoticesByElementId()).thenReturn(HashMultimap.create());
 
         ArrayList<Edge> hops = new ArrayList<Edge>(2);
         RoutingContext routingContext = new RoutingContext(routingRequest, graph, null, arrive);
