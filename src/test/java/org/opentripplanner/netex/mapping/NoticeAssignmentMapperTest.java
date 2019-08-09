@@ -3,16 +3,23 @@ package org.opentripplanner.netex.mapping;
 import com.google.common.collect.Multimap;
 import org.junit.Test;
 import org.opentripplanner.model.FeedScopedId;
-import org.opentripplanner.model.Notice;
-import org.opentripplanner.model.impl.EntityById;
 import org.opentripplanner.netex.loader.util.HierarchicalMap;
 import org.opentripplanner.netex.loader.util.HierarchicalMapById;
 import org.opentripplanner.netex.loader.util.HierarchicalMultimap;
-import org.rutebanken.netex.model.*;
+import org.rutebanken.netex.model.JourneyPattern;
+import org.rutebanken.netex.model.MultilingualString;
+import org.rutebanken.netex.model.Notice;
+import org.rutebanken.netex.model.NoticeAssignment;
+import org.rutebanken.netex.model.NoticeRefStructure;
+import org.rutebanken.netex.model.ServiceJourney;
+import org.rutebanken.netex.model.StopPointInJourneyPattern;
+import org.rutebanken.netex.model.TimetabledPassingTime;
+import org.rutebanken.netex.model.TimetabledPassingTimes_RelStructure;
+import org.rutebanken.netex.model.VersionOfObjectRefStructure;
 
 import java.math.BigInteger;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class NoticeAssignmentMapperTest {
 
@@ -25,28 +32,28 @@ public class NoticeAssignmentMapperTest {
     private static final String TIMETABLED_PASSING_TIME1 = "RUT:TimetabledPassingTime:1";
     private static final String TIMETABLED_PASSING_TIME2 = "RUT:TimetabledPassingTime:1";
 
+    private static final Notice NOTICE = new org.rutebanken.netex.model.Notice()
+            .withId(NOTICE_ID)
+            .withPublicCode("Notice Code")
+            .withText(new MultilingualString().withValue("Notice text"));
+
     @Test
     public void mapNoticeAssignment() {
         NoticeAssignment noticeAssignment = new NoticeAssignment();
 
-        Notice notice = new Notice();
-        notice.setId(FeedScopedIdFactory.createFeedScopedId(NOTICE_ID));
-        EntityById<FeedScopedId, Notice> noticesById = new EntityById<>();
-
         noticeAssignment.setNoticedObjectRef(new VersionOfObjectRefStructure().withRef(ROUTE_ID));
-        noticeAssignment.setNotice(new org.rutebanken.netex.model.Notice().withId(NOTICE_ID));
-
-        noticesById.add(notice);
+        noticeAssignment.setNotice(NOTICE);
 
         NoticeAssignmentMapper noticeAssignmentMapper = new NoticeAssignmentMapper(
                 new HierarchicalMap<>(),
                 new HierarchicalMultimap<>(),
                 new HierarchicalMapById<>(),
-                noticesById);
+                new HierarchicalMapById<>()
+        );
 
-        Multimap<FeedScopedId, Notice> noticesByElementId = noticeAssignmentMapper.map(noticeAssignment);
+        Multimap<FeedScopedId, org.opentripplanner.model.Notice> noticesByElementId = noticeAssignmentMapper.map(noticeAssignment);
 
-        Notice notice2 = noticesByElementId.get(FeedScopedIdFactory.createFeedScopedId(ROUTE_ID))
+        org.opentripplanner.model.Notice notice2 = noticesByElementId.get(FeedScopedIdFactory.createFeedScopedId(ROUTE_ID))
                 .stream().findFirst().get();
 
         assertEquals(NOTICE_ID, notice2.getId().getId());
@@ -57,44 +64,62 @@ public class NoticeAssignmentMapperTest {
         HierarchicalMap<String, JourneyPattern> journeyPatternsByStopPointId = new HierarchicalMap<>();
         HierarchicalMultimap<String, ServiceJourney> serviceJourneyByPatternId = new HierarchicalMultimap<>();
         HierarchicalMapById<StopPointInJourneyPattern> stopPointInJourneyPatternById = new HierarchicalMapById<>();
+        HierarchicalMapById<Notice> noticesById = new HierarchicalMapById<>();
 
-        journeyPatternsByStopPointId.add(STOP_POINT_ID, new JourneyPattern().withId(
-                JOURNEY_PATTERN_ID));
 
-        serviceJourneyByPatternId.add(JOURNEY_PATTERN_ID, new ServiceJourney().withId(
-                SERVICE_JOURNEY_ID1).withPassingTimes(new TimetabledPassingTimes_RelStructure()
-                .withTimetabledPassingTime(new TimetabledPassingTime().withId(TIMETABLED_PASSING_TIME1))));
-        serviceJourneyByPatternId.add(JOURNEY_PATTERN_ID, new ServiceJourney().withId(
-                SERVICE_JOURNEY_ID2).withPassingTimes(new TimetabledPassingTimes_RelStructure()
-                .withTimetabledPassingTime(new TimetabledPassingTime().withId(TIMETABLED_PASSING_TIME2))));
+        journeyPatternsByStopPointId.add(
+                STOP_POINT_ID, new JourneyPattern().withId(JOURNEY_PATTERN_ID));
 
-        stopPointInJourneyPatternById.add(new StopPointInJourneyPattern().withId(STOP_POINT_ID).withOrder(BigInteger.valueOf(1)));
+        serviceJourneyByPatternId.add(
+                JOURNEY_PATTERN_ID,
+                new ServiceJourney()
+                        .withId(SERVICE_JOURNEY_ID1)
+                        .withPassingTimes(
+                                new TimetabledPassingTimes_RelStructure().withTimetabledPassingTime(
+                                        new TimetabledPassingTime().withId(TIMETABLED_PASSING_TIME1)
+                                )
+                        )
+        );
+        serviceJourneyByPatternId.add(
+                JOURNEY_PATTERN_ID,
+                new ServiceJourney()
+                        .withId(SERVICE_JOURNEY_ID2)
+                        .withPassingTimes(
+                                new TimetabledPassingTimes_RelStructure().withTimetabledPassingTime(
+                                        new TimetabledPassingTime().withId(TIMETABLED_PASSING_TIME2)
+                                )
+                        )
+        );
+
+        stopPointInJourneyPatternById.add(
+                new StopPointInJourneyPattern()
+                        .withId(STOP_POINT_ID)
+                        .withOrder(BigInteger.valueOf(1))
+        );
+
+        noticesById.add(NOTICE);
 
         NoticeAssignment noticeAssignment = new NoticeAssignment();
 
-        Notice notice = new Notice();
-        notice.setId(FeedScopedIdFactory.createFeedScopedId(NOTICE_ID));
-        EntityById<FeedScopedId, Notice> noticesById = new EntityById<>();
-
         noticeAssignment.setNoticedObjectRef(new VersionOfObjectRefStructure().withRef(
-                STOP_POINT_ID));
-        noticeAssignment.setNotice(new org.rutebanken.netex.model.Notice().withId(NOTICE_ID));
-
-        noticesById.add(notice);
+                STOP_POINT_ID)
+        );
+        noticeAssignment.setNoticeRef(new NoticeRefStructure().withRef(NOTICE_ID));
 
         NoticeAssignmentMapper noticeAssignmentMapper = new NoticeAssignmentMapper(
                 journeyPatternsByStopPointId,
                 serviceJourneyByPatternId,
                 stopPointInJourneyPatternById,
-                noticesById);
+                noticesById
+        );
 
-        Multimap<FeedScopedId, Notice> noticesByElementId = noticeAssignmentMapper.map(noticeAssignment);
+        Multimap<FeedScopedId, org.opentripplanner.model.Notice> noticesByElementId = noticeAssignmentMapper.map(noticeAssignment);
 
-        Notice notice2a = noticesByElementId.get(FeedScopedIdFactory.createFeedScopedId(
+        org.opentripplanner.model.Notice notice2a = noticesByElementId.get(FeedScopedIdFactory.createFeedScopedId(
                 TIMETABLED_PASSING_TIME1))
                 .stream().findFirst().get();
 
-        Notice notice2b = noticesByElementId.get(FeedScopedIdFactory.createFeedScopedId(
+        org.opentripplanner.model.Notice notice2b = noticesByElementId.get(FeedScopedIdFactory.createFeedScopedId(
                 TIMETABLED_PASSING_TIME2))
                 .stream().findFirst().get();
 

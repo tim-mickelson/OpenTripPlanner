@@ -2,7 +2,28 @@ package org.opentripplanner.netex.loader.parser;
 
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.loader.util.ReadOnlyHierarchicalVersionMapById;
-import org.rutebanken.netex.model.*;
+import org.rutebanken.netex.model.DataManagedObjectStructure;
+import org.rutebanken.netex.model.DestinationDisplay;
+import org.rutebanken.netex.model.DestinationDisplaysInFrame_RelStructure;
+import org.rutebanken.netex.model.GroupOfLines;
+import org.rutebanken.netex.model.GroupsOfLinesInFrame_RelStructure;
+import org.rutebanken.netex.model.JourneyPattern;
+import org.rutebanken.netex.model.JourneyPatternsInFrame_RelStructure;
+import org.rutebanken.netex.model.Line;
+import org.rutebanken.netex.model.LinesInFrame_RelStructure;
+import org.rutebanken.netex.model.Network;
+import org.rutebanken.netex.model.Notice;
+import org.rutebanken.netex.model.NoticeAssignment;
+import org.rutebanken.netex.model.NoticeAssignmentsInFrame_RelStructure;
+import org.rutebanken.netex.model.NoticesInFrame_RelStructure;
+import org.rutebanken.netex.model.PassengerStopAssignment;
+import org.rutebanken.netex.model.PointInLinkSequence_VersionedChildStructure;
+import org.rutebanken.netex.model.Quay;
+import org.rutebanken.netex.model.Route;
+import org.rutebanken.netex.model.RoutesInFrame_RelStructure;
+import org.rutebanken.netex.model.ServiceFrame;
+import org.rutebanken.netex.model.StopAssignmentsInFrame_RelStructure;
+import org.rutebanken.netex.model.StopPointInJourneyPattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,6 +152,7 @@ class ServiceFrameParser {
             if (element.getValue() instanceof Line) {
                 this.lines.add((Line) element.getValue());
             }
+            // TODO TGR - else log WARNING
         }
     }
 
@@ -141,17 +163,16 @@ class ServiceFrameParser {
             if (pattern.getValue() instanceof JourneyPattern) {
                 JourneyPattern journeyPattern = (JourneyPattern) pattern.getValue();
                 this.journeyPatterns.add(journeyPattern);
-                for (PointInLinkSequence_VersionedChildStructure pointInLinkSequence_versionedChildStructure
-                        : journeyPattern.getPointsInSequence()
-                        .getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern()) {
-                    if (pointInLinkSequence_versionedChildStructure instanceof StopPointInJourneyPattern) {
-                        StopPointInJourneyPattern stopPointInJourneyPattern =
-                                (StopPointInJourneyPattern) pointInLinkSequence_versionedChildStructure;
-                        journeyPatternByStopPointId.put(stopPointInJourneyPattern.getId(), journeyPattern);
-                        stopPointsInJourneyPattern.add(stopPointInJourneyPattern);
+                for (PointInLinkSequence_VersionedChildStructure it : journeyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern()) {
+                    if (it instanceof StopPointInJourneyPattern) {
+                        StopPointInJourneyPattern stopPoint = (StopPointInJourneyPattern) it;
+                        journeyPatternByStopPointId.put(stopPoint.getId(), journeyPattern);
+                        stopPointsInJourneyPattern.add(stopPoint);
                     }
+                    // TODO TGR - else log WARNING
                 }
             }
+            // TODO TGR - else log WARNING
         }
     }
 
@@ -171,12 +192,13 @@ class ServiceFrameParser {
     private void parseNoticeAssignments(NoticeAssignmentsInFrame_RelStructure na) {
         if (na == null) return;
 
-        for (JAXBElement<? extends DataManagedObjectStructure> noticeAssignmentElement : na.getNoticeAssignment_()) {
-            NoticeAssignment noticeAssignment = (NoticeAssignment) noticeAssignmentElement.getValue();
+        for (JAXBElement<? extends DataManagedObjectStructure> it : na.getNoticeAssignment_()) {
+            NoticeAssignment noticeAssignment = (NoticeAssignment) it.getValue();
 
             if (noticeAssignment.getNoticeRef() != null && noticeAssignment.getNoticedObjectRef() != null) {
                 this.noticeAssignments.add(noticeAssignment);
             }
+            // TODO TGR - else log WARNING
         }
     }
 }

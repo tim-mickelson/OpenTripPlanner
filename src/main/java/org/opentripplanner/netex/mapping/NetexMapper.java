@@ -7,7 +7,11 @@ import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
-import org.rutebanken.netex.model.*;
+import org.rutebanken.netex.model.Authority;
+import org.rutebanken.netex.model.JourneyPattern;
+import org.rutebanken.netex.model.Line;
+import org.rutebanken.netex.model.NoticeAssignment;
+import org.rutebanken.netex.model.StopPlace;
 
 import java.util.Collection;
 
@@ -53,7 +57,7 @@ public class NetexMapper {
                 netexIndex.journeyPatternsByStopPointId,
                 netexIndex.serviceJourneyByPatternId,
                 netexIndex.stopPointsInJourneyPatternById,
-                transitBuilder.getNoticesById()
+                netexIndex.noticeById
         );
 
         AgencyMapper agencyMapper = new AgencyMapper(netexIndex.timeZone.get());
@@ -88,14 +92,10 @@ public class NetexMapper {
             );
         }
 
-        for (Notice notice : netexIndex.noticeById.localValues()) {
-            org.opentripplanner.model.Notice otpNotice = NoticeMapper.map(notice);
-            transitBuilder.getNoticesById().add(otpNotice);
-        }
-
         for (NoticeAssignment noticeAssignment : netexIndex.noticeAssignmentById.localValues()) {
-            Multimap<FeedScopedId, org.opentripplanner.model.Notice> noticesByElementId =
-                    noticeAssignmentMapper.map(noticeAssignment);
+            Multimap<FeedScopedId, org.opentripplanner.model.Notice> noticesByElementId;
+
+            noticesByElementId = noticeAssignmentMapper.map(noticeAssignment);
             transitBuilder.getNoticesByElementId().putAll(noticesByElementId);
         }
     }

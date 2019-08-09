@@ -1,7 +1,6 @@
 package org.opentripplanner.index.model;
 
-import java.util.List;
-
+import com.beust.jcommander.internal.Lists;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
@@ -10,7 +9,7 @@ import org.opentripplanner.routing.edgetype.Timetable;
 import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
 
-import com.beust.jcommander.internal.Lists;
+import java.util.List;
 
 public class TripTimeShort {
 
@@ -37,8 +36,8 @@ public class TripTimeShort {
      * This is stop-specific, so the index i is a stop index, not a hop index.
      */
     public TripTimeShort(TripTimes tt, int i, Stop stop) {
-        stopId = stop.getId();
-        stopTimeId = tt.getStopTimeIdByIndex(i);
+        stopId             = stop.getId();
+        stopTimeId         = tt.getStopTimeIdByIndex(i);
         stopIndex          = i;
         stopCount          = tt.getNumStops();
         scheduledArrival   = tt.getScheduledArrivalTime(i);

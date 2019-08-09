@@ -2,7 +2,19 @@
 package org.opentripplanner.model.impl;
 
 import com.google.common.collect.Multimap;
-import org.opentripplanner.model.*;
+import org.opentripplanner.model.Agency;
+import org.opentripplanner.model.FareAttribute;
+import org.opentripplanner.model.FareRule;
+import org.opentripplanner.model.FeedInfo;
+import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.OtpTransitService;
+import org.opentripplanner.model.Pathway;
+import org.opentripplanner.model.ShapePoint;
+import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.StopTime;
+import org.opentripplanner.model.Transfer;
+import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.edgetype.TripPattern;
 
 import java.util.ArrayList;
@@ -37,8 +49,6 @@ class OtpTransitServiceImpl implements OtpTransitService {
 
     private final Collection<FeedInfo> feedInfos;
 
-    private final Map<FeedScopedId, Notice> notices;
-
     private final Multimap<FeedScopedId, Notice> noticesByElementId;
 
     private final Collection<Pathway> pathways;
@@ -71,7 +81,6 @@ class OtpTransitServiceImpl implements OtpTransitService {
         this.fareAttributes = immutableList(builder.getFareAttributes());
         this.fareRules = immutableList(builder.getFareRules());
         this.feedInfos = immutableList(builder.getFeedInfos());
-        this.notices = builder.getNoticesById().asImmutableMap();
         this.noticesByElementId = builder.getNoticesByElementId();
         this.pathways = immutableList(builder.getPathways());
         this.serviceIds = immutableList(builder.findAllServiceIds());
@@ -101,11 +110,6 @@ class OtpTransitServiceImpl implements OtpTransitService {
     @Override
     public Collection<FeedInfo> getAllFeedInfos() {
         return feedInfos;
-    }
-
-    @Override
-    public Map<FeedScopedId, Notice> getNoticeById() {
-        return notices;
     }
 
     @Override

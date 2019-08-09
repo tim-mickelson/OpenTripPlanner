@@ -4,9 +4,15 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.loader.util.ReadOnlyHierarchicalMap;
-import org.opentripplanner.netex.mapping.NoticeAssignmentMapper;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
-import org.rutebanken.netex.model.*;
+import org.rutebanken.netex.model.DataManagedObjectStructure;
+import org.rutebanken.netex.model.JourneyPattern;
+import org.rutebanken.netex.model.Journey_VersionStructure;
+import org.rutebanken.netex.model.JourneysInFrame_RelStructure;
+import org.rutebanken.netex.model.NoticeAssignment;
+import org.rutebanken.netex.model.NoticeAssignmentsInFrame_RelStructure;
+import org.rutebanken.netex.model.ServiceJourney;
+import org.rutebanken.netex.model.TimetableFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +29,9 @@ class TimeTableFrameParser {
     private final ReadOnlyHierarchicalMap<String, JourneyPattern> journeyPatternById;
 
     private final Set<DayTypeRefsToServiceIdAdapter> dayTypeRefs = new HashSet<>();
-
+    private final Collection<NoticeAssignment> noticeAssignments = new ArrayList<>();
     private final Multimap<String, ServiceJourney> serviceJourneyByPatternId = ArrayListMultimap.create();
 
-    private final Collection<NoticeAssignment> noticeAssignments = new ArrayList<>();
 
     TimeTableFrameParser(ReadOnlyHierarchicalMap<String, JourneyPattern> journeyPatternById) {
         this.journeyPatternById = journeyPatternById;
@@ -40,9 +45,11 @@ class TimeTableFrameParser {
         journeys = vehicleJourneys.getDatedServiceJourneyOrDeadRunOrServiceJourney();
 
         for (Journey_VersionStructure it : journeys) {
+            // TODO OTP2 - This cast is not nessessary?
             if (it instanceof ServiceJourney) {
                 parseServiceJourney((ServiceJourney)it);
             }
+            // TODO TGR - else log WARNING
         }
 
         parseNoticeAssignments(timetableFrame.getNoticeAssignments());
@@ -78,15 +85,18 @@ class TimeTableFrameParser {
         }
     }
 
-    private void parseNoticeAssignments(NoticeAssignmentsInFrame_RelStructure na) {
-        if (na == null) return;
+    private void parseNoticeAssignments(NoticeAssignmentsInFrame_RelStructure noticeAssignments) {
+        if (noticeAssignments == null) return;
 
-        for (JAXBElement<? extends DataManagedObjectStructure> noticeAssignmentElement : na.getNoticeAssignment_()) {
-            NoticeAssignment noticeAssignment = (NoticeAssignment) noticeAssignmentElement.getValue();
+        for (JAXBElement<? extends DataManagedObjectStructure> it : noticeAssignments.getNoticeAssignment_()) {
+
+            // TODO OTP2 - Is this safe, why is the type then DataManagedObjectStructure?
+            NoticeAssignment noticeAssignment = (NoticeAssignment) it.getValue();
 
             if (noticeAssignment.getNoticeRef() != null && noticeAssignment.getNoticedObjectRef() != null) {
                 this.noticeAssignments.add(noticeAssignment);
             }
+            // TODO OTP2 - Log unknown object
         }
     }
 }

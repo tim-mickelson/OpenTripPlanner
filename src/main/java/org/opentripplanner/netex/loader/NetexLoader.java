@@ -142,6 +142,5 @@ public class NetexLoader {
 
         return root.getValue();
     }
-
 }
 

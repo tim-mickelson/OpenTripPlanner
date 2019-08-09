@@ -24,7 +24,17 @@ import org.opentripplanner.graph_builder.annotation.NonStationParentStation;
 import org.opentripplanner.graph_builder.module.GtfsFeedId;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.gtfs.GtfsLibrary;
-import org.opentripplanner.model.*;
+import org.opentripplanner.model.Agency;
+import org.opentripplanner.model.FeedInfo;
+import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.OtpTransitService;
+import org.opentripplanner.model.Pathway;
+import org.opentripplanner.model.Route;
+import org.opentripplanner.model.ShapePoint;
+import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.StopTime;
+import org.opentripplanner.model.Transfer;
+import org.opentripplanner.model.Trip;
 import org.opentripplanner.routing.core.StopTransfer;
 import org.opentripplanner.routing.core.TransferTable;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -209,6 +219,8 @@ public class PatternHopFactory {
         /* Interpret the transfers explicitly defined in transfers.txt. */
         loadTransfers(graph);
 
+        // TODO TGR - This have nothing to do with PatternHops, so maybe it should be put in
+        // TODO TGR - another place.
         loadNotices(graph);
 
         /* Store parent stops in graph, even if not linked. These are needed for clustering*/
@@ -802,11 +814,8 @@ public class PatternHopFactory {
             i++;
         }
 
-        /*
-         * If we don't have distances here, we can't calculate them ourselves because we can't
-         * assume the units will match
-         */
-
+        // If we don't have distances here, we can't calculate them ourselves because we can't
+        // assume the units will match
         if (!hasAllDistances) {
             distances = null;
         }

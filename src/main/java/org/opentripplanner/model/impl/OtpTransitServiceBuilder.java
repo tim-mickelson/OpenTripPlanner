@@ -1,10 +1,25 @@
 package org.opentripplanner.model.impl;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import org.opentripplanner.model.*;
+import org.opentripplanner.model.Agency;
+import org.opentripplanner.model.FareAttribute;
+import org.opentripplanner.model.FareRule;
+import org.opentripplanner.model.FeedInfo;
+import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.Frequency;
+import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.OtpTransitService;
+import org.opentripplanner.model.Pathway;
+import org.opentripplanner.model.Route;
+import org.opentripplanner.model.ServiceCalendar;
+import org.opentripplanner.model.ServiceCalendarDate;
+import org.opentripplanner.model.ShapePoint;
+import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.StopPattern;
+import org.opentripplanner.model.Transfer;
+import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.TripStopTimes;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.impl.CalendarServiceDataFactoryImpl;
 import org.opentripplanner.routing.edgetype.TripPattern;
@@ -36,8 +51,7 @@ public class OtpTransitServiceBuilder {
 
     private final List<Frequency> frequencies = new ArrayList<>();
 
-    private final EntityById<FeedScopedId, Notice> noticesById = new EntityById<>();
-
+    /** This corespond to a NoticeAssignment in Netex */
     private final Multimap<FeedScopedId, Notice> noticesByElementId = HashMultimap.create();
 
     private final List<Pathway> pathways = new ArrayList<>();
@@ -54,7 +68,7 @@ public class OtpTransitServiceBuilder {
 
     private final EntityById<FeedScopedId, Trip> tripsById = new EntityById<>();
 
-    private final ListMultimap<StopPattern, TripPattern> tripPatterns = ArrayListMultimap.create();
+    private final Multimap<StopPattern, TripPattern> tripPatterns = HashMultimap.create();
 
 
     public OtpTransitServiceBuilder() {
@@ -81,7 +95,9 @@ public class OtpTransitServiceBuilder {
         return fareAttributes;
     }
 
-    public List<FareRule> getFareRules() { return fareRules; }
+    public List<FareRule> getFareRules() {
+        return fareRules;
+    }
 
     public List<FeedInfo> getFeedInfos() {
         return feedInfos;
@@ -89,10 +105,6 @@ public class OtpTransitServiceBuilder {
 
     public List<Frequency> getFrequencies() {
         return frequencies;
-    }
-
-    public EntityById<FeedScopedId, Notice> getNoticesById() {
-        return noticesById;
     }
 
     public Multimap<FeedScopedId, Notice> getNoticesByElementId() {

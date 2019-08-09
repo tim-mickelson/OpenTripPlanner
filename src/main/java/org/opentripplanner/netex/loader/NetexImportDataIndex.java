@@ -6,7 +6,22 @@ import org.opentripplanner.netex.loader.util.HierarchicalMapById;
 import org.opentripplanner.netex.loader.util.HierarchicalMultimap;
 import org.opentripplanner.netex.loader.util.HierarchicalVersionMapById;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
-import org.rutebanken.netex.model.*;
+import org.rutebanken.netex.model.Authority;
+import org.rutebanken.netex.model.DayType;
+import org.rutebanken.netex.model.DayTypeAssignment;
+import org.rutebanken.netex.model.DestinationDisplay;
+import org.rutebanken.netex.model.GroupOfLines;
+import org.rutebanken.netex.model.JourneyPattern;
+import org.rutebanken.netex.model.Line;
+import org.rutebanken.netex.model.Network;
+import org.rutebanken.netex.model.Notice;
+import org.rutebanken.netex.model.NoticeAssignment;
+import org.rutebanken.netex.model.OperatingPeriod;
+import org.rutebanken.netex.model.Quay;
+import org.rutebanken.netex.model.Route;
+import org.rutebanken.netex.model.ServiceJourney;
+import org.rutebanken.netex.model.StopPlace;
+import org.rutebanken.netex.model.StopPointInJourneyPattern;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -50,14 +65,14 @@ public class NetexImportDataIndex {
     public final HierarchicalMap<String, JourneyPattern> journeyPatternsByStopPointId;
     public final HierarchicalMapById<Line> lineById;
     public final HierarchicalMapById<Network> networkById;
+    public final HierarchicalMapById<Notice> noticeById;
+    public final HierarchicalMapById<NoticeAssignment> noticeAssignmentById;
     public final HierarchicalMapById<OperatingPeriod> operatingPeriodById;
     public final HierarchicalVersionMapById<Quay> quayById;
     public final HierarchicalMap<String, String> quayIdByStopPointRef;
     public final HierarchicalMapById<Route> routeById;
     public final HierarchicalMultimap<String, ServiceJourney> serviceJourneyByPatternId;
     public final HierarchicalVersionMapById<StopPlace> stopPlaceById;
-    public final HierarchicalMapById<Notice> noticeById;
-    public final HierarchicalMapById<NoticeAssignment> noticeAssignmentById;
     public final HierarchicalMapById<StopPointInJourneyPattern> stopPointsInJourneyPatternById;
 
 
@@ -85,14 +100,14 @@ public class NetexImportDataIndex {
         this.lineById = new HierarchicalMapById<>();
         this.networkById = new HierarchicalMapById<>();
         this.networkIdByGroupOfLineId = new HierarchicalMap<>();
+        this.noticeById = new HierarchicalMapById<>();
+        this.noticeAssignmentById = new HierarchicalMapById<>();
         this.operatingPeriodById = new HierarchicalMapById<>();
         this.quayById = new HierarchicalVersionMapById<>();
         this.quayIdByStopPointRef = new HierarchicalMap<>();
         this.routeById = new HierarchicalMapById<>();
         this.serviceJourneyByPatternId = new HierarchicalMultimap<>();
         this.stopPlaceById = new HierarchicalVersionMapById<>();
-        this.noticeById = new HierarchicalMapById<>();
-        this.noticeAssignmentById = new HierarchicalMapById<>();
         this.stopPointsInJourneyPatternById = new HierarchicalMapById<>();
         this.timeZone = new HierarchicalElement<>();
     }
@@ -113,14 +128,14 @@ public class NetexImportDataIndex {
         this.lineById = new HierarchicalMapById<>(parent.lineById);
         this.networkById = new HierarchicalMapById<>(parent.networkById);
         this.networkIdByGroupOfLineId = new HierarchicalMap<>(parent.networkIdByGroupOfLineId);
+        this.noticeById = new HierarchicalMapById<>(parent.noticeById);
+        this.noticeAssignmentById = new HierarchicalMapById<>(parent.noticeAssignmentById);
         this.operatingPeriodById = new HierarchicalMapById<>(parent.operatingPeriodById);
         this.quayById = new HierarchicalVersionMapById<>(parent.quayById);
         this.quayIdByStopPointRef = new HierarchicalMap<>(parent.quayIdByStopPointRef);
         this.routeById = new HierarchicalMapById<>(parent.routeById);
         this.serviceJourneyByPatternId = new HierarchicalMultimap<>(parent.serviceJourneyByPatternId);
         this.stopPlaceById = new HierarchicalVersionMapById<>(parent.stopPlaceById);
-        this.noticeById = new HierarchicalMapById<>(parent.noticeById);
-        this.noticeAssignmentById = new HierarchicalMapById<>(parent.noticeAssignmentById);
         this.stopPointsInJourneyPatternById = new HierarchicalMapById<>(parent.stopPointsInJourneyPatternById);
         this.timeZone = new HierarchicalElement<>(parent.timeZone);
     }

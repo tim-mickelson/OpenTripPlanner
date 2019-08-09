@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.rutebanken.netex.model.MultilingualString;
 import org.rutebanken.netex.model.Notice;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class NoticeMapperTest {
 
@@ -13,15 +13,35 @@ public class NoticeMapperTest {
     private static final String PUBLIC_CODE = "Public Code";
 
     @Test public void mapNotice() {
+        org.opentripplanner.model.Notice otpNotice;
+
+        // Given
+        NoticeMapper mapper = new NoticeMapper();
+        // And
         Notice netexNotice = new Notice();
         netexNotice.setId(NOTICE_ID);
         netexNotice.setText(new MultilingualString().withValue(NOTICE_TEXT));
         netexNotice.setPublicCode(PUBLIC_CODE);
 
-        org.opentripplanner.model.Notice otpNotice = NoticeMapper.map(netexNotice);
+        // When
+        otpNotice = mapper.map(netexNotice);
 
+        // Then
         assertEquals(NOTICE_ID, otpNotice.getId().getId());
         assertEquals(NOTICE_TEXT, otpNotice.getText());
         assertEquals(PUBLIC_CODE, otpNotice.getPublicCode());
+
+        // And when other instance with same id is mapped, the first one is returned
+        // from cache - ignoring all properties except the id
+        otpNotice = mapper.map(
+                new Notice()
+                        .withId(NOTICE_ID)
+                        .withPublicCode("Albatross")
+                        .withText(new MultilingualString().withValue("Different text"))
+        );
+
+        // Then
+        assertEquals(NOTICE_ID, otpNotice.getId().getId());
+        assertEquals("Not Albatross", NOTICE_TEXT, otpNotice.getText());
     }
 }

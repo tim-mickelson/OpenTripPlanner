@@ -83,7 +83,8 @@ public class GraphIndex {
     public final Multimap<Route, TripPattern> patternsForRoute = ArrayListMultimap.create();
     public final Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
     public final Multimap<String, Stop> stopsForParentStation = ArrayListMultimap.create();
-    final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<TransitStop>();
+    final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<>();
+
 
     /* Should eventually be replaced with new serviceId indexes. */
     private final CalendarService calendarService;
@@ -441,5 +442,4 @@ public class GraphIndex {
         }
         return allAgencies;
     }
-
 }
