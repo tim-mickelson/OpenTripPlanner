@@ -54,7 +54,7 @@ public class RaptorRouter {
         double startTime = System.currentTimeMillis();
         ZonedDateTime startOfTime = calculateStartOfTime(request);
         this.otpRRDataProvider = new RaptorRoutingRequestTransitData(
-                transitLayer, startOfTime, 2, request.modes, request.walkSpeed
+                transitLayer, startOfTime, 3, request.modes, request.walkSpeed
         );
         LOG.info("Filtering tripPatterns took {} ms", System.currentTimeMillis() - startTime);
         this.transitLayer = transitLayer;
