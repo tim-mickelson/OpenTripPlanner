@@ -1,8 +1,10 @@
 version: 2.1
+
 orbs:
   helm: entur/helm@0.0.1
   slack: circleci/slack@2.2.0
   clair: ovotech/clair-scanner@1.4.25
+  docker: circleci/docker-publish@0.1.6
 
 executors:
   java-11:
@@ -24,8 +26,9 @@ executors:
     environment:
       DEBIAN_FRONTEND: "noninteractive"
 aliases:
-  ### Application version handling
-  - &get-version-from-gradle-properties
+  ### Application version
+
+  - &get-version-from-helm-values
     name: Getting app version from helm-value version
     command: |
       appversion=$(cat ./helm/OpenTripPlanner/values.yaml | grep "appVersion" | cut -d':' -f2)
@@ -40,52 +43,71 @@ aliases:
       sed -i "s/appVersion:.*$/appVersion: 'release-$APP_VERSION'/g"  ./Chart.yaml
       sed -i "s/imageTag:.*$/imageTag: release-$APP_VERSION/g"  ./values.yaml
       popd
-
-  - &get-next-image-version
-    name: Get new image version
+  - &GCP-auth
+    name: GCP Authentication for Google Cloud Deploy
     command: |
-      currentVersion=$APP_VERSION
-      nextVersionPatchNumber=$(($(echo $currentVersion | grep -o '[0-9]*$')+1))
-      staticVersion=$(echo $currentVersion | grep -o '[0-9].[0-9].')
-      echo "export NEXTVERSION=$staticVersion$nextVersionPatchNumber"  >> $BASH_ENV
+      echo $GCLOUD_SERVICE_KEY > ${HOME}/account-auth.json
+      gcloud auth activate-service-account --key-file ${HOME}/account-auth.json
+      gcloud --quiet container clusters get-credentials $CLOUDSDK_CONTAINER_CLUSTER
 
+  - &docker-login
+    name: Login with docker on gcloud
+    command: docker login -u _json_key -p "${GCLOUD_SERVICE_KEY}" https://eu.gcr.io
   - &bump-versions
-    name: Bumping versions
+    name: Bump version in pom file
     command: |
       echo "Bumping versions from $APP_VERSION to $NEXTVERSION"
-      sed -i "s/version=.*$/version=$NEXTVERSION/g" ./helm/OpenTripPlanner/values.yaml
+      sed -i "s/appVersion=.*$/appVersion=$NEXTVERSION/g" ./helm/OpenTripPlanner/values.yaml
       pushd helm/$CIRCLE_PROJECT_REPONAME
       sed -i "s/version:.*$/version: '$NEXTVERSION'/g"  ./Chart.yaml
       sed -i "s/appVersion:.*$/appVersion: 'release-$NEXTVERSION'/g"  ./Chart.yaml
       sed -i "s/imageTag:.*$/imageTag: release-$NEXTVERSION/g"  ./values.yaml
       popd
-  - &tag-successful-deployment
-    name:
-    command: |
-      echo "Trying to tag successful deployment with: $NAMESPACE-$APP_VERSION"
-      tag=release-$APP_VERSION
-      gitcommit=$(git rev-list -n 1 $tag)
-      git config --global user.email "circleci@entur.org"
-      git config --global user.name "EnturCircleCi"
-      git tag -a $NAMESPACE-$MVN_VERSION $gitcommit -m "Tagging successfull deployment of version $APP_VERSION to $NAMESPACE"
-      git push origin $NAMESPACE-$APP_VERSION
+
   - &git-push-next-version-release
     name: Push to repository
     command: |
-      echo "Trying to tag release-$APP_VERSION"
+      echo "Trying to tag release-$MVN_VERSION"
       git config --global user.email "circleci@entur.org"
       git config --global user.name "EnturCircleCi"
-      git tag -a release-$APP_VERSION -m "Tagging current version"
+      git tag -a release-$MVN_VERSION -m "Tagging current version"
       git add helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
       git add helm/$CIRCLE_PROJECT_REPONAME/values.yaml
       git add pom.xml
       git commit -m "Helm Update [ci skip]"
       git push --tags --set-upstream origin $CIRCLE_BRANCH
+
+    ### Application version handling
+  - &tag-successful-deployment
+    name:
+    command: |
+      echo "Trying to tag successful deployment with: $NAMESPACE-$MVN_VERSION"
+      tag=release-$MVN_VERSION
+      gitcommit=$(git rev-list -n 1 $tag)
+      git config --global user.email "circleci@entur.org"
+      git config --global user.name "EnturCircleCi"
+      git tag -a $NAMESPACE-$MVN_VERSION $gitcommit -m "Tagging successfull deployment of version $MVN_VERSION to $NAMESPACE"
+      git push origin $NAMESPACE-$MVN_VERSION
+
   - &team-ror-circleci-slackhook
       https://hooks.slack.com/services/${SLACK_API_KEY_CIRCLE_CI}
 
   - &team-ror-releases-slackhook
-          https://hooks.slack.com/services/${SLACK_API_KEY_RELEASES}
+      https://hooks.slack.com/services/${SLACK_API_KEY_RELEASES}
+
+  # Use the parameter CONDITIONAL_SLACKHOOK to customize where the message gets sent
+  - &team-ror-conditional-slackhook
+      https://hooks.slack.com/services/${CONDITIONAL_SLACKHOOK}
+
+  - &save-test-results
+    name: Save test results
+    command: |
+      mkdir -p ~/reports/{junit,owasp}
+      find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/reports/junit/ \;
+      find . -type f -regex ".*/target/owasp-reports/.*" -exec cp {} ~/reports/owasp/ \;
+
+    when: always
+
   - &deploy-payload
       "*Ready to Deploy*: <$CIRCLE_BUILD_URL|$CIRCLE_PROJECT_REPONAME #$CIRCLE_PREVIOUS_BUILD_NUM> to *$NAMESPACE*\n
         Repository: <https://circleci.com/bb/enturas/workflows/$CIRCLE_PROJECT_REPONAME|$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME>\n
@@ -103,38 +125,7 @@ aliases:
          Version: $MVN_VERSION \n
          User: $CIRCLE_USERNAME"
 
-  - &GCP-auth
-    name: GCP Authenticate
-    command: |
-      echo 'export GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
-      /tools/gcp_authenticate.sh
-  - &docker-login
-    name: Docker login
-    command: |
-      echo 'export GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
-      /tools/docker_login.sh
-  - &docker-build-and-push
-    name: Docker build and push
-    command: |
-      echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
-      /tools/docker_build_push.sh
-    environment:
-      CIRCLE_PROJECT_REPONAME: otp
-  - &build-notify
-    name: Notify babylon about build and docker image pushed
-    command: |
-      echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
-      echo 'export BUILD_STATUS_API_KEY="$BUILD_STATUS_API_KEY"' >> $BASH_ENV
-      /tools/build_notify.sh
-    environment:
-      CIRCLE_PROJECT_REPONAME: otp
-  - &post_build
-    name: Trigger downstream builds
-    command: |
-      echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
-      echo 'export CIRCLE_PROJECT_REPONAME="$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
-      echo 'export GITHUB_TOKEN="$GITHUB_TOKEN"' >> $BASH_ENV
-      /tools/trigger_build.sh "entur/marduk.git" "master" "$(git log -1 --pretty=%B)"
+
 commands:
   slack-status:
     parameters:
@@ -144,56 +135,50 @@ commands:
     steps:
       - attach_workspace:
           at: .
-      - run: *get-next-image-version
+      - run: *get-version-from-helm-values
       - slack/status:
           webhook: *team-ror-circleci-slackhook
           success_message: << parameters.success_payload >>
           failure_message: *failure-payload
+  save-image-name:
+    parameters:
+      image-version:
+        type: string
+        default: $BRANCH_IMAGE_NAME-SNAPSHOT
+    steps:
+      - run:
+          command: echo "$DOCKER_REGISTRY/$CIRCLE_PROJECT_REPONAME:<< parameters.image-version >>" > ./gcr.image.version
+      - persist_to_workspace:
+          root: .
+          paths: ./gcr.image.version
 jobs:
-  test:
+  build:
     executor: cci-toolbox-java11
     steps:
       - checkout
       - restore_cache:
-         key: dep-cache-{{ checksum "pom.xml" }}
+          key: dep-cache-{{ checksum "pom.xml" }}
       - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
       - save_cache:
-        paths:
-        - ~/.m2
-        key: dep-cache-{{ checksum "pom.xml" }}
-      - run: mvn test -s /tools/m2/settings.xml
-      - run:
-        name: Save test results
-        command: |
-          mkdir -p ~/junit/
-          find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-        when: always
+          paths:
+            - ~/.m2
+          key: dep-cache-{{ checksum "pom.xml" }}
+      # Cannot use -o because of snapshot dependencies.
+      - run: *get-version-from-helm-values
+      - run: mvn deploy -s /tools/m2/settings.xml
+      - run: *save-test-results
       - store_test_results:
-        path: ~/junit
+          path: ~/reports
       - store_artifacts:
-        path: ~/junit
-  deploy-artifactory:
-    executor: cci-toolbox-java11
-    steps:
-      - checkout
-      - restore_cache:
-        key: dep-cache-{{ checksum "pom.xml" }}
-      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -q -s /tools/m2/settings.xml
-      - save_cache:
-        paths:
-        - ~/.m2
-        key: dep-cache-{{ checksum "pom.xml" }}
-      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
-      - run: *get-next-image-version
+          path: ~/reports
       - persist_to_workspace:
-        root: ~/project
-        paths:
-        - target
-        - pom.xml
-        - .circleci
-        - Dockerfile
-        - docker
-        - helm/*/
+          root: ~/project
+          paths:
+            - target
+            - pom.xml
+            - .circleci
+            - helm/*/
+            - ./mvn_version
       - slack-status
   prepare-next-release:
     executor: cci-toolbox-java11
@@ -207,14 +192,11 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - $SSH_FINGERPRINT
-      - run: *get-next-image-version
+      - run: *get-version-from-helm-values
       - run: *bump-versions
       - run: *git-push-next-version-release
       - slack-status
-  trigger-dependants:
-    executor: cci-toolbox-java11
-    steps:
-     - run: *post_build
+
   deploy:
     executor: entur-cci-toolbox
 
@@ -230,50 +212,59 @@ jobs:
       - run:
           name: Deployed helm chart
           command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
-      - run: *get-next-image-version
+      - run: *get-version-from-helm-values
+      - run: *GCP-auth
+      - helm/install-helm-chart:
+          chart: ./helm/$CIRCLE_PROJECT_REPONAME
+          namespace: $NAMESPACE
+          release-name: $CIRCLE_PROJECT_REPONAME-$BRANCH_IMAGE_NAME-$NAMESPACE
+      - run:
+          name: Deployed helm chart
+          command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
       - run: *tag-successful-deployment
+
       - slack-status
+
   slack-approval:
     executor: slack/alpine
     steps:
       - attach_workspace:
           at: .
-      - run: *get-next-image-version
+      - run: *get-version-from-helm-values
       - slack/approval:
           webhook: *team-ror-releases-slackhook
           message: *deploy-payload
+
+
 workflows:
   version: 2.1
   release:
     jobs:
-    - test:
-        name: test-release
-        context: dev
-    - deploy-artifactory:
-        name: deploy-artifactory
-        context: dev
-        requires:
-        - test-release
-        filters:
-          branches:
-            only:
-              - entur_raptor
-              - rutebanken_develop
-              - rutebanken_develop_helm
-        post-steps:
-          - save-image-name:
-              image-version: release-$APP_VERSION
-          - slack-status
-    - prepare-next-release:
-        context: dev
-        requires:
-          - publish-docker
-    - deploy:
-        name: deploy-dev-release
-        context: dev
-        requires:
-          - prepare-next-release
-    - trigger-dependants:
-        context: dev
-        requires:
-        - deploy-dev-release
+      - build:
+          name: build-release
+          context: dev
+      - docker/publish:
+          name: push-release
+          registry: $DOCKER_REGISTRY
+          image: $CIRCLE_PROJECT_REPONAME
+          tag: release-$GRADLE_VERSION
+          deploy: true
+          context: global
+          requires:
+            - build-release
+          after_checkout:
+            - attach_workspace:
+                at: .
+            - run: *get-version-from-helm-values
+          post-steps:
+            - save-image-name:
+                image-version: release-$APP_VERSION
+            - slack-status
+      - prepare-next-release:
+          requires:
+            - push-release
+      - deploy:
+          name: deploy-dev-release
+          context: dev
+          requires:
+                - prepare-next-release
