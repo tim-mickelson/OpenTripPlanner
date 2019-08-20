@@ -266,6 +266,7 @@ workflows:
           image: $CIRCLE_PROJECT_REPONAME
           tag: release-$GRADLE_VERSION
           deploy: true
+          docker-password:$GCLOUD_SERVICE_KEY
           context: dev
           requires:
             - build-release
