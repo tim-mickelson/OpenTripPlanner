@@ -25,6 +25,7 @@ executors:
           password: $GCLOUD_SERVICE_KEY
     environment:
       DEBIAN_FRONTEND: "noninteractive"
+      MAVEN_OPTS: -Xmx3G
 aliases:
   ### Application version
 
@@ -152,6 +153,23 @@ commands:
           root: .
           paths: ./gcr.image.version
 jobs:
+  test:
+    executor: cci-toolbox-java11
+    steps:
+      - checkout
+      - restore_cache:
+            key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
+      - save_cache:
+            paths:
+              - ~/.m2
+            key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn test -s /tools/m2/settings.xml
+      - run: *save-test-results
+      - store_test_results:
+           path: ~/reports
+      - store_artifacts:
+          path: ~/reports
   build:
     executor: cci-toolbox-java11
     steps:
@@ -165,12 +183,7 @@ jobs:
           key: dep-cache-{{ checksum "pom.xml" }}
       # Cannot use -o because of snapshot dependencies.
       - run: *get-version-from-helm-values
-      - run: mvn deploy -s /tools/m2/settings.xml
-      - run: *save-test-results
-      - store_test_results:
-          path: ~/reports
-      - store_artifacts:
-          path: ~/reports
+      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
       - persist_to_workspace:
           root: ~/project
           paths:
@@ -199,7 +212,6 @@ jobs:
 
   deploy:
     executor: entur-cci-toolbox
-
     steps:
       - checkout
       - attach_workspace:
@@ -240,9 +252,14 @@ workflows:
   version: 2.1
   release:
     jobs:
+      - test:
+          name: test-release
+          context: dev
       - build:
           name: build-release
           context: dev
+          requires:
+            - test-release
       - docker/publish:
           name: push-release
           registry: $DOCKER_REGISTRY
@@ -267,4 +284,4 @@ workflows:
           name: deploy-dev-release
           context: dev
           requires:
-                - prepare-next-release
+            - prepare-next-release
