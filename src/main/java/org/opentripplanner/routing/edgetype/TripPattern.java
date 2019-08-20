@@ -157,7 +157,9 @@ public class TripPattern implements Cloneable, Serializable {
         this.hopGeometries = new byte[hopGeometries.length][];
 
         for (int i = 0; i < hopGeometries.length; i++) {
-            setHopGeometry(i, hopGeometries[i]);
+            if (hopGeometries[i] != null) {
+                setHopGeometry(i, hopGeometries[i]);
+            }
         }
     }
 
