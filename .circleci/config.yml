@@ -266,7 +266,7 @@ workflows:
           image: $CIRCLE_PROJECT_REPONAME
           tag: release-$GRADLE_VERSION
           deploy: true
-          context: global
+          context: dev
           requires:
             - build-release
           after_checkout:
