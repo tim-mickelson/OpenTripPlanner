@@ -264,7 +264,7 @@ workflows:
           name: push-release
           registry: $DOCKER_REGISTRY
           image: $CIRCLE_PROJECT_REPONAME
-          tag: release-$GRADLE_VERSION
+          tag: release-$APP_VERSION
           deploy: true
           docker-password: GCLOUD_SERVICE_KEY
           context: dev
