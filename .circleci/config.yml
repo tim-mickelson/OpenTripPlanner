@@ -1,5 +1,108 @@
-version: 2
+version: 2.1
+orbs:
+  helm: entur/helm@0.0.1
+  slack: circleci/slack@2.2.0
+  clair: ovotech/clair-scanner@1.4.25
+
+executors:
+  java-11:
+    docker:
+      - image: circleci/openjdk:11-jdk
+        environment:
+          _JAVA_OPTIONS: -Xmx1024m
+          TERM: dumb
+          TZ: "/usr/share/zoneinfo/Europe/Stockholm"
+  entur-cci-toolbox:
+    docker:
+      - image: entur/cci-toolbox:2.0
+  cci-toolbox-java11:
+    docker:
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
+    environment:
+      DEBIAN_FRONTEND: "noninteractive"
 aliases:
+  ### Application version handling
+  - &get-version-from-gradle-properties
+    name: Getting app version from helm-value version
+    command: |
+      appversion=$(cat ./helm/OpenTripPlanner/values.yaml | grep "appVersion" | cut -d':' -f2)
+      echo "export APP_VERSION=$appversion" >> $BASH_ENV
+
+  - &set-versions-to-app-version
+    name: Set version in helm dir to $APP_VERSION
+    command: |
+      echo "Setting helm versions to $APP_VERSION"
+      pushd helm/$CIRCLE_PROJECT_REPONAME
+      sed -i "s/version:.*$/version: '$APP_VERSION'/g"  ./Chart.yaml
+      sed -i "s/appVersion:.*$/appVersion: 'release-$APP_VERSION'/g"  ./Chart.yaml
+      sed -i "s/imageTag:.*$/imageTag: release-$APP_VERSION/g"  ./values.yaml
+      popd
+
+  - &get-next-image-version
+    name: Get new image version
+    command: |
+      currentVersion=$APP_VERSION
+      nextVersionPatchNumber=$(($(echo $currentVersion | grep -o '[0-9]*$')+1))
+      staticVersion=$(echo $currentVersion | grep -o '[0-9].[0-9].')
+      echo "export NEXTVERSION=$staticVersion$nextVersionPatchNumber"  >> $BASH_ENV
+
+  - &bump-versions
+    name: Bumping versions
+    command: |
+      echo "Bumping versions from $APP_VERSION to $NEXTVERSION"
+      sed -i "s/version=.*$/version=$NEXTVERSION/g" ./helm/OpenTripPlanner/values.yaml
+      pushd helm/$CIRCLE_PROJECT_REPONAME
+      sed -i "s/version:.*$/version: '$NEXTVERSION'/g"  ./Chart.yaml
+      sed -i "s/appVersion:.*$/appVersion: 'release-$NEXTVERSION'/g"  ./Chart.yaml
+      sed -i "s/imageTag:.*$/imageTag: release-$NEXTVERSION/g"  ./values.yaml
+      popd
+  - &tag-successful-deployment
+    name:
+    command: |
+      echo "Trying to tag successful deployment with: $NAMESPACE-$APP_VERSION"
+      tag=release-$APP_VERSION
+      gitcommit=$(git rev-list -n 1 $tag)
+      git config --global user.email "circleci@entur.org"
+      git config --global user.name "EnturCircleCi"
+      git tag -a $NAMESPACE-$MVN_VERSION $gitcommit -m "Tagging successfull deployment of version $APP_VERSION to $NAMESPACE"
+      git push origin $NAMESPACE-$APP_VERSION
+  - &git-push-next-version-release
+    name: Push to repository
+    command: |
+      echo "Trying to tag release-$APP_VERSION"
+      git config --global user.email "circleci@entur.org"
+      git config --global user.name "EnturCircleCi"
+      git tag -a release-$APP_VERSION -m "Tagging current version"
+      git add helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
+      git add helm/$CIRCLE_PROJECT_REPONAME/values.yaml
+      git add pom.xml
+      git commit -m "Helm Update [ci skip]"
+      git push --tags --set-upstream origin $CIRCLE_BRANCH
+  - &team-ror-circleci-slackhook
+      https://hooks.slack.com/services/${SLACK_API_KEY_CIRCLE_CI}
+
+  - &team-ror-releases-slackhook
+          https://hooks.slack.com/services/${SLACK_API_KEY_RELEASES}
+  - &deploy-payload
+      "*Ready to Deploy*: <$CIRCLE_BUILD_URL|$CIRCLE_PROJECT_REPONAME #$CIRCLE_PREVIOUS_BUILD_NUM> to *$NAMESPACE*\n
+        Repository: <https://circleci.com/bb/enturas/workflows/$CIRCLE_PROJECT_REPONAME|$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME>\n
+        Branch: <https://circleci.com/bb/enturas/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH|$CIRCLE_BRANCH>\n
+        Version: $MVN_VERSION \n
+        User: $CIRCLE_USERNAME"
+
+  - &success-payload
+      ":tada: Job $CIRCLE_STAGE has succeeded!\n
+         Version: $MVN_VERSION \n
+         User: $CIRCLE_USERNAME"
+
+  - &failure-payload
+      ":red_circle: Job $CIRCLE_STAGE has failed!\n
+         Version: $MVN_VERSION \n
+         User: $CIRCLE_USERNAME"
+
   - &GCP-auth
     name: GCP Authenticate
     command: |
@@ -32,119 +135,145 @@ aliases:
       echo 'export CIRCLE_PROJECT_REPONAME="$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
       echo 'export GITHUB_TOKEN="$GITHUB_TOKEN"' >> $BASH_ENV
       /tools/trigger_build.sh "entur/marduk.git" "master" "$(git log -1 --pretty=%B)"
+commands:
+  slack-status:
+    parameters:
+      success_payload:
+        type: string
+        default: *success-payload
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *get-next-image-version
+      - slack/status:
+          webhook: *team-ror-circleci-slackhook
+          success_message: << parameters.success_payload >>
+          failure_message: *failure-payload
 jobs:
   test:
-    docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-      auth:
-        username: _json_key
-        password: $GCLOUD_SERVICE_KEY
-    environment:
-      MAVEN_OPTS: -Xmx3G
+    executor: cci-toolbox-java11
     steps:
-    - checkout
-    - restore_cache:
-        key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
-    - save_cache:
+      - checkout
+      - restore_cache:
+         key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
+      - save_cache:
         paths:
         - ~/.m2
         key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn test -s /tools/m2/settings.xml
-    - run:
+      - run: mvn test -s /tools/m2/settings.xml
+      - run:
         name: Save test results
         command: |
           mkdir -p ~/junit/
           find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
         when: always
-    - store_test_results:
+      - store_test_results:
         path: ~/junit
-    - store_artifacts:
+      - store_artifacts:
         path: ~/junit
-  deploy-nexus:
-    docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-      auth:
-        username: _json_key
-        password: $GCLOUD_SERVICE_KEY
-    environment:
-      MAVEN_OPTS: -Xmx3G
+  deploy-artifactory:
+    executor: cci-toolbox-java11
     steps:
-    - checkout
-    - restore_cache:
+      - checkout
+      - restore_cache:
         key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -q -s /tools/m2/settings.xml
-    - save_cache:
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -q -s /tools/m2/settings.xml
+      - save_cache:
         paths:
         - ~/.m2
         key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
-    - persist_to_workspace:
+      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
+      - run: *get-next-image-version
+      - persist_to_workspace:
         root: ~/project
         paths:
-          - target
-          - pom.xml
-          - .circleci
-          - Dockerfile
-          - docker
-  notify-build:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
+        - target
+        - pom.xml
+        - .circleci
+        - Dockerfile
+        - docker
+        - helm/*/
+      - slack-status
+  prepare-next-release:
+    executor: cci-toolbox-java11
+
     steps:
-    - run: *build-notify
-  deploy-docker:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
-    environment:
-      DEBIAN_FRONTEND: "noninteractive"
-    steps:
-      - attach_workspace:
-          at: ~/project
+      - checkout
       - restore_cache:
           key: dep-cache-{{ checksum "pom.xml" }}
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: *GCP-auth
-      - run: *docker-login
-      - run: *docker-build-and-push
+      - attach_workspace:
+          at: ~/project
+      - add_ssh_keys:
+          fingerprints:
+            - $SSH_FINGERPRINT
+      - run: *get-next-image-version
+      - run: *bump-versions
+      - run: *git-push-next-version-release
+      - slack-status
   trigger-dependants:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
+    executor: cci-toolbox-java11
     steps:
-    - run: *post_build
+     - run: *post_build
+  deploy:
+    executor: entur-cci-toolbox
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: *GCP-auth
+      - helm/install-helm-chart:
+          chart: ./helm/$CIRCLE_PROJECT_REPONAME
+          namespace: $NAMESPACE
+          release-name: $CIRCLE_PROJECT_REPONAME
+      - run:
+          name: Deployed helm chart
+          command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
+      - run: *get-next-image-version
+      - run: *tag-successful-deployment
+      - slack-status
+  slack-approval:
+    executor: slack/alpine
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *get-next-image-version
+      - slack/approval:
+          webhook: *team-ror-releases-slackhook
+          message: *deploy-payload
 workflows:
-  version: 2
-  build_test_deploy:
+  version: 2.1
+  release:
     jobs:
     - test:
-        context: org-carbon
-    - deploy-nexus:
-        context: org-carbon
+        name: test-release
+        context: dev
+    - deploy-artifactory:
+        name: deploy-artifactory
+        context: dev
         requires:
-        - test
+        - test-release
         filters:
           branches:
             only:
               - entur_raptor
               - rutebanken_develop
-    - deploy-docker:
-        context: org-carbon
+              - rutebanken_develop_helm
+        post-steps:
+          - save-image-name:
+              image-version: release-$APP_VERSION
+          - slack-status
+    - prepare-next-release:
+        context: dev
         requires:
-        - deploy-nexus
-    - notify-build:
-        context: org-carbon
+          - publish-docker
+    - deploy:
+        name: deploy-dev-release
+        context: dev
         requires:
-        - deploy-docker
+          - prepare-next-release
     - trigger-dependants:
-        context: org-carbon
+        context: dev
         requires:
-        - deploy-nexus
+        - deploy-dev-release
