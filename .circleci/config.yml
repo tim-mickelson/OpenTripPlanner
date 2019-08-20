@@ -4,7 +4,7 @@ orbs:
   helm: entur/helm@0.0.1
   slack: circleci/slack@2.2.0
   clair: ovotech/clair-scanner@1.4.25
-  docker: circleci/docker-publish@0.1.6
+  docker: circleci/docker@0.5.13
 
 executors:
   java-11:
@@ -266,7 +266,7 @@ workflows:
           image: $CIRCLE_PROJECT_REPONAME
           tag: release-$GRADLE_VERSION
           deploy: true
-          docker-password:$GCLOUD_SERVICE_KEY
+          docker-password: GCLOUD_SERVICE_KEY
           context: dev
           requires:
             - build-release
