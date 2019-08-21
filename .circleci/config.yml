@@ -37,12 +37,6 @@ aliases:
         echo release-$staticVersion$nextVersionPatchNumber
         echo "export APP_VERSION=release-$staticVersion$nextVersionPatchNumber" >> $BASH_ENV
 
-  - &get-version-from-helm-values
-    name: Getting app version from helm-value version
-    command: |
-      APP_VERSION=$(cat ./helm/OpenTripPlanner/values.yaml | grep "appVersion" | cut -d':' -f2)
-      echo "export APP_VERSION=$APP_VERSION" >> $BASH_ENV
-
   - &set-versions-to-app-version
     name: Set version in helm dir to $APP_VERSION
     command: |
@@ -57,20 +51,6 @@ aliases:
       echo $GCLOUD_SERVICE_KEY > ${HOME}/account-auth.json
       gcloud auth activate-service-account --key-file ${HOME}/account-auth.json
       gcloud --quiet container clusters get-credentials $CLOUDSDK_CONTAINER_CLUSTER
-
-  - &docker-login
-    name: Login with docker on gcloud
-    command: docker login -u _json_key -p "${GCLOUD_SERVICE_KEY}" https://eu.gcr.io
-  - &bump-versions
-    name: Bump version in pom file
-    command: |
-      echo "Bumping versions from $APP_VERSION to $NEXTVERSION"
-      sed -i "s/appVersion=.*$/appVersion=$NEXTVERSION/g" ./helm/OpenTripPlanner/values.yaml
-      pushd helm/$CIRCLE_PROJECT_REPONAME
-      sed -i "s/version:.*$/version: '$NEXTVERSION'/g"  ./Chart.yaml
-      sed -i "s/appVersion:.*$/appVersion: 'release-$NEXTVERSION'/g"  ./Chart.yaml
-      sed -i "s/imageTag:.*$/imageTag: release-$NEXTVERSION/g"  ./values.yaml
-      popd
 
   - &git-push-next-version-release
     name: Push to repository
@@ -102,10 +82,6 @@ aliases:
 
   - &team-ror-releases-slackhook
       https://hooks.slack.com/services/${SLACK_API_KEY_RELEASES}
-
-  # Use the parameter CONDITIONAL_SLACKHOOK to customize where the message gets sent
-  - &team-ror-conditional-slackhook
-      https://hooks.slack.com/services/${CONDITIONAL_SLACKHOOK}
 
   - &save-test-results
     name: Save test results
@@ -224,23 +200,11 @@ jobs:
       - run: *GCP-auth
       - helm/install-helm-chart:
           chart: ./helm/$CIRCLE_PROJECT_REPONAME
-          namespace: $NAMESPACE
-          release-name: otp
-      - run:
-          name: Deployed helm chart
-          command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
-      - run: *get-version-git-tag
-      - run: *set-versions-to-app-version
-      - run: *GCP-auth
-      - helm/install-helm-chart:
-          chart: ./helm/$CIRCLE_PROJECT_REPONAME
           namespace: default
           release-name: otp
       - run:
           name: Deployed helm chart
           command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
-      - run: *tag-successful-deployment
-
       - slack-status
 
   slack-approval:
