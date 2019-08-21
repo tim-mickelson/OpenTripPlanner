@@ -31,9 +31,11 @@ aliases:
   - &get-version-git-tag
     name: Getting app version from git-tag
     command: |
-        APP_VERSION=$(git describe --tags --abbrev=0 | awk -F. '{$NF+=1; OFS="."; print $0}')
-        echo $APP_VERSION
-        echo "export APP_VERSION=$APP_VERSION" >> $BASH_ENV
+        currentVersion=$(git describe --tags --abbrev=0) | cut -d'-' -f2
+        nextVersionPatchNumber=$(($(echo $currentVersion | grep -o '[0-9]*$')+1))
+        staticVersion=$(echo $currentVersion | grep -o '[0-9].[0-9].')
+        echo release-$staticVersion$nextVersionPatchNumber
+        echo "export APP_VERSION=release-$staticVersion$nextVersionPatchNumber" >> $BASH_ENV
 
   - &get-version-from-helm-values
     name: Getting app version from helm-value version
