@@ -31,7 +31,7 @@ aliases:
   - &get-version-git-tag
     name: Getting app version from git-tag
     command: |
-        currentVersion=$(git describe --tags --abbrev=0) | cut -d'-' -f2
+        currentVersion=$(git describe --tags --abbrev=0 | cut -d'-' -f2)
         nextVersionPatchNumber=$(($(echo $currentVersion | grep -o '[0-9]*$')+1))
         staticVersion=$(echo $currentVersion | grep -o '[0-9].[0-9].')
         echo release-$staticVersion$nextVersionPatchNumber
