@@ -50,7 +50,7 @@ aliases:
     command: |
       echo $GCLOUD_SERVICE_KEY > ${HOME}/account-auth.json
       gcloud auth activate-service-account --key-file ${HOME}/account-auth.json
-      gcloud --quiet container clusters get-credentials $CLOUDSDK_CONTAINER_CLUSTER
+      gcloud --quiet container clusters get-credentials $OTP_CONTAINER_CLUSTER
 
   - &git-push-next-version-release
     name: Push to repository
@@ -64,18 +64,6 @@ aliases:
       git add pom.xml
       git commit -m "Helm Update [ci skip]"
       git push --tags --set-upstream origin $CIRCLE_BRANCH
-
-    ### Application version handling
-  - &tag-successful-deployment
-    name:
-    command: |
-      echo "Trying to tag successful deployment with: $NAMESPACE-$APP_VERSION"
-      tag=$APP_VERSION
-      gitcommit=$(git rev-list -n 1 $tag)
-      git config --global user.email "circleci@entur.org"
-      git config --global user.name "EnturCircleCi"
-      git tag -a $NAMESPACE-$APP_VERSION $gitcommit -m "Tagging successfull deployment of version $APP_VERSION to $NAMESPACE"
-      git push origin $NAMESPACE-$APP_VERSION
 
   - &team-ror-circleci-slackhook
       https://hooks.slack.com/services/${SLACK_API_KEY_CIRCLE_CI}
@@ -197,6 +185,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - run: *get-version-git-tag
+      - run: *set-versions-to-app-version
       - run: *GCP-auth
       - helm/install-helm-chart:
           chart: ./helm/$CIRCLE_PROJECT_REPONAME
