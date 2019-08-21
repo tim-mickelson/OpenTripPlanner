@@ -50,7 +50,7 @@ aliases:
     command: |
       echo $GCLOUD_SERVICE_KEY > ${HOME}/account-auth.json
       gcloud auth activate-service-account --key-file ${HOME}/account-auth.json
-      gcloud --quiet container clusters get-credentials $OTP_CONTAINER_CLUSTER
+      gcloud beta container clusters get-credentials $OTP_CONTAINER_CLUSTER --region europe-west4 --project carbon-1287
 
   - &git-push-next-version-release
     name: Push to repository
