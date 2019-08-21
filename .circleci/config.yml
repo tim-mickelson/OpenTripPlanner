@@ -50,7 +50,7 @@ aliases:
     command: |
       echo $GCLOUD_SERVICE_KEY > ${HOME}/account-auth.json
       gcloud auth activate-service-account --key-file ${HOME}/account-auth.json
-      gcloud beta container clusters get-credentials $OTP_CONTAINER_CLUSTER --region europe-west4 --project carbon-1287
+      gcloud beta container clusters get-credentials $OTP_CONTAINER_CLUSTER --region $OTP_CLUSTER_REGION --project $CLOUDSDK_CORE_PROJECT
 
   - &git-push-next-version-release
     name: Push to repository
@@ -112,17 +112,6 @@ commands:
           webhook: *team-ror-circleci-slackhook
           success_message: << parameters.success_payload >>
           failure_message: *failure-payload
-  save-image-name:
-    parameters:
-      image-version:
-        type: string
-        default: $BRANCH_IMAGE_NAME-SNAPSHOT
-    steps:
-      - run:
-          command: echo "$DOCKER_REGISTRY/$CIRCLE_PROJECT_REPONAME:<< parameters.image-version >>" > ./gcr.image.version
-      - persist_to_workspace:
-          root: .
-          paths: ./gcr.image.version
 jobs:
   test:
     executor: cci-toolbox-java11
@@ -154,7 +143,7 @@ jobs:
           key: dep-cache-{{ checksum "pom.xml" }}
       # Cannot use -o because of snapshot dependencies.
       - run: *get-version-git-tag
-      - run: mvn install -s /tools/m2/settings.xml -DskipTests
+      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
       - persist_to_workspace:
           root: ~/project
           paths:
@@ -212,9 +201,14 @@ workflows:
   version: 2.1
   release:
     jobs:
+      - test:
+          name: test-release
+          context: dev
       - build:
           name: build-release
           context: dev
+          requires:
+            - test-release
       - docker/publish:
           name: push-release
           registry: $DOCKER_REGISTRY
