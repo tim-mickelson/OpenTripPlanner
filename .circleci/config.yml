@@ -28,12 +28,17 @@ executors:
       MAVEN_OPTS: -Xmx3G
 aliases:
   ### Application version
+  - &get-version-git-tag
+    name: Getting app version from git-tag
+    command: |
+        APP_VERSION=$(git describe --tags --abbrev=0 | awk -F. '{$NF+=1; OFS="."; print $0})
+        echo "export APP_VERSION=$APP_VERSION" >> $BASH_ENV
 
   - &get-version-from-helm-values
     name: Getting app version from helm-value version
     command: |
-      appversion=$(cat ./helm/OpenTripPlanner/values.yaml | grep "appVersion" | cut -d':' -f2)
-      echo "export APP_VERSION=$appversion" >> $BASH_ENV
+      APP_VERSION=$(cat ./helm/OpenTripPlanner/values.yaml | grep "appVersion" | cut -d':' -f2)
+      echo "export APP_VERSION=$APP_VERSION" >> $BASH_ENV
 
   - &set-versions-to-app-version
     name: Set version in helm dir to $APP_VERSION
@@ -68,10 +73,10 @@ aliases:
   - &git-push-next-version-release
     name: Push to repository
     command: |
-      echo "Trying to tag release-$MVN_VERSION"
+      echo "Trying to tag release-$APP_VERSION"
       git config --global user.email "circleci@entur.org"
       git config --global user.name "EnturCircleCi"
-      git tag -a release-$MVN_VERSION -m "Tagging current version"
+      git tag -a release-$APP_VERSION -m "Tagging current version"
       git add helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
       git add helm/$CIRCLE_PROJECT_REPONAME/values.yaml
       git add pom.xml
@@ -136,7 +141,7 @@ commands:
     steps:
       - attach_workspace:
           at: .
-      - run: *get-version-from-helm-values
+      - run: *get-version-git-tag
       - slack/status:
           webhook: *team-ror-circleci-slackhook
           success_message: << parameters.success_payload >>
@@ -182,7 +187,7 @@ jobs:
             - ~/.m2
           key: dep-cache-{{ checksum "pom.xml" }}
       # Cannot use -o because of snapshot dependencies.
-      - run: *get-version-from-helm-values
+      - run: *get-version-git-tag
       - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
       - persist_to_workspace:
           root: ~/project
@@ -205,8 +210,7 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - $SSH_FINGERPRINT
-      - run: *get-version-from-helm-values
-      - run: *bump-versions
+      - run: *get-version-git-tag
       - run: *git-push-next-version-release
       - slack-status
 
@@ -224,7 +228,7 @@ jobs:
       - run:
           name: Deployed helm chart
           command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
-      - run: *get-version-from-helm-values
+      - run: *get-version-git-tag
       - run: *GCP-auth
       - helm/install-helm-chart:
           chart: ./helm/$CIRCLE_PROJECT_REPONAME
@@ -242,7 +246,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run: *get-version-from-helm-values
+      - run: *get-version-git-tag
       - slack/approval:
           webhook: *team-ror-releases-slackhook
           message: *deploy-payload
@@ -273,10 +277,10 @@ workflows:
           after_checkout:
             - attach_workspace:
                 at: .
-            - run: *get-version-from-helm-values
+            - run: *get-version-git-tag
           post-steps:
             - save-image-name:
-                image-version: release-$APP_VERSION
+                image-version: $APP_VERSION
             - slack-status
       - prepare-next-release:
           requires:
