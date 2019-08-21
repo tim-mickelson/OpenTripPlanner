@@ -38,7 +38,9 @@ public class RaptorRouter {
 
     private static final RangeRaptorService<TripSchedule> rangeRaptorService = new RangeRaptorService<>(
             // TODO - Load turning parameters from config file
-            new TuningParameters() {}
+            new TuningParameters() {
+                @Override public int maxNumberOfTransfers() { return 20; }
+            }
     );
 
     private final RaptorRoutingRequestTransitData otpRRDataProvider;
