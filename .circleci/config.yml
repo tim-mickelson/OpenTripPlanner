@@ -276,8 +276,6 @@ workflows:
                 at: .
             - run: *get-version-git-tag
           post-steps:
-            - save-image-name:
-                image-version: $APP_VERSION
             - slack-status
       - prepare-next-release:
           context: dev
