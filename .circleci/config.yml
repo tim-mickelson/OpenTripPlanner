@@ -43,6 +43,7 @@ aliases:
       echo "Setting helm versions to $APP_VERSION"
       pushd helm/$CIRCLE_PROJECT_REPONAME
       sed -i "s/version:.*$/version: '$APP_VERSION'/g"  ./Chart.yaml
+      sed -i "s/appVersion:.*$/appVersion: '$APP_VERSION'/g"  ./Chart.yaml
       sed -i "s/imageTag:.*$/imageTag: $APP_VERSION/g"  ./values.yaml
       popd
   - &GCP-auth
