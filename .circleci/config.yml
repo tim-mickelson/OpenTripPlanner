@@ -280,6 +280,7 @@ workflows:
                 image-version: $APP_VERSION
             - slack-status
       - prepare-next-release:
+          context: dev
           requires:
             - push-release
       - deploy:
