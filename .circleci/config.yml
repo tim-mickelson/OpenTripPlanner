@@ -49,7 +49,6 @@ aliases:
       echo "Setting helm versions to $APP_VERSION"
       pushd helm/$CIRCLE_PROJECT_REPONAME
       sed -i "s/version:.*$/version: '$APP_VERSION'/g"  ./Chart.yaml
-      sed -i "s/appVersion:.*$/appVersion: '$APP_VERSION'/g"  ./Chart.yaml
       sed -i "s/imageTag:.*$/imageTag: $APP_VERSION/g"  ./values.yaml
       popd
   - &GCP-auth
@@ -202,7 +201,6 @@ jobs:
       - slack-status
   prepare-next-release:
     executor: cci-toolbox-java11
-
     steps:
       - checkout
       - restore_cache:
@@ -213,6 +211,7 @@ jobs:
           fingerprints:
             - $SSH_FINGERPRINT
       - run: *get-version-git-tag
+      - run: *set-versions-to-app-version
       - run: *git-push-next-version-release
       - slack-status
 
@@ -231,6 +230,7 @@ jobs:
           name: Deployed helm chart
           command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
       - run: *get-version-git-tag
+      - run: *set-versions-to-app-version
       - run: *GCP-auth
       - helm/install-helm-chart:
           chart: ./helm/$CIRCLE_PROJECT_REPONAME
@@ -277,12 +277,12 @@ workflows:
             - run: *get-version-git-tag
           post-steps:
             - slack-status
-      - prepare-next-release:
-          context: dev
-          requires:
-            - push-release
       - deploy:
           name: deploy-dev-release
           context: dev
           requires:
-            - prepare-next-release
+            - push-release
+      - prepare-next-release:
+          context: dev
+          requires:
+            - deploy-dev-release
