@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+import org.joda.time.DateTime;
 import org.opentripplanner.model.CalendarService;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.calendar.ServiceDate;
@@ -43,6 +44,10 @@ public class TransitLayerMapper {
     private static final Logger LOG = LoggerFactory.getLogger(TransitLayerMapper.class);
 
     private final Graph graph;
+
+    public static final int DEFAULT_ACTIVE_DAYS = 30;
+
+    private static int activeDays = DEFAULT_ACTIVE_DAYS;
 
 
     private TransitLayerMapper(Graph graph) {
@@ -98,7 +103,9 @@ public class TransitLayerMapper {
         for (FeedScopedId serviceId : calendarService.getServiceIds()) {
             Set<ServiceDate> serviceDatesForService = calendarService.getServiceDatesForServiceId(serviceId);
             for (ServiceDate serviceDate : serviceDatesForService) {
-                serviceIdsForServiceDate.put(serviceDate, serviceId);
+                if (serviceDayIsActive(serviceDate)) {
+                    serviceIdsForServiceDate.put(serviceDate, serviceId);
+                }
             }
         }
 
@@ -225,5 +232,15 @@ public class TransitLayerMapper {
         return timetable.tripTimes.stream()
                 .sorted(Comparator.comparing(t -> t.getArrivalTime(0)))
                 .collect(Collectors.toList());
+    }
+
+    private boolean serviceDayIsActive(ServiceDate serviceDate) {
+        return serviceDate.getAsDate().after(DateTime.now().minusDays(1).toDate())
+                && serviceDate.getAsDate().before(DateTime.now().plusDays(activeDays).toDate());
+    }
+
+    // TODO Should be set from config
+    public static void setActiveDays(int activeDays) {
+        TransitLayerMapper.activeDays = activeDays;
     }
 }
