@@ -261,7 +261,7 @@ workflows:
       - docker/publish:
           name: push-release
           registry: $DOCKER_REGISTRY
-          image: $CIRCLE_PROJECT_REPONAME
+          image: otp
           tag: release-$APP_VERSION
           deploy: true
           docker-password: GCLOUD_SERVICE_KEY
