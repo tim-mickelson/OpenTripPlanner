@@ -225,7 +225,7 @@ jobs:
       - helm/install-helm-chart:
           chart: ./helm/$CIRCLE_PROJECT_REPONAME
           namespace: $NAMESPACE
-          release-name: $CIRCLE_PROJECT_REPONAME
+          release-name: otp
       - run:
           name: Deployed helm chart
           command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
@@ -234,8 +234,8 @@ jobs:
       - run: *GCP-auth
       - helm/install-helm-chart:
           chart: ./helm/$CIRCLE_PROJECT_REPONAME
-          namespace: $NAMESPACE
-          release-name: $CIRCLE_PROJECT_REPONAME-$BRANCH_IMAGE_NAME-$NAMESPACE
+          namespace: default
+          release-name: otp
       - run:
           name: Deployed helm chart
           command: cat ./helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
