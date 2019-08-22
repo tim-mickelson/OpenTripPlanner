@@ -115,6 +115,23 @@ public class Routers {
         return routerList;
     }
 
+    /**
+     * Checks that graphs are ready, and that blocking PollingUpdaters reports as initialized
+     * TODO: Add actual checks
+     */
+    @GET @Path("/ready")
+    @Produces({ MediaType.TEXT_PLAIN})
+    public Response isReady() {
+        if (otpServer.getGraphService().getRouter().graph != null) {
+            return Response.status(Status.OK)
+                    .entity("Ready.\n").type("text/plain")
+                    .build();
+        }
+        else {
+            return null;
+        }
+    }
+
     /** 
      * Returns the bounds for a specific routerId, or verifies whether it is registered. 
      * @returns status code 200 if the routerId is registered, otherwise a 404.
