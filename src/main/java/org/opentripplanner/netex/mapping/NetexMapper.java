@@ -1,6 +1,7 @@
 package org.opentripplanner.netex.mapping;
 
 import org.opentripplanner.model.Route;
+import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
@@ -10,6 +11,7 @@ import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.Line;
 import org.rutebanken.netex.model.StopPlace;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import static org.opentripplanner.netex.mapping.CalendarMapper.mapToCalendarDates;
@@ -69,8 +71,11 @@ public class NetexMapper {
         for (String stopPlaceId : netexIndex.stopPlaceById.localKeys()) {
             Collection<StopPlace> stopPlaceAllVersions = netexIndex.stopPlaceById.lookup(stopPlaceId);
             StopMapper stopMapper = new StopMapper(netexIndex.quayById);
-            Collection<Stop> stops = stopMapper.mapParentAndChildStops(stopPlaceAllVersions);
+            Collection<Stop> stops = new ArrayList<>();
+            Collection<Station> stations = new ArrayList<>();
+            stopMapper.mapParentAndChildStops(stopPlaceAllVersions, stops, stations);
             transitBuilder.getStops().addAll(stops);
+            transitBuilder.getStations().addAll(stations);
         }
 
         for (JourneyPattern journeyPattern : netexIndex.journeyPatternsById.localValues()) {

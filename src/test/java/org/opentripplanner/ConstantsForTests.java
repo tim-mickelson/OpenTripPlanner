@@ -4,7 +4,6 @@ import org.opentripplanner.graph_builder.module.StreetLinkerModule;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.routing.edgetype.factory.PatternHopFactory;
-import org.opentripplanner.routing.edgetype.factory.TransferGraphLinker;
 import org.opentripplanner.routing.graph.Graph;
 
 import java.io.IOException;
@@ -63,8 +62,6 @@ public class ConstantsForTests {
                     .build();
             PatternHopFactory factory = new PatternHopFactory(portlandContext);
             factory.run(portlandGraph);
-            TransferGraphLinker linker = new TransferGraphLinker(portlandGraph);
-            linker.run();
             // TODO: eliminate GTFSContext
             // this is now making a duplicate calendarservicedata but it's oh so practical
             portlandGraph.putService(
