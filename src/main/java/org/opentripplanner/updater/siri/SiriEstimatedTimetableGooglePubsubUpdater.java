@@ -98,8 +98,10 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
     public SiriEstimatedTimetableGooglePubsubUpdater() {
 
         try {
-            subscriptionAdminClient = SubscriptionAdminClient.create();
-
+            if (System.getenv("GOOGLE_APPLICATION_CREDENTIALS") != null &&
+                    !System.getenv("GOOGLE_APPLICATION_CREDENTIALS").isEmpty()) {
+                subscriptionAdminClient = SubscriptionAdminClient.create();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -154,6 +156,10 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
     @Override
     public void run() throws IOException {
 
+        if (subscriptionAdminClient == null) {
+            throw new RuntimeException("Unable to initialize Google Pubsub-updater");
+        }
+
         Subscription subscription = subscriptionAdminClient.createSubscription(subscriptionName, topic, pushConfig, 10);
 
         Subscriber subscriber = null;
@@ -170,6 +176,11 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
                 if (subscriber != null) {
                     subscriber.stopAsync();
                 }
+            }
+            try {
+                Thread.sleep(CHECK_CONNECTION_PERIOD_SEC * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
