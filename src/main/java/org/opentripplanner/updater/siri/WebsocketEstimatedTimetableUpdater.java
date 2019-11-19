@@ -108,35 +108,6 @@ public class WebsocketEstimatedTimetableUpdater extends ReadinessBlockingUpdater
         blockReadinessUntilInitialized = config.path("blockReadinessUntilInitialized").asBoolean(false);
     }
 
-//    public static void main(String[] args) throws InterruptedException {
-//
-//        List<Thread> list = new ArrayList();
-//        for (int i = 0; i < 10; i++) {
-//
-//            list.add(new Thread(() -> {
-//                try {
-//                    getWebsocketEstimatedTimetableUpdater().run();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }));
-//        }
-//
-//        for (Thread t : list) {
-//            t.start();
-//        }
-//
-//        System.err.println("done");
-//    }
-//
-//    private static WebsocketEstimatedTimetableUpdater getWebsocketEstimatedTimetableUpdater() {
-//        WebsocketEstimatedTimetableUpdater ws = new WebsocketEstimatedTimetableUpdater();
-//        ws.url = "ws://localhost:9292/et";
-//        ws.reconnectPeriodSec = 30;
-//        ws.updaterManager = new GraphUpdaterManager(new Graph());
-//        return ws;
-//    }
-
     @Override
     public void setup() throws InterruptedException, ExecutionException {
         // Create a realtime data snapshot source and wait for runnable to be executed
