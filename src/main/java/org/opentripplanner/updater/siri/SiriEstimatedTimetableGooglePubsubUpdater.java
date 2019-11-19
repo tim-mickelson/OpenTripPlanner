@@ -76,11 +76,6 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
     private GraphUpdaterManager updaterManager;
 
     /**
-     * Url of the websocket server
-     */
-    private String url;
-
-    /**
      * The ID for the static feed to which these TripUpdates are applied
      */
     private String feedId;
@@ -100,7 +95,14 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
         try {
             if (System.getenv("GOOGLE_APPLICATION_CREDENTIALS") != null &&
                     !System.getenv("GOOGLE_APPLICATION_CREDENTIALS").isEmpty()) {
+
+                /*
+                  Google libraries expects path to credentials json-file is stored in environment variable "GOOGLE_APPLICATION_CREDENTIALS"
+                 */
+
                 subscriptionAdminClient = SubscriptionAdminClient.create();
+            } else {
+                throw new RuntimeException("Google Pubsub updater is configured, but no environment variable 'GOOGLE_APPLICATION_CREDENTIALS' is not defined");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -112,9 +114,13 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
         this.updaterManager = updaterManager;
     }
 
+    public static void main(String[] args) {
+        SiriEstimatedTimetableGooglePubsubUpdater s = new SiriEstimatedTimetableGooglePubsubUpdater();
+    }
+
     @Override
     public void configure(Graph graph, JsonNode config) throws Exception {
-        url = config.path("url").asText();
+
         feedId = config.path("feedId").asText("");
         reconnectPeriodSec = config.path("reconnectPeriodSec").asInt(DEFAULT_RECONNECT_PERIOD_SEC);
 
@@ -157,10 +163,11 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
     public void run() throws IOException {
 
         if (subscriptionAdminClient == null) {
-            throw new RuntimeException("Unable to initialize Google Pubsub-updater");
+            throw new RuntimeException("Unable to initialize Google Pubsub-updater: System.getenv('GOOGLE_APPLICATION_CREDENTIALS') = " + System.getenv("GOOGLE_APPLICATION_CREDENTIALS"));
         }
 
         Subscription subscription = subscriptionAdminClient.createSubscription(subscriptionName, topic, pushConfig, 10);
+        startTime = now();
 
         Subscriber subscriber = null;
         while (true) {
@@ -168,7 +175,6 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
                 subscriber =
                         Subscriber.newBuilder(subscription.getName(), new MessageReceiverExample()).build();
                 subscriber.startAsync().awaitRunning();
-                startTime = now();
 
                 subscriber.awaitTerminated();
             } catch (IllegalStateException e) {
@@ -178,7 +184,7 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
                 }
             }
             try {
-                Thread.sleep(CHECK_CONNECTION_PERIOD_SEC * 1000);
+                Thread.sleep(reconnectPeriodSec * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -241,6 +247,14 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
                                     estimatedTimetableDeliveries);
 
                     updaterManager.execute(runnable);
+                } else if (siri.getDataReadyNotification() != null) {
+                    // NOT its intended use, but the current implementation sends a DataReadyNotification when initial delivery is complete.
+                    LOG.info("WS initialized after {} ms - processed {} messages with {} updates and {} bytes",
+                            (System.currentTimeMillis()-startTime),
+                            messageCounter.get(),
+                            updateCounter.get(),
+                            FileUtils.byteCountToDisplaySize(sizeCounter.get()));
+                    isInitialized = true;
                 }
             }
 
