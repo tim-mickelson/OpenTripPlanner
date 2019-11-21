@@ -594,4 +594,16 @@ public class IndexAPI {
             distance = e.getDistanceMeters();
         }
     }
+
+    /**
+     * Returns that graph is ready. // TODO Implement check
+     */
+    @GET @Path("/ready")
+    @Produces({ MediaType.TEXT_PLAIN})
+    public Response isReady() {
+
+      return Response.status(Status.OK)
+          .entity("Ready.\n").type("text/plain")
+          .build();
+    }
 }
