@@ -1,6 +1,28 @@
-version: 2
+version: 2.1
+orbs:
+  docker: circleci/docker@0.5.18
+executors:
+  java-11:
+    docker:
+      - image: circleci/openjdk:11-jdk
+        environment:
+          _JAVA_OPTIONS: -Xmx1024m
+          TERM: dumb
+          TZ: "/usr/share/zoneinfo/Europe/Stockholm"
+  entur-cci-toolbox:
+    docker:
+      - image: entur/cci-toolbox:2.0
+  cci-toolbox-java11:
+    docker:
+      - image: eu.gcr.io/entur-system-1287/circleci-toolbox-image-java11
+        auth:
+          username: _json_key
+          password: $DOCKER_PASSWORD
+    environment:
+      DEBIAN_FRONTEND: "noninteractive"
+      MAVEN_OPTS: -Xmx3G
 aliases:
-  - &GCP-auth
+  - &GCP-docker-auth
     name: GCP Authenticate
     command: |
       echo 'export GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
@@ -8,73 +30,70 @@ aliases:
   - &docker-login
     name: Docker login
     command: |
-      echo 'export GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
-      /tools/docker_login.sh
+      docker login -u "_json_key" -p "${DOCKER_PASSWORD}" eu.gcr.io
   - &docker-build-and-push
     name: Docker build and push
     command: |
-      echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
-      /tools/docker_build_push.sh
-    environment:
-      CIRCLE_PROJECT_REPONAME: otp2
+      IMAGE="eu.gcr.io/entur-system-1287/otp2"
+      echo "Image: ${IMAGE}"
+      docker build -t $IMAGE .
+      docker push $IMAGE
 jobs:
-  deploy-jfrog:
-    docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
-      auth:
-        username: _json_key
-        password: $GCLOUD_SERVICE_KEY
-    environment:
-      MAVEN_OPTS: -Xmx3G
+  build:
+    executor: cci-toolbox-java11
     steps:
-    - checkout
-    - restore_cache:
-        key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -B -s /tools/m2/settings.xml
-    - save_cache:
-        paths:
-        - ~/.m2
-        key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn deploy -s /tools/m2/settings.xml -DskipTests -Dgpg.skip
-    - persist_to_workspace:
-        root: ~/project
-        paths:
-          - target
-          - pom.xml
-          - .circleci
-          - Dockerfile
-          - docker
-  deploy-docker:
+      - checkout
+      - restore_cache:
+          key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: dep-cache-{{ checksum "pom.xml" }}
+      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests -Dgpg.skip
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - target
+            - pom.xml
+            - .circleci
+            - Dockerfile
+            - docker
+  publish-docker:
     docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
+      - image: eu.gcr.io/entur-system-1287/circleci-toolbox-image-java11
         auth:
           username: _json_key
-          password: $GCLOUD_SERVICE_KEY
+          password: $DOCKER_PASSWORD
     environment:
       DEBIAN_FRONTEND: "noninteractive"
     steps:
       - attach_workspace:
           at: ~/project
-      - restore_cache:
-          key: dep-cache-{{ checksum "pom.xml" }}
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: *GCP-auth
+      - run: *GCP-docker-auth
       - run: *docker-login
       - run: *docker-build-and-push
 workflows:
-  version: 2
-  build_deploy:
+  version: 2.1
+  release:
     jobs:
-    - deploy-jfrog:
-        context: org-carbon
-        filters:
-          branches:
-            only:
-              - entur_raptor
-              - rutebanken_develop
-              - otp2_entur_develop
-    - deploy-docker:
-        context: org-carbon
-        requires:
-        - deploy-jfrog
+      - build:
+          name: build-release
+          context: dev
+          filters:
+            branches:
+              only:
+                - entur_raptor
+                - rutebanken_develop
+                - otp2_entur_develop
+      - publish-docker:
+          context: org-carbon
+          filters:
+            branches:
+              only:
+                - rutebanken_develop
+                - otp2_entur_develop
+          requires:
+            - build-release
