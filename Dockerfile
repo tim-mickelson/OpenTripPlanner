@@ -1,4 +1,4 @@
-FROM relateiq/oracle-java8
+FROM openjdk:11.0.1-jdk
 
 RUN apt-get update \
   && apt-get install -y \
