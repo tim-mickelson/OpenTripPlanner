@@ -863,7 +863,7 @@ public abstract class GraphPathToTripPlanConverter {
             place.stopCode = stop.getCode();
             place.platformCode = stop.getCode();
             place.zoneId = stop.getZone();
-            if (endOfLeg) place.stopIndex++;
+            //if (endOfLeg) place.stopIndex++;
             if (tripTimes != null) {
                 place.stopSequence = tripTimes.getStopSequence(place.stopIndex);
             }
