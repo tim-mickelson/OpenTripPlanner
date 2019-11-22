@@ -35,7 +35,7 @@ jobs:
         paths:
         - ~/.m2
         key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
+    - run: mvn deploy -s /tools/m2/settings.xml -DskipTests -Dgpg.skip
     - persist_to_workspace:
         root: ~/project
         paths:
