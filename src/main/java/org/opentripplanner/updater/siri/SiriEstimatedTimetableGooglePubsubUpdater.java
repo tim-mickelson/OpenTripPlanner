@@ -34,6 +34,7 @@ import org.opentripplanner.updater.GraphUpdaterManager;
 import org.opentripplanner.updater.GraphWriterRunnable;
 import org.opentripplanner.updater.ReadinessBlockingUpdater;
 import org.opentripplanner.updater.stoptime.TimetableSnapshotSource;
+import org.opentripplanner.util.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
@@ -41,6 +42,7 @@ import uk.org.siri.siri20.Siri;
 import uk.org.siri.www.siri.SiriType;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -50,23 +52,31 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * This class starts a Google PubSub subscription
  *
- * Usage example ('websocket' name is an example) in the file 'Graph.properties':
+ * NOTE:
+ *   - Path to Google credentials (.json-file) MUST exist in environment-variable "GOOGLE_APPLICATION_CREDENTIALS"
+ *     as described here: https://cloud.google.com/docs/authentication/getting-started
+ *   - ServiceAccount need access to create subscription ("editor")
+ *
+ *
+ *
+ * Startup-flow:
+ *   1. Create subscription to topic. Subscription will receive all updates after creation.
+ *   2. Fetch current data to initialize state.
+ *   3. Flag updater as initialized
+ *   3. Start receiving updates from Pubsub-subscription
+ *
  *
  * <pre>
- * websocket.type = websocket-siri-et-updater
- * websocket.defaultAgencyId = agency
- * websocket.url = ws://localhost:8088/tripUpdates
+ *   "type": "google-pubsub-siri-et-updater",
+ *   "projectName":"project-1234",                                                      // Google Cloud project name
+ *   "topicName": "protobuf.estimated_timetables",                                      // Google Cloud Pubsub topic
+ *   "dataInitializationUrl": "https://api.dev.entur.io/realtime/v1/rest/et-monitored"  // Optional URL used to initialize with all existing data
  * </pre>
  *
  */
 public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlockingUpdater implements GraphUpdater {
 
-    /**
-     * Number of seconds to wait before checking again whether we are still connected
-     */
-    private static final int CHECK_CONNECTION_PERIOD_SEC = 1;
-
-    private static final int DEFAULT_RECONNECT_PERIOD_SEC = 300; // Five minutes
+    private static final int DEFAULT_RECONNECT_PERIOD_SEC = 5; // Five seconds
 
     private static Logger LOG = LoggerFactory.getLogger(SiriEstimatedTimetableGooglePubsubUpdater.class);
 
@@ -74,6 +84,11 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
      * Parent update manager. Is used to execute graph writer runnables.
      */
     private GraphUpdaterManager updaterManager;
+
+    /**
+     * The URL used to fetch all initial updates
+     */
+    private String dataInitializationUrl;
 
     /**
      * The ID for the static feed to which these TripUpdates are applied
@@ -90,6 +105,11 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
     private ProjectTopicName topic;
     private PushConfig pushConfig;
 
+    private static transient final AtomicLong messageCounter = new AtomicLong(0);
+    private static transient final AtomicLong updateCounter = new AtomicLong(0);
+    private static transient final AtomicLong sizeCounter = new AtomicLong(0);
+    private static transient long startTime;
+
     public SiriEstimatedTimetableGooglePubsubUpdater() {
 
         try {
@@ -102,7 +122,8 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
 
                 subscriptionAdminClient = SubscriptionAdminClient.create();
             } else {
-                throw new RuntimeException("Google Pubsub updater is configured, but no environment variable 'GOOGLE_APPLICATION_CREDENTIALS' is not defined");
+                throw new RuntimeException("Google Pubsub updater is configured, but environment variable 'GOOGLE_APPLICATION_CREDENTIALS' is not defined. " +
+                        "See https://cloud.google.com/docs/authentication/getting-started");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,12 +135,14 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
         this.updaterManager = updaterManager;
     }
 
-    public static void main(String[] args) {
-        SiriEstimatedTimetableGooglePubsubUpdater s = new SiriEstimatedTimetableGooglePubsubUpdater();
-    }
-
     @Override
     public void configure(Graph graph, JsonNode config) throws Exception {
+
+        /*
+           URL that responds to HTTP GET which returns all initial data in protobuf-format.
+           Will be called once to initialize realtime-data. All updates will be received from Google Cloud Pubsub
+          */
+        dataInitializationUrl = config.path("dataInitializationUrl").asText();
 
         feedId = config.path("feedId").asText("");
         reconnectPeriodSec = config.path("reconnectPeriodSec").asInt(DEFAULT_RECONNECT_PERIOD_SEC);
@@ -131,6 +154,7 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
         if (subscriptionId == null || subscriptionId.isBlank()) {
             subscriptionId = "otp-"+UUID.randomUUID().toString();
         }
+
         String projectName = config.path("projectName").asText();
 
         String topicName = config.path("topicName").asText();
@@ -167,13 +191,17 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
         }
 
         Subscription subscription = subscriptionAdminClient.createSubscription(subscriptionName, topic, pushConfig, 10);
+
         startTime = now();
+
+        final EstimatedTimetableMessageReceiver receiver = new EstimatedTimetableMessageReceiver();
+
+        initializeData(dataInitializationUrl, receiver);
 
         Subscriber subscriber = null;
         while (true) {
             try {
-                subscriber =
-                        Subscriber.newBuilder(subscription.getName(), new MessageReceiverExample()).build();
+                subscriber = Subscriber.newBuilder(subscription.getName(), receiver).build();
                 subscriber.startAsync().awaitRunning();
 
                 subscriber.awaitTerminated();
@@ -200,17 +228,47 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
         subscriptionAdminClient.deleteSubscription(subscriptionName);
     }
 
+    private void initializeData(String dataInitializationUrl, EstimatedTimetableMessageReceiver receiver) throws IOException {
+        if (dataInitializationUrl != null) {
 
-    private static transient final AtomicLong messageCounter = new AtomicLong(0);
-    private static transient final AtomicLong updateCounter = new AtomicLong(0);
-    private static transient final AtomicLong sizeCounter = new AtomicLong(0);
-    private static transient long startTime;
+            LOG.info("Fetching initial data");
+            final long t1 = System.currentTimeMillis();
 
-    class MessageReceiverExample implements MessageReceiver {
+            final InputStream data = HttpUtils.getData(dataInitializationUrl, "Content-Type", "application/x-protobuf");
+            ByteString value = ByteString.readFrom(data);
+
+            final long t2 = System.currentTimeMillis();
+            LOG.info("Fetching initial data - finished after {} ms, got {} bytes", (t2 - t1), FileUtils.byteCountToDisplaySize(value.size()));
+
+
+            final PubsubMessage message = PubsubMessage.newBuilder().setData(value).build();
+            receiver.receiveMessage(message, new AckReplyConsumer() {
+                @Override
+                public void ack() {
+                    LOG.info("Pubsub updater initialized after {} ms: [messages: {},  updates: {}, total size: {}, time since startup: {}]",
+                            (System.currentTimeMillis() - t2),
+                            messageCounter.get(),
+                            updateCounter.get(),
+                            FileUtils.byteCountToDisplaySize(sizeCounter.get()),
+                            DurationFormatUtils.formatDuration((now() - startTime), "HH:mm:ss")
+                    );
+
+                    isInitialized = true;
+                }
+
+                @Override
+                public void nack() {
+
+                }
+            });
+        }
+    }
+
+    class EstimatedTimetableMessageReceiver implements MessageReceiver {
         @Override
         public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
 
-            Siri siri = null;
+            Siri siri;
             try {
                 sizeCounter.addAndGet(message.getData().size());
 
@@ -220,43 +278,43 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
                 siri = SiriMapper.map(siriType);
 
             } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
-            if (siri != null) {
-                if (siri.getServiceDelivery() != null) {
-                    // Handle trip updates via graph writer runnable
-                    List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
 
-                    int numberOfUpdatedTrips = 0;
+            if (siri.getServiceDelivery() != null) {
+                // Handle trip updates via graph writer runnable
+                List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
+
+                int numberOfUpdatedTrips = 0;
+                try {
+                    numberOfUpdatedTrips = estimatedTimetableDeliveries.get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size();
+                } catch (Throwable t) {
+                    //ignore
+                }
+                long numberOfUpdates = updateCounter.addAndGet(numberOfUpdatedTrips);
+                long numberOfMessages = messageCounter.incrementAndGet();
+
+                if (numberOfMessages % 1000 == 0) {
+                    LOG.info("Pubsub stats: [messages: {},  updates: {}, total size: {}, current delay {} ms, time since startup: {}]", numberOfMessages, numberOfUpdates, FileUtils.byteCountToDisplaySize(sizeCounter.get()),
+                            (now() - siri.getServiceDelivery().getResponseTimestamp().toInstant().toEpochMilli()),
+                            DurationFormatUtils.formatDuration((now() - startTime), "HH:mm:ss"));
+                }
+
+                EstimatedTimetableGraphWriterRunnable runnable =
+                        new EstimatedTimetableGraphWriterRunnable(false,
+                                estimatedTimetableDeliveries);
+
+                if (!isReady()) {
                     try {
-                        numberOfUpdatedTrips = estimatedTimetableDeliveries.get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size();
-                    } catch (Throwable t) {
-                        //ignore
+                        updaterManager.executeBlocking(runnable);
+                    } catch (Throwable e) {
+                        throw new RuntimeException(e);
                     }
-                    long numberOfUpdates = updateCounter.getAndAdd(numberOfUpdatedTrips);
-                    long numberOfMessages = messageCounter.incrementAndGet();
-
-                    if (numberOfMessages % 1000 == 0) {
-                        LOG.info("Pubsub stats: [messages: {},  updates: {}, total size: {}, current delay {} ms, time since startup: {}]", numberOfMessages, numberOfUpdates, FileUtils.byteCountToDisplaySize(sizeCounter.get()),
-                                (now() - siri.getServiceDelivery().getResponseTimestamp().toInstant().toEpochMilli()),
-                                DurationFormatUtils.formatDuration((now() - startTime), "HH:mm:ss"));
-                    }
-
-                    EstimatedTimetableGraphWriterRunnable runnable =
-                            new EstimatedTimetableGraphWriterRunnable(false,
-                                    estimatedTimetableDeliveries);
-
+                } else {
                     updaterManager.execute(runnable);
-                } else if (siri.getDataReadyNotification() != null) {
-                    // NOT its intended use, but the current implementation sends a DataReadyNotification when initial delivery is complete.
-                    LOG.info("WS initialized after {} ms - processed {} messages with {} updates and {} bytes",
-                            (System.currentTimeMillis()-startTime),
-                            messageCounter.get(),
-                            updateCounter.get(),
-                            FileUtils.byteCountToDisplaySize(sizeCounter.get()));
-                    isInitialized = true;
                 }
             }
+
 
             // Ack only after all work for the message is complete.
             consumer.ack();
