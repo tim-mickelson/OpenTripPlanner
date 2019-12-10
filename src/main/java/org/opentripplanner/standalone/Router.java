@@ -132,6 +132,10 @@ public class Router {
             }
         }
 
+        /* Get the number of dates into the future to map to the transitLayer. Transit searches
+           beyond these dates will not be possible. */
+        graph.transitLayerActiveDates = config.path("transitLayerActiveDates").asInt(120);
+
         /* Create transit layer for Raptor routing. Here we map the scheduled timetables. */
         /* Realtime updates can be mapped similarly by a recurring operation in a GraphUpdater below. */
         LOG.info("Creating transit layer for Raptor routing.");

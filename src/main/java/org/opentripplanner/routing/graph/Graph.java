@@ -258,6 +258,8 @@ public class Graph implements Serializable {
     /** Data model for Raptor routing, with realtime updates applied (if any). */
     public transient TransitLayer realtimeTransitLayer;
 
+    public transient int transitLayerActiveDates;
+
     private transient AlertPatchService alertPatchService;
 
 

@@ -144,6 +144,12 @@ public class TransitLayerMapper {
             // the return Map.
             LocalDate localDate = ServiceCalendarMapper.localDateFromServiceDate(serviceDate);
 
+            // Do not map service dates that are in the past or too far into the future.
+            if (localDate.isBefore(LocalDate.now().minusDays(1)) ||
+                localDate.isAfter(LocalDate.now().plusDays(graph.transitLayerActiveDates))) {
+                continue;
+            }
+
             // Create a List to hold the values for one entry in the return Map.
             List<TripPatternForDate> values = new ArrayList<>();
             TIntSet serviceCodesRunning = new TIntHashSet();
