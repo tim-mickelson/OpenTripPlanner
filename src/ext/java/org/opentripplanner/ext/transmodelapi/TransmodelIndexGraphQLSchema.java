@@ -60,6 +60,7 @@ import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.alertpatch.AlertUrl;
+import org.opentripplanner.routing.alertpatch.StopCondition;
 import org.opentripplanner.routing.bike_park.BikePark;
 import org.opentripplanner.routing.bike_rental.BikeRentalStation;
 import org.opentripplanner.routing.bike_rental.BikeRentalStationService;
@@ -69,6 +70,7 @@ import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.error.VertexNotFoundException;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.GraphIndex;
+import org.opentripplanner.routing.services.AlertPatchService;
 import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.vertextype.TransitStopVertex;
 import org.opentripplanner.util.PolylineEncoder;
@@ -85,6 +87,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -1722,9 +1725,10 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("Get all situations active for the quay. NOT IMPLEMENTED")
+                        .description("Get all situations active for the quay.")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .dataFetcher(dataFetchingEnvironment -> new ArrayList<>())
+                    .dataFetcher(dataFetchingEnvironment -> graph.getSiriAlertPatchService()
+                        .getStopPatches(dataFetchingEnvironment.getSource()))
                         .build())
                 /*
                 .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -1994,11 +1998,11 @@ public class TransmodelIndexGraphQLSchema {
                         })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
-                        .name("situations")
-                        .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .description("Get all relevant situations for this EstimatedCall. NOT IMPLEMENTED")
-                        .dataFetcher(environment -> null)
-                        .build())
+                    .name("situations")
+                    .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
+                    .description("Get all relevant situations for this EstimatedCall.")
+                    .dataFetcher(environment -> getAllRelevantAlerts(environment.getSource()))
+                    .build())
                  .field(GraphQLFieldDefinition.newFieldDefinition()
                          .name("bookingArrangements")
                          .description("Booking arrangements for flexible service. NOT IMPLEMENTED")
@@ -2160,10 +2164,12 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("Get all situations active for the service journey. NOT IMPLEMENTED")
+                        .description("Get all situations active for the service journey.")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .dataFetcher(dataFetchingEnvironment -> null)
-                        .build())
+                        .dataFetcher(dataFetchingEnvironment ->
+                            graph.getSiriAlertPatchService().getTripPatches(
+                            dataFetchingEnvironment.getSource()))
+                    .build())
                 /*
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("keyValues")
@@ -2255,10 +2261,11 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("Get all situations active for the journey pattern. NOT IMPLEMENTED")
+                        .description("Get all situations active for the journey pattern.")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .dataFetcher(dataFetchingEnvironment -> null)
-                        .build())
+                    .dataFetcher(dataFetchingEnvironment -> graph.getSiriAlertPatchService().getTripPatternPatches(
+                        dataFetchingEnvironment.getSource()))
+                    .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("notices")
                         .type(new GraphQLNonNull(new GraphQLList(noticeType)))
@@ -2388,10 +2395,11 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("Get all situations active for the line. NOT IMPLEMENTED")
+                        .description("Get all situations active for the line.")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .dataFetcher(dataFetchingEnvironment -> null)
-                        .build())
+                    .dataFetcher(dataFetchingEnvironment -> graph.getSiriAlertPatchService().getRoutePatches(
+                        dataFetchingEnvironment.getSource()))
+                    .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name("flexibleLineType")
                     .description("Type of flexible line, or null if line is not flexible.")
@@ -2449,9 +2457,10 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("Get all situations active for the organisation. NOT IMPLEMENTED")
+                        .description("Get all situations active for the organisation.")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .dataFetcher(dataFetchingEnvironment -> null)
+                    .dataFetcher(dataFetchingEnvironment -> graph.getSiriAlertPatchService() .getAgencyPatches(
+                        ((Agency)dataFetchingEnvironment.getSource()).getId()))
                         .build())
                 .build();
 
@@ -2498,9 +2507,10 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("Get all situations active for the authority. NOT IMPLEMENTED")
+                        .description("Get all situations active for the authority.")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .dataFetcher(dataFetchingEnvironment -> null)
+                        .dataFetcher(dataFetchingEnvironment -> graph.getSiriAlertPatchService() .getAgencyPatches(
+                            ((Agency)dataFetchingEnvironment.getSource()).getId()))
                         .build())
                 .build();
 
@@ -3394,23 +3404,34 @@ public class TransmodelIndexGraphQLSchema {
                         .type(new GraphQLNonNull(new GraphQLList(noticeType)))
                         .dataFetcher(environment -> index.getNoticesByEntity().values())
                         .build())
+                */
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("Get all active situations. NOT IMPLEMENTED")
+                        .description("Get all active situations.")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
                         .argument(GraphQLArgument.newArgument()
                                 .name("authorities")
-                                .description("Filter by reporting authorities. NOT IMPLEMENTED")
+                                .description("Filter by reporting authorities.")
                                 .type(new GraphQLList(Scalars.GraphQLString))
                                 .build())
                         .argument(GraphQLArgument.newArgument()
                                 .name("severities")
-                                .description("Filter by severity. NOT IMPLEMENTED")
+                                .description("Filter by severity.")
                                 .type(new GraphQLList(severityEnum))
                                 .build())
-                        .dataFetcher(environment -> null)
+                        .dataFetcher(environment -> {
+                            Collection<AlertPatch> alerts = graph.getSiriAlertPatchService().getAllAlertPatches();
+                            if ((environment.getArgument("authorities") instanceof List)) {
+                                List<String> authorities = environment.getArgument("authorities");
+                                alerts = alerts.stream().filter(alertPatch -> authorities.contains(alertPatch.getFeedId())).collect(Collectors.toSet());
+                            }
+                            if ((environment.getArgument("severities") instanceof List)) {
+                                List<String> severities = environment.getArgument("severities");
+                                alerts = alerts.stream().filter(alertPatch -> severities.contains(alertPatch.getAlert().severity)).collect(Collectors.toSet());
+                            }
+                            return alerts;
+                        })
                         .build())
-                 */
                 .build();
 
         Set<GraphQLType> dictionary = new HashSet<>();
@@ -3441,7 +3462,7 @@ public class TransmodelIndexGraphQLSchema {
      * @param tripTimeShort
      * @return
      */
-    /*
+
     private Collection<AlertPatch> getAllRelevantAlerts(TripTimeShort tripTimeShort) {
         FeedScopedId tripId = tripTimeShort.tripId;
         Trip trip = index.tripForId.get(tripId);
@@ -3450,26 +3471,29 @@ public class TransmodelIndexGraphQLSchema {
         FeedScopedId stopId = tripTimeShort.stopId;
 
         Stop stop = index.stopForId.get(stopId);
-        FeedScopedId parentStopId = stop.getParentStationId();
+        FeedScopedId parentStopId = stop.getParentStation().getId();
 
         Collection<AlertPatch> allAlerts = new HashSet<>();
 
+        AlertPatchService alertPatchService = index.graph.getSiriAlertPatchService();
+
         // Quay
-        allAlerts.addAll(index.getAlertsForStopId(stopId));
-        allAlerts.addAll(index.getAlertsForStopAndTrip(stopId, tripId));
-        allAlerts.addAll(index.getAlertsForStopAndRoute(stopId, routeId));
+        allAlerts.addAll(alertPatchService.getStopPatches(stopId));
+        allAlerts.addAll(alertPatchService.getStopAndTripPatches(stopId, tripId));
+        allAlerts.addAll(alertPatchService.getStopAndRoutePatches(stopId, routeId));
         // StopPlace
-        allAlerts.addAll(index.getAlertsForStopId(parentStopId));
-        allAlerts.addAll(index.getAlertsForStopAndTrip(parentStopId, tripId));
-        allAlerts.addAll(index.getAlertsForStopAndRoute(parentStopId, routeId));
+        allAlerts.addAll(alertPatchService.getStopPatches(parentStopId));
+        allAlerts.addAll(alertPatchService.getStopAndTripPatches(parentStopId, tripId));
+        allAlerts.addAll(alertPatchService.getStopAndRoutePatches(parentStopId, routeId));
         // Trip
-        allAlerts.addAll(index.getAlertsForTripId(tripId));
+        allAlerts.addAll(alertPatchService.getTripPatches(tripId));
         // Route
-        allAlerts.addAll(index.getAlertsForRouteId(routeId));
+        allAlerts.addAll(alertPatchService.getRoutePatches(routeId));
         // Agency
-        allAlerts.addAll(index.getAlertsForAgency(trip.getRoute().getAgency()));
+        // TODO OTP2 This should probably have a FeedScopeId argument instead of string
+        allAlerts.addAll(alertPatchService.getAgencyPatches(trip.getRoute().getAgency().getId()));
         // TripPattern
-        allAlerts.addAll(index.getAlertsForPattern(index.patternForTrip.get(trip)));
+        allAlerts.addAll(alertPatchService.getTripPatternPatches(index.patternForTrip.get(trip)));
 
         long serviceDayMillis = 1000 * tripTimeShort.serviceDay;
         long arrivalMillis = 1000 * tripTimeShort.realtimeArrival;
@@ -3482,9 +3506,9 @@ public class TransmodelIndexGraphQLSchema {
 
         return allAlerts;
     }
-     */
 
-    /*
+
+
     private static void filterSituationsByDateAndStopConditions(Collection<AlertPatch> alertPatches, Date fromTime, Date toTime, List<StopCondition> stopConditions) {
         if (alertPatches != null) {
 
@@ -3510,7 +3534,7 @@ public class TransmodelIndexGraphQLSchema {
             });
         }
     }
-     */
+
 
     /**
      * Create PlaceAndDistance objects for all unique stopPlaces according to specified multiModalMode if client has requested stopPlace type.
@@ -3925,9 +3949,9 @@ public class TransmodelIndexGraphQLSchema {
                 */
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("situations")
-                        .description("All relevant situations for this leg. NOT IMPLEMENTED")
+                        .description("All relevant situations for this leg")
                         .type(new GraphQLNonNull(new GraphQLList(ptSituationElementType)))
-                        .dataFetcher(environment -> new ArrayList<>())
+                        .dataFetcher(environment -> ((Leg) environment.getSource()).alertPatches)
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("steps")
