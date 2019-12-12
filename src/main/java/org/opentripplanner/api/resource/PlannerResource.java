@@ -78,6 +78,7 @@ public class PlannerResource extends RoutingResource {
             // TODO This currently only calculates the distances between the first fromVertex
             //      and the first toVertex
             if (request.modes.getNonTransitSet().isValid()) {
+
                 double distance = SphericalDistanceLibrary.distance(
                         request.rctx.fromVertices.iterator().next().getCoordinate(),
                         request.rctx.toVertices.iterator().next().getCoordinate()
@@ -85,7 +86,17 @@ public class PlannerResource extends RoutingResource {
                 double limit = request.maxWalkDistance * 2;
                 // Handle int overflow, in which case the multiplication will be less than zero
                 if (limit < 0 || distance < limit) {
+                    LOG.info(
+                        "Performing non-transit search at distance {}, which is below the limit "
+                            + "of {} meters", distance, limit);
+                    double startTime = System.currentTimeMillis();
                     itineraries.addAll(findNonTransitItineraries(request, router));
+                    LOG.info("Non-transit routing took {} ms",
+                        System.currentTimeMillis() - startTime);
+                } else {
+                    LOG.info(
+                    "Skipping non-transit search at distance {}, which is above the limit "
+                        + "of {} meters", distance, limit);
                 }
             }
 
