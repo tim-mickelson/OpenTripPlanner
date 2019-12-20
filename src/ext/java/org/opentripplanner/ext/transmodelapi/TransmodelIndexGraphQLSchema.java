@@ -1611,13 +1611,22 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(environment -> (((Stop) environment.getSource()).getDescription()))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
-                        .name("stopPlace")
-                        .description("The stop place to which this quay belongs to.")
-                        .type(stopPlaceType)
-                        .dataFetcher(environment ->
-                                ((Stop) environment.getSource()).getParentStation()
-                        )
-                        .build())
+                    .name("stopPlace")
+                    .description("The stop place to which this quay belongs to.")
+                    .type(stopPlaceType)
+                    .dataFetcher(environment ->
+                        {
+                            Station station = ((Stop) environment.getSource()).getParentStation();
+                            if (station != null) {
+                                return new MonoOrMultiModalStation(
+                                    station,
+                                    graph.index.multiModalStationForStations.get(station));
+                            } else {
+                                return null;
+                            }
+                        }
+                    )
+                    .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("wheelchairAccessible")
                         .type(wheelchairBoardingEnum)
@@ -1978,6 +1987,7 @@ public class TransmodelIndexGraphQLSchema {
 
                     })
                     .build())
+
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("requestStop")
                         .type(Scalars.GraphQLBoolean)
