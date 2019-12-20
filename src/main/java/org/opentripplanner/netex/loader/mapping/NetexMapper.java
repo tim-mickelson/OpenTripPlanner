@@ -22,6 +22,7 @@ import org.rutebanken.netex.model.GroupOfStopPlaces;
 import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.Line;
 import org.rutebanken.netex.model.NoticeAssignment;
+import org.rutebanken.netex.model.ServiceLink;
 import org.rutebanken.netex.model.StopPlace;
 
 import java.util.Collection;
@@ -94,6 +95,7 @@ public class NetexMapper {
         mapStopPlaceAndQuays(netexIndex);
         mapMultiModalStopPlaces(netexIndex);
         mapGroupsOfStopPlaces(netexIndex);
+        mapServiceLinks(netexIndex);
         mapRoute(netexIndex);
         mapTripPatterns(netexIndex);
         mapCalendarDayTypes(netexIndex);
@@ -162,6 +164,22 @@ public class NetexMapper {
         for (Line line : netexIndex.getLineById().localValues()) {
             Route route = routeMapper.mapRoute(line);
             transitBuilder.getRoutes().add(route);
+        }
+    }
+
+    private void mapServiceLinks(NetexImportDataIndexReadOnlyView netexIndex) {
+        ServiceLinkMapper serviceLinkMapper = new ServiceLinkMapper(
+            idFactory,
+            issueStore
+        );
+
+        for (JourneyPattern journeyPattern : netexIndex.getJourneyPatternsById().localValues()) {
+            transitBuilder.getShapePoints().addAll(serviceLinkMapper.getShapePointsByJourneyPattern(
+                journeyPattern,
+                netexIndex.getServiceLinksById(),
+                netexIndex.getQuayById(),
+                netexIndex.getQuayIdByStopPointRef()
+            ));
         }
     }
 

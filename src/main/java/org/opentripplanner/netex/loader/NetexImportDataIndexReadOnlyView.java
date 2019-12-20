@@ -20,6 +20,7 @@ import org.rutebanken.netex.model.Operator;
 import org.rutebanken.netex.model.Quay;
 import org.rutebanken.netex.model.Route;
 import org.rutebanken.netex.model.ServiceJourney;
+import org.rutebanken.netex.model.ServiceLink;
 import org.rutebanken.netex.model.StopPlace;
 import org.rutebanken.netex.model.TimetabledPassingTime;
 
@@ -45,6 +46,7 @@ public interface NetexImportDataIndexReadOnlyView {
     ReadOnlyHierarchicalMap<String, String> getQuayIdByStopPointRef();
     ReadOnlyHierarchicalMapById<Route> getRouteById();
     ReadOnlyHierarchicalMap<String, Collection<ServiceJourney>> getServiceJourneyByPatternId();
+    ReadOnlyHierarchicalMapById<ServiceLink> getServiceLinksById();
     ReadOnlyHierarchicalVersionMapById<StopPlace> getStopPlaceById();
     String getTimeZone();
 }

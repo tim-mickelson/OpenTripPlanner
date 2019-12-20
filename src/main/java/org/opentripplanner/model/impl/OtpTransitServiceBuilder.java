@@ -1,6 +1,7 @@
 package org.opentripplanner.model.impl;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FareAttribute;
@@ -28,6 +29,7 @@ import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.TripStopTimes;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.impl.CalendarServiceDataFactoryImpl;
+import org.rutebanken.netex.model.ServiceLink;
 
 import java.util.ArrayList;
 import java.util.HashSet;
