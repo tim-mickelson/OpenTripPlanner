@@ -55,6 +55,7 @@ import org.opentripplanner.routing.services.AlertPatchService;
 import org.opentripplanner.routing.spt.DominanceFunction;
 import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.routing.trippattern.FrequencyEntry;
+import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
 import org.opentripplanner.routing.vertextype.BikeParkVertex;
 import org.opentripplanner.routing.vertextype.BikeRentalStationVertex;
@@ -620,6 +621,10 @@ public class GraphIndex {
         return stopTimesForStop(stop, System.currentTimeMillis()/1000, 24 * 60 * 60, 2, omitNonPickups);
     }
 
+    public List<StopTimesInPattern> stopTimesForStop(final Stop stop, final long startTime, final int timeRange, final int numberOfDepartures, final boolean omitNonPickups) {
+        return stopTimesForStop(stop, startTime, timeRange, numberOfDepartures, omitNonPickups, false);
+    }
+
     /**
      * Fetch upcoming vehicle departures from a stop. It goes though all patterns passing the stop
      * for the previous, current and next service date. It uses a priority queue to keep track of
@@ -636,22 +641,41 @@ public class GraphIndex {
      * @param timeRange Searches forward for timeRange seconds from startTime
      * @param numberOfDepartures Number of departures to fetch per stop visit in pattern
      * @param omitNonPickups If true, do not include vehicles that will not pick up passengers.
+     * @param includeCancelledTrips If true, trips cancelled in realtime-data will be included in result.
      * @return
      */
-    public List<StopTimesInPattern> stopTimesForStop(final Stop stop, final long startTime, final int timeRange, final int numberOfDepartures, final boolean omitNonPickups) {
-        return stopTimesForStop(stop, startTime, timeRange, numberOfDepartures, omitNonPickups, false);
-    }
     public List<StopTimesInPattern> stopTimesForStop(final Stop stop, final long startTime, final int timeRange, final int numberOfDepartures, final boolean omitNonPickups, final boolean includeCancelledTrips) {
 
         final List<StopTimesInPattern> ret = new ArrayList<>();
 
+        final Collection<TripPattern> graphPatterns = getPatternsForStop(stop, false);
+        final Collection<TripPattern> realtimePatterns = getPatternsForStop(stop, true);
 
-        for (final TripPattern pattern : getPatternsForStop(stop, true)) {
+        if (realtimePatterns != null) {
+            // Ensure that realtimePatterns only include realtime-departures
+            realtimePatterns.removeAll(graphPatterns);
+        }
+
+        // First, check all TripPatterns without realtime-patterns to get all planned stops.
+        // includeCancelledTrips is always set to false in this step to avoid replaced trips from being included
+        // since a planned trip will be cancelled when it is replaced with a modified stopPattern.
+        for (final TripPattern pattern : graphPatterns) {
+
+            final Set<TripTimeShort> stopTimesForStop = stopTimesForPattern(stop, pattern, startTime, timeRange, numberOfDepartures, omitNonPickups, false);
+
+            if (stopTimesForStop.size() >0) {
+                final StopTimesInPattern stopTimes = new StopTimesInPattern(pattern);
+                stopTimes.times.addAll(stopTimesForStop);
+                ret.add(stopTimes);
+            }
+        }
+
+        // Second, check realtime-TripPatterns, with the provided value for includeCancelledTrips.
+        for (final TripPattern pattern : realtimePatterns) {
 
             final Set<TripTimeShort> stopTimesForStop = stopTimesForPattern(stop, pattern, startTime, timeRange, numberOfDepartures, omitNonPickups, includeCancelledTrips);
 
-
-            if (stopTimesForStop.size() >0) {
+            if (stopTimesForStop.size() > 0) {
                 final StopTimesInPattern stopTimes = new StopTimesInPattern(pattern);
                 stopTimes.times.addAll(stopTimesForStop);
                 ret.add(stopTimes);
@@ -749,7 +773,7 @@ public class GraphIndex {
                 tt = pattern.scheduledTimetable;
             }
 
-            if (!tt.temporallyViable(sd, startTime, timeRange, true))
+            if (!includeCancelledTrips && !tt.temporallyViable(sd, startTime, timeRange, true))
                 continue;
 
             final int starttimeSecondsSinceMidnight = sd.secondsSinceMidnight(startTime);
@@ -759,7 +783,7 @@ public class GraphIndex {
             for (final Stop currStop : tt.pattern.stopPattern.stops) {
                 if (currStop.equals(stop)) {
 
-                    if (!pattern.getTrips().isEmpty()) {
+                    if (!includeCancelledTrips) {
                         //Pattern added by realtime should not be checked at this point
                         if (omitNonPickups && pattern.stopPattern.pickups[stopIndex] == pattern.stopPattern.PICKDROP_NONE) {
                             continue;
@@ -767,18 +791,29 @@ public class GraphIndex {
                     }
 
                     for (final TripTimes triptimes : tt.tripTimes) {
-                        if (!sd.serviceRunning(triptimes.serviceCode))
+
+                        if (!includeCancelledTrips && !sd.serviceRunning(triptimes.serviceCode)) {
                             continue;
+                        }
 
                         // Check if trip has been cancelled via planned data
                         if(omitNonPickups && (triptimes.trip.getServiceAlteration() == Trip.ServiceAlteration.cancellation ||
-                                triptimes.trip.getServiceAlteration() == Trip.ServiceAlteration.replaced))
+                                triptimes.trip.getServiceAlteration() == Trip.ServiceAlteration.replaced)) {
                             continue;
+                        }
 
-                        // Check if pickup has been cancelled via realtime-data
-                        if(!includeCancelledTrips && triptimes.getPickupType(stopIndex) == pattern.stopPattern.PICKDROP_NONE) continue;
+
+                        // Check if pickup has been cancelled via realtime-data, and also NOT wanted in result
+                        if (!includeCancelledTrips && triptimes.getPickupType(stopIndex) == pattern.stopPattern.PICKDROP_NONE) {
+                            continue;
+                        }
 
                         int stopDepartureTime = triptimes.getDepartureTime(stopIndex);
+
+                        if (includeCancelledTrips && triptimes.getRealTimeState() == RealTimeState.CANCELED) {
+                            // Cancelled trips should be included in this request - use scheduled times
+                            stopDepartureTime = triptimes.getScheduledDepartureTime(stopIndex);
+                        }
                         if (stopDepartureTime != -1 && stopDepartureTime >= starttimeSecondsSinceMidnight && stopDepartureTime < starttimeSecondsSinceMidnight + timeRange) {
                             tripTimesQueue.insertWithOverflow(new TripTimeShort(triptimes, stopIndex, currStop, sd));
                         }
