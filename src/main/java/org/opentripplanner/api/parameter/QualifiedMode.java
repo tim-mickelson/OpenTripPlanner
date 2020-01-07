@@ -1,8 +1,11 @@
 package org.opentripplanner.api.parameter;
 
 import com.google.common.collect.Sets;
+import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.security.InvalidParameterException;
@@ -10,6 +13,8 @@ import java.util.Set;
 
 public class QualifiedMode implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(QualifiedMode.class);
     
     public final TraverseMode mode;
     public final Set<Qualifier> qualifiers = Sets.newHashSet();
@@ -21,11 +26,11 @@ public class QualifiedMode implements Serializable {
             throw new InvalidParameterException();
         }
         for (int i = 1; i < elements.length; i++) {
-            Qualifier q = Qualifier.valueOf(elements[i].trim());
-            if (q == null) {
-                throw new InvalidParameterException();
-            } else {
+            try {
+                Qualifier q = Qualifier.valueOf(elements[i].trim());
                 qualifiers.add(q);
+            } catch (Exception e) {
+                LOG.info("Mode {} not found.", elements[i].trim());
             }
         }
     }
