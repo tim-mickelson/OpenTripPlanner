@@ -55,7 +55,6 @@ import org.opentripplanner.routing.services.AlertPatchService;
 import org.opentripplanner.routing.spt.DominanceFunction;
 import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.routing.trippattern.FrequencyEntry;
-import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
 import org.opentripplanner.routing.vertextype.BikeParkVertex;
 import org.opentripplanner.routing.vertextype.BikeRentalStationVertex;
@@ -810,11 +809,17 @@ public class GraphIndex {
 
                         int stopDepartureTime = triptimes.getDepartureTime(stopIndex);
 
-                        if (includeCancelledTrips && triptimes.getRealTimeState() == RealTimeState.CANCELED) {
-                            // Cancelled trips should be included in this request - use scheduled times
+                        if (includeCancelledTrips && triptimes.isCancelledStop(stopIndex)) {
+                            // Cancelled trips should be included in this request - use scheduled times for time-verification
                             stopDepartureTime = triptimes.getScheduledDepartureTime(stopIndex);
                         }
-                        if (stopDepartureTime != -1 && stopDepartureTime >= starttimeSecondsSinceMidnight && stopDepartureTime < starttimeSecondsSinceMidnight + timeRange) {
+
+                        boolean includeByCancellation = !triptimes.isCancelledStop(stopIndex) |                   // Stop is NOT cancelled OR
+                                                (includeCancelledTrips && triptimes.isCancelledStop(stopIndex));  // Stop is cancelled, but cancelled stops should be included in this request
+
+                        boolean includeByDepartureTime = (stopDepartureTime != -1 && stopDepartureTime >= starttimeSecondsSinceMidnight && stopDepartureTime < starttimeSecondsSinceMidnight + timeRange);
+
+                        if (includeByCancellation & includeByDepartureTime) {
                             tripTimesQueue.insertWithOverflow(new TripTimeShort(triptimes, stopIndex, currStop, sd));
                         }
                     }
