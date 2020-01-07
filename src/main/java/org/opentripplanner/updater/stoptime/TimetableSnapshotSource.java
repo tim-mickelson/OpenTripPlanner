@@ -932,11 +932,10 @@ public class TimetableSnapshotSource {
 
                         if (modifiedStops != null && modifiedStops.isEmpty()) {
                             tripTimes.cancel();
-                            result = result | buffer.update(SIRI_FEED_ID, pattern, tripTimes, serviceDate);
-                        } else {
-                            // Add new trip
-                            result = result | addTripToGraphAndBuffer(SIRI_FEED_ID, graph, trip, modifiedStopTimes, modifiedStops, tripTimes, serviceDate);
                         }
+
+                        // Add updated trip
+                        result = result | addTripToGraphAndBuffer(SIRI_FEED_ID, graph, trip, modifiedStopTimes, modifiedStops, tripTimes, serviceDate);
 
                     LOG.debug("Applied realtime data for trip {}", trip.getId().getId());
                 } else {
