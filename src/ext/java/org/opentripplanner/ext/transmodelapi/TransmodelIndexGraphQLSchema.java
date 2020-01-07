@@ -202,8 +202,8 @@ public class TransmodelIndexGraphQLSchema {
             .value("car", TraverseMode.CAR)
             // TODO OTP2 - Car park no added
             // .value("car_park", TraverseMode.CAR_PARK, "Combine with foot and transit for park and ride.")
-            // .value("car_dropoff", TraverseMode.CAR_DROPOFF, "Combine with foot and transit for kiss and ride.")
-            // .value("car_pickup", TraverseMode.CAR_PICKUP, "Combine with foot and transit for ride and kiss.")
+            .value("car_dropoff", TraverseMode.CAR_DROPOFF, "Combine with foot and transit for kiss and ride.")
+            .value("car_pickup", TraverseMode.CAR_PICKUP, "Combine with foot and transit for ride and kiss.")
             .build();
 
     private static GraphQLEnumType transportModeEnum = GraphQLEnumType.newEnum()
