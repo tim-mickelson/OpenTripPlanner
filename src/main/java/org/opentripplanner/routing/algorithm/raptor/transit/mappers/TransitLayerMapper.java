@@ -1,5 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.mappers;
 
+import com.google.common.collect.Multimap;
 import org.opentripplanner.model.Timetable;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.algorithm.raptor.transit.StopIndexForRaptor;
@@ -84,7 +85,7 @@ public class TransitLayerMapper {
         Collection<org.opentripplanner.model.TripPattern> allTripPatterns =
             graph.tripPatternForId.values();
 
-        final Map<org.opentripplanner.model.TripPattern, TripPattern> newTripPatternForOld =
+        final Multimap<org.opentripplanner.model.TripPattern, TripPattern> newTripPatternForOld =
             mapOldTripPatternToRaptorTripPattern(stopIndex, allTripPatterns);
 
 
@@ -113,13 +114,15 @@ public class TransitLayerMapper {
                 // This nested loop could be quite inefficient.
                 // Maybe determine in advance which patterns are running on each service and day.
                 for (org.opentripplanner.model.TripPattern oldTripPattern : allTripPatterns) {
-                    TripPatternForDate tripPatternForDate =
+                    Collection<TripPatternForDate> tripPatternsForDate =
                         tripPatternForDateMapper.map(
                             oldTripPattern.scheduledTimetable,
                             serviceDate
                     );
-                    if (tripPatternForDate != null) {
-                        values.add(tripPatternForDate);
+                    if (tripPatternsForDate != null) {
+                        for (TripPatternForDate tripPatternForDate : tripPatternsForDate) {
+                            values.add(tripPatternForDate);
+                        }
                     }
                 }
                 if (!values.isEmpty()) {

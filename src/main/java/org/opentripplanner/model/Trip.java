@@ -27,6 +27,8 @@ public final class Trip extends TransitEntity<FeedScopedId> {
 
     private int wheelchairAccessible = 0;
 
+    private TransitMode transitMode;
+
     @Deprecated private int tripBikesAllowed = 0;
 
     /**
@@ -55,6 +57,7 @@ public final class Trip extends TransitEntity<FeedScopedId> {
         this.tripBikesAllowed = obj.tripBikesAllowed;
         this.bikesAllowed = obj.bikesAllowed;
         this.fareId = obj.fareId;
+        this.transitMode = obj.transitMode;
     }
 
     public FeedScopedId getId() {
@@ -194,4 +197,11 @@ public final class Trip extends TransitEntity<FeedScopedId> {
         this.fareId = fareId;
     }
 
+    public TransitMode getTransitMode() {
+        return transitMode != null ? transitMode : route.getTransitMode();
+    }
+
+    public void setTransitMode(TransitMode transitMode) {
+        this.transitMode = transitMode;
+    }
 }
