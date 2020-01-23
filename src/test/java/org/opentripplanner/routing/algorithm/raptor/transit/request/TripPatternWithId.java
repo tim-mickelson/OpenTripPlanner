@@ -1,9 +1,9 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.request;
 
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPattern;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripSchedule;
-import org.opentripplanner.routing.core.TraverseMode;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class TripPatternWithId extends TripPattern {
   public TripPatternWithId(
       FeedScopedId id,
       List<TripSchedule> tripSchedules,
-      TraverseMode transitMode,
+      TransitMode transitMode,
       int[] stopIndexes,
       org.opentripplanner.model.TripPattern originalTripPattern
   ) {
