@@ -28,6 +28,7 @@ import java.lang.ref.WeakReference;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -320,6 +321,7 @@ public class SpeedTest {
                 request.getDepartureDateWithZone().toInstant(),
                 2,
                 request.getTransitModes(),
+                new HashMap<>(),
                 request.getWalkSpeedMeterPrSecond()
         );
     }

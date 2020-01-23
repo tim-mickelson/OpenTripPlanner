@@ -19,6 +19,8 @@ public final class Route extends TransitEntity<FeedScopedId> {
 
     private int type;
 
+    private TransitMode transitMode;
+
     private String desc;
 
     private String url;
@@ -99,6 +101,14 @@ public final class Route extends TransitEntity<FeedScopedId> {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public TransitMode getTransitMode() {
+        return transitMode;
+    }
+
+    public void setTransitMode(TransitMode transitMode) {
+        this.transitMode = transitMode;
     }
 
     public String getUrl() {

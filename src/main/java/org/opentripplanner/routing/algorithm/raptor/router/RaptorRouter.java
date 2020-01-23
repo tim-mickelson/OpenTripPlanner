@@ -55,6 +55,7 @@ public class RaptorRouter {
                 request.getDateTime().toInstant(),
                 TRANSIT_SEARCH_RANGE_IN_DAYS,
                 request.modes,
+                request.transportSubmodes,
                 request.walkSpeed
         );
         LOG.info("Filtering tripPatterns took {} ms", System.currentTimeMillis() - startTime);

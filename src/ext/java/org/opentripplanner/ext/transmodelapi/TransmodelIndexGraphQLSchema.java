@@ -196,7 +196,7 @@ public class TransmodelIndexGraphQLSchema {
             .value("rail", TraverseMode.RAIL)
             .value("metro", TraverseMode.SUBWAY)
             .value("tram", TraverseMode.TRAM)
-            .value("coach", TraverseMode.BUS).description("NOT IMPLEMENTED")
+            .value("coach", TraverseMode.COACH)
             .value("transit", TraverseMode.TRANSIT, "Any for of public transportation")
             .value("foot", TraverseMode.WALK)
             .value("car", TraverseMode.CAR)
@@ -217,6 +217,7 @@ public class TransmodelIndexGraphQLSchema {
             .value("rail", TraverseMode.RAIL)
             .value("metro", TraverseMode.SUBWAY)
             .value("tram", TraverseMode.TRAM)
+            .value("coach", TraverseMode.COACH)
             .value("coach", TraverseMode.BUS).description("NOT IMPLEMENTED")
             .value("unknown", "unknown")
             .build();
@@ -2071,12 +2072,18 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(environment -> (((Trip) environment.getSource()).getServiceAlteration()))
                         .build())
                         */
-
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                    .name("transportMode")
+                    .description("Currently returns the mode of the Line.")
+                    .type(transportModeEnum)
+                    .dataFetcher(environment -> GtfsLibrary.getTraverseMode(
+                        ((Trip)environment.getSource()).getRoute()))
+                    .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")
                         .type(transportSubmode)
-                        .description("The transport submode of the journey, if different from lines transport submode. NOT IMPLEMENTED")
-                        .dataFetcher(environment -> TransmodelTransportSubmode.UNDEFINED)
+                        .description("The transport submode of the journey, if different from lines transport submode.")
+                        .dataFetcher(environment -> ((Trip) environment.getSource()).getTransitMode().getSubmode())
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("publicCode")
@@ -2357,8 +2364,7 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")
                         .type(transportSubmode)
-                        .description("NOT IMPLEMENTED")
-                        .dataFetcher(environment -> TransmodelTransportSubmode.UNDEFINED)
+                        .dataFetcher(environment -> (((Route) environment.getSource()).getTransitMode().getSubmode()))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("description")
@@ -3827,11 +3833,19 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(environment -> Enum.valueOf(TraverseMode.class, ((Leg) environment.getSource()).mode))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
-                        .name("transportSubmode")
-                        .description("The transport sub mode (e.g., localBus or expressBus) used when traversing this leg. Null if leg is not a ride")
-                        .type(transportSubmode)
-                        .dataFetcher(environment -> TransmodelTransportSubmode.UNDEFINED)
-                        .build())
+                    .name("transportSubmode")
+                    .description("The transport sub mode (e.g., localBus or expressBus) used when traversing this leg. Null if leg is not a ride")
+                    .type(transportSubmode)
+                    .dataFetcher(environment -> {
+                        Leg leg=environment.getSource();
+                        Trip trip = index.tripForId.get(leg.tripId);
+                        TransmodelTransportSubmode submode = null;
+                        if (trip != null) {
+                            submode = trip.getTransitMode().getSubmode();
+                        }
+                        return submode;
+                    })
+                    .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("duration")
                         .description("The legs's duration in seconds")

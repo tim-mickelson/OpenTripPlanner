@@ -3,6 +3,7 @@ package org.opentripplanner.ext.transmodelapi;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import graphql.schema.DataFetchingEnvironment;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.opentripplanner.api.common.Message;
 import org.opentripplanner.api.common.ParameterException;
@@ -16,6 +17,7 @@ import org.opentripplanner.api.resource.GraphPathToTripPlanConverter;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.ext.transmodelapi.mapping.TransmodelMappingUtil;
+import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.core.OptimizeType;
@@ -286,7 +288,6 @@ public class TransmodelGraphQLPlanner {
             request.modes.setCableCar(cableCar);
         }
 
-        /*
         List<Map<String, ?>> transportSubmodeFilters = environment.getArgument("transportSubmodes");
         if (transportSubmodeFilters != null) {
             request.transportSubmodes = new HashMap<>();
@@ -297,7 +298,7 @@ public class TransmodelGraphQLPlanner {
                     request.transportSubmodes.put(transportMode, new HashSet<>(transportSubmodes));
                 }
             }
-        }*/
+        }
 
         if (request.allowBikeRental && !hasArgument(environment, "bikeSpeed")) {
             //slower bike speed for bike sharing, based on empirical evidence from DC.
