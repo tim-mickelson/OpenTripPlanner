@@ -1,5 +1,6 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.mappers;
 
+import com.google.common.collect.Multimap;
 import gnu.trove.set.TIntSet;
 import org.opentripplanner.model.Timetable;
 import org.opentripplanner.model.calendar.ServiceDate;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,66 +36,74 @@ public class TripPatternForDateMapper {
 
   private final Map<TripTimes, TripSchedule> tripScheduleForTripTimes = new HashMap<>();
 
-  private final Map<org.opentripplanner.model.TripPattern, TripPattern> newTripPatternForOld;
+  private final Multimap<org.opentripplanner.model.TripPattern, TripPattern> newTripPatternForOld;
 
   TripPatternForDateMapper(
       Map<ServiceDate, TIntSet> serviceCodesRunningForDate,
-      Map<org.opentripplanner.model.TripPattern, TripPattern> newTripPatternForOld
+      Multimap<org.opentripplanner.model.TripPattern, TripPattern> newTripPatternForOld
   ) {
     this.serviceCodesRunningForDate = serviceCodesRunningForDate;
     this.newTripPatternForOld = newTripPatternForOld;
   }
 
-  public TripPatternForDate map(Timetable timetable, ServiceDate serviceDate) {
+  public Collection<TripPatternForDate> map(Timetable timetable, ServiceDate serviceDate) {
+
+    Collection<TripPatternForDate> tripPatternsForDate = new ArrayList<>();
 
     TIntSet serviceCodesRunning = serviceCodesRunningForDate.get(serviceDate);
 
     org.opentripplanner.model.TripPattern oldTripPattern = timetable.pattern;
 
-    List<TripSchedule> newTripSchedules = new ArrayList<>();
-    // The TripTimes are not sorted by departure time in the source timetable because
-    // OTP1 performs a simple/ linear search. Raptor results depend on trips being
-    // sorted. We reuse the same timetables many times on different days, so cache the
-    // sorted versions to avoid repeated compute-intensive sorting. Anecdotally this
-    // reduces mapping time by more than half, but it is still rather slow. NL Mapping
-    // takes 32 seconds sorting every timetable, 9 seconds with cached sorting, and 6
-    // seconds with no timetable sorting at all.
-    List<TripTimes> sortedTripTimes = sortedTripTimesForTimetable.computeIfAbsent(
-        timetable,
-        TransitLayerMapper::getSortedTripTimes
-    );
-    for (TripTimes tripTimes : sortedTripTimes) {
-      if (!serviceCodesRunning.contains(tripTimes.serviceCode)) {
+    for (TripPattern newTripPattern : newTripPatternForOld.get(oldTripPattern)) {
 
-        continue;
-      }
-      if (tripTimes.getRealTimeState() == RealTimeState.CANCELED) {
-        continue;
-      }
-      TripSchedule tripSchedule = tripScheduleForTripTimes.computeIfAbsent(
-          tripTimes,
-          // The following are two alternative implementations of TripSchedule
-          tt -> new TripScheduleWrapperImpl(tt, oldTripPattern)
-          // tt -> tt.toTripSchedulImpl(oldTripPattern)
+      List<TripSchedule> newTripSchedules = new ArrayList<>();
+      // The TripTimes are not sorted by departure time in the source timetable because
+      // OTP1 performs a simple/ linear search. Raptor results depend on trips being
+      // sorted. We reuse the same timetables many times on different days, so cache the
+      // sorted versions to avoid repeated compute-intensive sorting. Anecdotally this
+      // reduces mapping time by more than half, but it is still rather slow. NL Mapping
+      // takes 32 seconds sorting every timetable, 9 seconds with cached sorting, and 6
+      // seconds with no timetable sorting at all.
+      List<TripTimes> sortedTripTimes = sortedTripTimesForTimetable.computeIfAbsent(timetable,
+          TransitLayerMapper::getSortedTripTimes
       );
-      newTripSchedules.add(tripSchedule);
-    }
-
-    if (newTripSchedules.isEmpty()) {
-      if (timetable.serviceDate == serviceDate) {
-        LOG.debug(
-            "Tried to update TripPattern {}, but no service codes are valid for date {}"
-            , timetable.pattern.getId(), serviceDate);
+      for (TripTimes tripTimes : sortedTripTimes) {
+        if (!serviceCodesRunning.contains(tripTimes.serviceCode)) {
+          continue;
+        }
+        if (tripTimes.getRealTimeState() == RealTimeState.CANCELED) {
+          continue;
+        }
+        if (!tripTimes.trip.getTransitMode().equals(newTripPattern.getTransitMode())) {
+          continue;
+        }
+        TripSchedule tripSchedule = tripScheduleForTripTimes.computeIfAbsent(
+            tripTimes,
+            // The following are two alternative implementations of TripSchedule
+            tt -> new TripScheduleWrapperImpl(tt, oldTripPattern)
+            // tt -> tt.toTripSchedulImpl(oldTripPattern)
+        );
+        newTripSchedules.add(tripSchedule);
       }
-      return null;
+
+      if (newTripSchedules.isEmpty()) {
+        if (timetable.serviceDate == serviceDate) {
+          LOG.debug(
+              "Tried to update TripPattern {}, but no service codes are valid for date {}",
+              timetable.pattern.getId(),
+              serviceDate
+          );
+        }
+        return null;
+      }
+
+      tripPatternsForDate.add(new TripPatternForDate(newTripPattern,
+          newTripSchedules,
+          ServiceCalendarMapper.localDateFromServiceDate(serviceDate))
+      );
     }
 
-    TripPattern newTripPattern = newTripPatternForOld.get(oldTripPattern);
-    TripPatternForDate tripPatternForDate = new TripPatternForDate(newTripPattern,
-        newTripSchedules,
-        ServiceCalendarMapper.localDateFromServiceDate(serviceDate)
-    );
-    return tripPatternForDate;
+    return tripPatternsForDate;
   }
 
 }

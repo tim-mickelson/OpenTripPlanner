@@ -7,6 +7,7 @@ import org.opentripplanner.api.parameter.QualifiedModeSet;
 import org.opentripplanner.common.MavenVersion;
 import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.common.model.NamedPlace;
+import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.routing.edgetype.StreetEdge;
@@ -173,6 +174,8 @@ public class RoutingRequest implements Cloneable, Serializable {
      * The set of TraverseModes that a user is willing to use. Defaults to WALK | TRANSIT.
      */
     public TraverseModeSet modes = new TraverseModeSet("TRANSIT,WALK"); // defaults in constructor overwrite this
+
+    public HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes = new HashMap<>();
 
     /**
      * The set of characteristics that the user wants to optimize for -- defaults to QUICK, or
