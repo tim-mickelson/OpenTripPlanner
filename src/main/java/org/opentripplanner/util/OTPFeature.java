@@ -24,7 +24,7 @@ public enum OTPFeature {
     // Sandbox extension features - Must be turned OFF by default
     ActuatorAPI(false),
     GoogleCloudStorage(false),
-    SandboxAPITransmodelApi(false),
+    SandboxAPITransmodelApi(true),
     SandboxExampleAPIGraphStatistics(false),
     TransferAnalyzer(false);
 
