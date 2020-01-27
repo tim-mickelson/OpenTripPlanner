@@ -1,6 +1,6 @@
 #!/bin/bash
 
-: ${GRAPH_FILE_TARGET_PATH="/code/otpdata/norway/Graph.obj"}
+: ${GRAPH_FILE_TARGET_PATH="/code/otpdata/norway/graph.obj"}
 : ${FILE_TMP_PATH="/tmp/graph_obj_from_gcs"}
 # Notice ending slash here, it is correct
 : ${MARDUK_GCP_BASE="gs://marduk/"}
