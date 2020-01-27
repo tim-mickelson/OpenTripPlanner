@@ -1988,7 +1988,6 @@ public class TransmodelIndexGraphQLSchema {
 
                     })
                     .build())
-
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("requestStop")
                         .type(Scalars.GraphQLBoolean)

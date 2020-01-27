@@ -9,7 +9,9 @@ import ch.qos.logback.core.FileAppender;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.opentripplanner.inspector.TileRendererManager;
 import org.opentripplanner.reflect.ReflectiveInitializer;
+import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerMapper;
+import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.graph.Graph;
@@ -136,7 +138,11 @@ public class Router {
         LOG.info("Creating transit layer for Raptor routing.");
         if (graph.hasTransit && graph.index != null) {
             graph.transitLayer = TransitLayerMapper.map(graph);
-            graph.realtimeTransitLayer = graph.transitLayer;
+            graph.realtimeTransitLayer = new TransitLayer(graph.transitLayer);
+            graph.transitLayerUpdater = new TransitLayerUpdater(
+                graph,
+                graph.index.getServiceCodesRunningForDate()
+            );
         } else {
             LOG.warn("Cannot create Raptor data, that requires the graph to have transit data and be indexed.");
         }
