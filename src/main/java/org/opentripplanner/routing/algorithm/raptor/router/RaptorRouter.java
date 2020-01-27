@@ -54,15 +54,16 @@ public class RaptorRouter {
 
     this.requestTransitDataProvider = new RaptorRoutingRequestTransitData(
         transitLayer,
-                request.getDateTime().toInstant(),
-                TRANSIT_SEARCH_RANGE_IN_DAYS,
-                request.modes,
-                request.walkSpeed
-        );
-        LOG.info("Filtering tripPatterns took {} ms", System.currentTimeMillis() - startTime);
-        this.transitLayer = transitLayer;
-        this.request = request;
-    }
+        request.getDateTime().toInstant(),
+        TRANSIT_SEARCH_RANGE_IN_DAYS,
+        request.modes,
+        request.transportSubmodes,
+        request.walkSpeed
+    );
+    LOG.info("Filtering tripPatterns took {} ms", System.currentTimeMillis() - startTime);
+    this.transitLayer = transitLayer;
+    this.request = request;
+  }
 
     public Collection<Itinerary> route() {
 

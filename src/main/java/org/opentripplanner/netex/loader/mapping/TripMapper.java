@@ -1,6 +1,7 @@
 package org.opentripplanner.netex.loader.mapping;
 
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.impl.EntityById;
 import org.opentripplanner.netex.loader.util.ReadOnlyHierarchicalMap;
@@ -25,6 +26,7 @@ class TripMapper {
     private EntityById<FeedScopedId, org.opentripplanner.model.Route> otpRouteById;
     private ReadOnlyHierarchicalMap<String, Route> routeById;
     private ReadOnlyHierarchicalMap<String, JourneyPattern> journeyPatternsById;
+    private TransportModeMapper transportModeMapper = new TransportModeMapper();
 
     TripMapper(
             FeedScopedIdFactory idFactory,
@@ -56,6 +58,17 @@ class TripMapper {
         trip.setId(idFactory.createId(serviceJourney.getId()));
         trip.setRoute(route);
         trip.setServiceId(idFactory.createId(serviceId));
+
+        TransitMode transitMode = new TransitMode(
+            route.getTransitMode().getMode(),
+            transportModeMapper.getTransportSubmode(serviceJourney.getTransportSubmode())
+        );
+
+        // Only map ModeAndSubmode to Trip if it differs from the Route
+        if (transitMode.getSubmode() != null &&
+            !transitMode.getSubmode().equals(route.getTransitMode().getSubmode())) {
+            trip.setTransitMode(transitMode);
+        }
 
         return trip;
     }

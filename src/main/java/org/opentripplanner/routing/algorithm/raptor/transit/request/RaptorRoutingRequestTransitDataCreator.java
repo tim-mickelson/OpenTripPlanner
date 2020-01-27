@@ -1,10 +1,14 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.request;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPattern;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternForDate;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.DateMapper;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
 import org.opentripplanner.transit.raptor.api.transit.TransferLeg;
 
@@ -12,8 +16,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,12 +54,15 @@ class RaptorRoutingRequestTransitDataCreator {
   }
 
   List<List<TripPatternForDates>> createTripPatternsPerStop(
-      int dayRange, TraverseModeSet transitModes
+      int dayRange,
+      TraverseModeSet transitModes,
+      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> subModesForMode
   ) {
 
     List<Map<FeedScopedId, TripPatternForDate>> tripPatternForDates = getTripPatternsForDateRange(
         dayRange,
-        transitModes
+        transitModes,
+        subModesForMode
     );
 
     List<TripPatternForDates> tripPatternForDateList = merge(searchStartTime, tripPatternForDates);
@@ -62,7 +71,9 @@ class RaptorRoutingRequestTransitDataCreator {
   }
 
   private List<Map<FeedScopedId, TripPatternForDate>> getTripPatternsForDateRange(
-      int dayRange, TraverseModeSet transitModes
+      int dayRange,
+      TraverseModeSet transitModes,
+      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes
   ) {
     List<Map<FeedScopedId, TripPatternForDate>> tripPatternForDates = new ArrayList<>();
 
@@ -73,7 +84,8 @@ class RaptorRoutingRequestTransitDataCreator {
         listActiveTripPatterns(
           transitLayer,
           departureDate.plusDays(d),
-          transitModes
+          transitModes,
+          transportSubmodes
         )
       );
     }
@@ -136,13 +148,16 @@ class RaptorRoutingRequestTransitDataCreator {
   }
 
   private static Map<FeedScopedId, TripPatternForDate> listActiveTripPatterns(
-      TransitLayer transitLayer, LocalDate date, TraverseModeSet transitModes
+      TransitLayer transitLayer,
+      LocalDate date,
+      TraverseModeSet transitModes,
+      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes
   ) {
 
     return transitLayer
         .getTripPatternsForDate(date)
         .stream()
-        .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode()))
+        .filter(p -> modeIsAllowed(p, transitModes, transportSubmodes))
         .collect(toMap(p -> p.getTripPattern().getId(), p -> p));
   }
 
@@ -155,5 +170,26 @@ class RaptorRoutingRequestTransitDataCreator {
             .map(s -> new TransferWithDuration(s, walkSpeed))
             .collect(Collectors.<TransferLeg>toList()))
         .collect(toList());
+  }
+
+  private static boolean modeIsAllowed(
+      TripPatternForDate tripPatternForDate,
+      TraverseModeSet transitModes,
+      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes
+  ) {
+    TransitMode transitModeForCurrentPattern =
+        tripPatternForDate.getTripPattern().getTransitMode();
+
+    if (!transitModes.contains(transitModeForCurrentPattern.getMode())) {
+      return false;
+    } else
+    if (!transportSubmodes.isEmpty()) {
+      Set<TransmodelTransportSubmode> allowedSubmodesForMode = transportSubmodes.get(
+          transitModeForCurrentPattern.getMode()
+      );
+      return CollectionUtils.isEmpty(allowedSubmodesForMode)
+          || allowedSubmodesForMode.contains(transitModeForCurrentPattern.getSubmode());
+    }
+    return true;
   }
 }
