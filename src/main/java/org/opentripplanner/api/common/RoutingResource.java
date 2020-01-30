@@ -783,8 +783,9 @@ public abstract class RoutingResource {
                     "transfer slack must be greater than or equal to board slack plus alight slack");
         }
 
-        if (maxTransfers != null)
+        if (maxTransfers != null) {
             request.maxTransfers = maxTransfers;
+        }
 
         final long NOW_THRESHOLD_MILLIS = 15 * 60 * 60 * 1000;
         boolean tripPlannedForNow = Math.abs(request.getDateTime().getTime() - new Date().getTime()) < NOW_THRESHOLD_MILLIS;

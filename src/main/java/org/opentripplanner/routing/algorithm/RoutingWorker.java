@@ -174,6 +174,9 @@ public class RoutingWorker {
         else {
             builder.searchParams().earliestDepartureTime(time);
         }
+        if(request.maxTransfers != null) {
+            builder.searchParams().maxNumberOfTransfers(request.maxTransfers);
+        }
 
         // TODO Expose parameters
         // TODO Remove parameters from API
@@ -268,7 +271,7 @@ public class RoutingWorker {
     }
 
     private double calculateDistanceMaxLimit() {
-        double limit = request.maxWalkDistance * 2;
+         double limit = request.maxWalkDistance * 2;
         // Handle overflow and default setting is set to Double MAX_VALUE
         if(limit< 0) { limit = Double.MAX_VALUE; }
 
