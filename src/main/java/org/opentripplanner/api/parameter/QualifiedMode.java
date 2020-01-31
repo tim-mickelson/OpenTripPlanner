@@ -1,7 +1,6 @@
 package org.opentripplanner.api.parameter;
 
 import com.google.common.collect.Sets;
-import org.opentripplanner.routing.algorithm.raptor.router.RaptorRouter;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.slf4j.Logger;
