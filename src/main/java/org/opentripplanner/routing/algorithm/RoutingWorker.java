@@ -5,6 +5,7 @@ import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.routing.RoutingResponse;
 import org.opentripplanner.model.routing.TripSearchMetadata;
+import org.opentripplanner.routing.algorithm.itineraryfilters.ItineraryFilterChain;
 import org.opentripplanner.routing.algorithm.mapping.GraphPathToItineraryMapper;
 import org.opentripplanner.routing.algorithm.mapping.ItinerariesHelper;
 import org.opentripplanner.routing.algorithm.mapping.RaptorPathToItineraryMapper;
@@ -62,10 +63,12 @@ public class RoutingWorker {
     public static final double MAX_CAR_DISTANCE = 500_000;
 
     private final RoutingRequest request;
+    private final List<ItineraryFilter> filters = new ArrayList<>();
     private TripSearchMetadata responseMetadata = null;
 
     public RoutingWorker(RoutingRequest request) {
         this.request = request;
+        this.filters.addAll(ItineraryFilterChain.FILTERS);
     }
 
     public RoutingResponse route(Router router) {
@@ -79,8 +82,8 @@ public class RoutingWorker {
             itineraries.addAll(routeTransit(router));
 
             // Filter itineraries
-            if(request.modes.isTransit()) {
-                itineraries = ItinerariesHelper.filterAwayLongWalkingTransit(itineraries);
+            for (ItineraryFilter filter : filters) {
+                itineraries = filter.filter(request, itineraries);
             }
 
             LOG.debug("Return TripPlan with {} itineraries", itineraries.size());
