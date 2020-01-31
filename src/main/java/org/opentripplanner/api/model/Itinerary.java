@@ -1,16 +1,16 @@
 package org.opentripplanner.api.model;
 
+import org.opentripplanner.model.calendar.CalendarServiceData;
+import org.opentripplanner.routing.core.Fare;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-
-import org.opentripplanner.model.calendar.CalendarServiceData;
-import org.opentripplanner.routing.core.Fare;
 
 /**
  * An Itinerary is one complete way of getting from the start location to the end location.
@@ -145,5 +145,10 @@ public class Itinerary {
             calendar.setTime(endTime.getTime());
             endTime = calendar;
         }
+    }
+
+    @XmlTransient
+    public boolean isWalkingAllTheWay() {
+        return legs.stream().allMatch(Leg::isWalkingLeg);
     }
 }
