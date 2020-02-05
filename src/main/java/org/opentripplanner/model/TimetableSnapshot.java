@@ -2,6 +2,7 @@ package org.opentripplanner.model;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
@@ -115,7 +116,7 @@ public class TimetableSnapshot {
      */
     private HashMap<TripIdAndServiceDate, TripPattern> lastAddedTripPattern = new HashMap<>();
 
-    private final Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
+    private Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
     
     /**
      * Boolean value indicating that timetable snapshot is read only if true. Once it is true, it shouldn't
@@ -269,6 +270,8 @@ public class TimetableSnapshot {
         this.dirtyTimetables.clear();
         this.dirty = false;
 
+        ret.setPatternsForStop(HashMultimap.create(this.patternsForStop));
+
         ret.readOnly = true; // mark the snapshot as henceforth immutable
         return ret;
     }
@@ -386,5 +389,9 @@ public class TimetableSnapshot {
 
     public Collection<TripPattern> getPatternsForStop(Stop stop) {
         return patternsForStop.get(stop);
+    }
+
+    public void setPatternsForStop(Multimap<Stop, TripPattern> patternsForStop) {
+        this.patternsForStop = patternsForStop;
     }
 }
