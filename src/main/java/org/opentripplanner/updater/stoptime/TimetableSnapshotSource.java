@@ -633,6 +633,8 @@ public class TimetableSnapshotSource {
 
             if (estimatedVehicleJourney.getPublishedLineNames() != null && !estimatedVehicleJourney.getPublishedLineNames().isEmpty()) {
                 route.setShortName("" + estimatedVehicleJourney.getPublishedLineNames().get(0).getValue());
+            } else {
+                route.setShortName("");
             }
             LOG.info("Adding route {} to graph.", routeId);
             graph.index.routeForId.put(routeId, route);
@@ -681,6 +683,8 @@ public class TimetableSnapshotSource {
             EstimatedCall estimatedCall = estimatedCalls.get(i);
 
             Stop stop = getStopForStopId(SIRI_FEED_ID,estimatedCall.getStopPointRef().getValue());
+
+            Preconditions.checkNotNull(stop, "Unknown stop-id: " + estimatedCall.getStopPointRef().getValue());
 
             StopTime stopTime = new StopTime();
             stopTime.setStop(stop);

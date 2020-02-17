@@ -70,7 +70,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   "type": "google-pubsub-siri-et-updater",
  *   "projectName":"project-1234",                                                      // Google Cloud project name
  *   "topicName": "protobuf.estimated_timetables",                                      // Google Cloud Pubsub topic
- *   "dataInitializationUrl": "https://api.dev.entur.io/realtime/v1/rest/et-monitored"  // Optional URL used to initialize with all existing data
+ *   "dataInitializationUrl": "http://server/realtime/protobuf/et"  // Optional URL used to initialize with all existing data
  * </pre>
  *
  */
@@ -118,6 +118,7 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
 
                 /*
                   Google libraries expects path to credentials json-file is stored in environment variable "GOOGLE_APPLICATION_CREDENTIALS"
+                  Ref.: https://cloud.google.com/docs/authentication/getting-started
                  */
 
                 subscriptionAdminClient = SubscriptionAdminClient.create();
@@ -231,7 +232,7 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
     private void initializeData(String dataInitializationUrl, EstimatedTimetableMessageReceiver receiver) throws IOException {
         if (dataInitializationUrl != null) {
 
-            LOG.info("Fetching initial data");
+            LOG.info("Fetching initial data from " + dataInitializationUrl);
             final long t1 = System.currentTimeMillis();
 
             final InputStream data = HttpUtils.getData(dataInitializationUrl, "Content-Type", "application/x-protobuf");
@@ -275,7 +276,7 @@ public class SiriEstimatedTimetableGooglePubsubUpdater extends ReadinessBlocking
                 final ByteString data = message.getData();
 
                 final SiriType siriType = SiriType.parseFrom(data);
-                siri = SiriMapper.map(siriType);
+                siri = SiriMapper.mapToJaxb(siriType);
 
             } catch (InvalidProtocolBufferException e) {
                 throw new RuntimeException(e);

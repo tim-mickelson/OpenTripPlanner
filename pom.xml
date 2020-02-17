@@ -469,6 +469,7 @@
             <name>Onebusaway Releases Repo</name>
             <url>http://nexus.onebusaway.org/content/repositories/releases/</url>
         </repository>
+
     </repositories>
 
     <dependencies>
@@ -650,13 +651,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-protobuf-mapper</artifactId>
-            <version>0.1.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.entur</groupId>
-            <artifactId>siri-protobuf</artifactId>
-            <version>0.1</version>
+            <version>0.2</version>
         </dependency>
 
         <dependency>
