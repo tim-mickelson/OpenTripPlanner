@@ -419,7 +419,7 @@ public class TimetableSnapshotSource {
                     //Handle deliveries
                     for (EstimatedVersionFrameStructure estimatedJourneyVersion : estimatedJourneyVersions) {
                         List<EstimatedVehicleJourney> journeys = estimatedJourneyVersion.getEstimatedVehicleJourneies();
-                        LOG.debug("Handling {} EstimatedVehicleJourneys.", journeys.size());
+                        LOG.info("Handling {} EstimatedVehicleJourneys.", journeys.size());
                         int handledCounter = 0;
                         int skippedCounter = 0;
                         int addedCounter = 0;
@@ -451,7 +451,7 @@ public class TimetableSnapshotSource {
                                 }
                             }
                         }
-                        LOG.debug("Processed EstimatedVehicleJourneys: updated {}, added {}, skipped {}, not monitored {}.", handledCounter, addedCounter, skippedCounter, notMonitoredCounter);
+                        LOG.info("Processed EstimatedVehicleJourneys: updated {}, added {}, skipped {}, not monitored {}.", handledCounter, addedCounter, skippedCounter, notMonitoredCounter);
                     }
                 }
             }
@@ -914,9 +914,8 @@ public class TimetableSnapshotSource {
             Trip trip = tripTimes.trip;
             for (TripPattern pattern : patterns) {
                 if (tripTimes.getNumStops() == pattern.stopPattern.stops.length) {
-                    if (!tripTimes.isCanceled()) {
                         /*
-                          UPDATED and MODIFIED tripTimes should be handled the same way to always allow latest realtime-update
+                          All tripTimes should be handled the same way to always allow latest realtime-update
                           to replace previous update regardless of realtimestate
                          */
 
@@ -933,13 +932,10 @@ public class TimetableSnapshotSource {
 
                         if (modifiedStops != null && modifiedStops.isEmpty()) {
                             tripTimes.cancel();
-                        } else {
-                            // Add new trip
-                            result = result | addTripToGraphAndBuffer(SIRI_FEED_ID, graph, trip, modifiedStopTimes, modifiedStops, tripTimes, serviceDate);
                         }
-                    } else {
-                        result = result | buffer.update(SIRI_FEED_ID, pattern, tripTimes, serviceDate);
-                    }
+
+                        // Add updated trip
+                        result = result | addTripToGraphAndBuffer(SIRI_FEED_ID, graph, trip, modifiedStopTimes, modifiedStops, tripTimes, serviceDate);
 
                     LOG.debug("Applied realtime data for trip {}", trip.getId().getId());
                 } else {
@@ -1461,9 +1457,6 @@ public class TimetableSnapshotSource {
 
         // Remove trip times to avoid real time trip times being visible for ignoreRealtimeInformation queries
         pattern.scheduledTimetable.tripTimes.clear();
-
-        // Add to buffer as-is to include it in the 'lastAddedTripPattern'
-        buffer.update(feedId, pattern, updatedTripTimes, serviceDate);
 
         //TODO: Add pattern to index?
 

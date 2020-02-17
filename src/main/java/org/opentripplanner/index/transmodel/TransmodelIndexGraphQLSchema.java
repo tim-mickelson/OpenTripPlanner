@@ -1542,6 +1542,11 @@ public class TransmodelIndexGraphQLSchema {
                                 .defaultValue(false)
                                 .build())
                         .argument(GraphQLArgument.newArgument()
+                                .name("includeCancelledTrips")
+                                .type(Scalars.GraphQLBoolean)
+                                .defaultValue(false)
+                                .build())
+                        .argument(GraphQLArgument.newArgument()
                                 .name("whiteListed")
                                 .description("Whitelisted")
                                 .description("Parameters for indicating the only authorities and/or lines or quays to list estimatedCalls for")
@@ -1553,7 +1558,8 @@ public class TransmodelIndexGraphQLSchema {
                                 .type(GraphQLList.list(modeEnum))
                                 .build())
                         .dataFetcher(environment -> {
-                            boolean omitNonBoarding = environment.getArgument("omitNonBoarding");
+                            boolean omitNonBoarding = environment.getArgument("omitNonBoarding") != null ? environment.getArgument("omitNonBoarding"):false;
+                            boolean includeCancelledTrips = environment.getArgument("includeCancelledTrips") != null ? environment.getArgument("includeCancelledTrips"):false;
                             int numberOfDepartures = environment.getArgument("numberOfDepartures");
                             Integer departuresPerLineAndDestinationDisplay = environment.getArgument("numberOfDeparturesPerLineAndDestinationDisplay");
                             int timeRage = environment.getArgument("timeRange");
@@ -1600,6 +1606,7 @@ public class TransmodelIndexGraphQLSchema {
                                                     startTimeSeconds,
                                                     timeRage,
                                                     omitNonBoarding,
+                                                    includeCancelledTrips,
                                                     numberOfDepartures,
                                                     departuresPerLineAndDestinationDisplay,
                                                     authorityIds,
@@ -1716,6 +1723,12 @@ public class TransmodelIndexGraphQLSchema {
                                 .defaultValue(false)
                                 .build())
                         .argument(GraphQLArgument.newArgument()
+                                .name("includeCancelledTrips")
+                                .description("Indicates that realtime-cancelled trips should also be included.")
+                                .type(Scalars.GraphQLBoolean)
+                                .defaultValue(false)
+                                .build())
+                        .argument(GraphQLArgument.newArgument()
                                 .name("whiteListed")
                                 .description("Whitelisted")
                                 .description("Parameters for indicating the only authorities and/or lines or quays to list estimatedCalls for")
@@ -1727,7 +1740,8 @@ public class TransmodelIndexGraphQLSchema {
                                 .type(GraphQLList.list(modeEnum))
                                 .build())
                         .dataFetcher(environment -> {
-                            boolean omitNonBoarding = environment.getArgument("omitNonBoarding");
+                            boolean omitNonBoarding = environment.getArgument("omitNonBoarding") != null ? environment.getArgument("omitNonBoarding"):false;
+                            boolean includeCancelledTrips = environment.getArgument("includeCancelledTrips") != null ? environment.getArgument("includeCancelledTrips"):false;
                             int numberOfDepartures = environment.getArgument("numberOfDepartures");
                             Integer departuresPerLineAndDestinationDisplay = environment.getArgument("numberOfDeparturesPerLineAndDestinationDisplay");
                             int timeRange = environment.getArgument("timeRange");
@@ -1765,6 +1779,7 @@ public class TransmodelIndexGraphQLSchema {
                                     startTimeSeconds,
                                     timeRange,
                                     omitNonBoarding,
+                                    includeCancelledTrips,
                                     numberOfDepartures,
                                     departuresPerLineAndDestinationDisplay,
                                     authorityIds,
@@ -1897,7 +1912,7 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                                .name("expectedArrivalTime")
                                .type(dateTimeScalar)
-                               .description("Expected time of arrival at quay. Updated with real time information if available. Will be null if an actualArrivalTime exists")
+                               .description("Expected time of arrival at quay. Updated with real time information if available.")
                                .dataFetcher(
                                        environment -> {
                                            TripTimeShort tripTimeShort = environment.getSource();
@@ -1930,7 +1945,7 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                                .name("expectedDepartureTime")
                                .type(dateTimeScalar)
-                               .description("Expected time of departure from quay. Updated with real time information if available. Will be null if an actualDepartureTime exists")
+                               .description("Expected time of departure from quay. Updated with real time information if available.")
                                .dataFetcher(
                                        environment -> {
                                            TripTimeShort tripTimeShort = environment.getSource();
@@ -3579,26 +3594,30 @@ public class TransmodelIndexGraphQLSchema {
         AgencyAndId stopId = tripTimeShort.stopId;
 
         Stop stop = index.stopForId.get(stopId);
-        AgencyAndId parentStopId = stop.getParentStationAgencyAndId();
-
 
         Collection<AlertPatch> allAlerts = new HashSet<>();
 
-        // Quay
-        allAlerts.addAll(index.getAlertsForStopId(stopId));
-        allAlerts.addAll(index.getAlertsForStopAndTrip(stopId, tripId));
-        allAlerts.addAll(index.getAlertsForStopAndRoute(stopId, routeId));
-        // StopPlace
-        allAlerts.addAll(index.getAlertsForStopId(parentStopId));
-        allAlerts.addAll(index.getAlertsForStopAndTrip(parentStopId, tripId));
-        allAlerts.addAll(index.getAlertsForStopAndRoute(parentStopId, routeId));
+        if (stop != null) {
+            AgencyAndId parentStopId = stop.getParentStationAgencyAndId();
 
-        if (stop.getMultiModalStation() != null) {
-            // MultimodalStopPlace
-            AgencyAndId multimodalStopId = new AgencyAndId(stopId.getAgencyId(), stop.getMultiModalStation());
-            allAlerts.addAll(index.getAlertsForStopId(multimodalStopId));
-            allAlerts.addAll(index.getAlertsForStopAndTrip(multimodalStopId, tripId));
-            allAlerts.addAll(index.getAlertsForStopAndRoute(multimodalStopId, routeId));
+            // Quay
+            allAlerts.addAll(index.getAlertsForStopId(stopId));
+            allAlerts.addAll(index.getAlertsForStopAndTrip(stopId, tripId));
+            allAlerts.addAll(index.getAlertsForStopAndRoute(stopId, routeId));
+            // StopPlace
+            allAlerts.addAll(index.getAlertsForStopId(parentStopId));
+            allAlerts.addAll(index.getAlertsForStopAndTrip(parentStopId, tripId));
+            allAlerts.addAll(index.getAlertsForStopAndRoute(parentStopId, routeId));
+
+            if (stop.getMultiModalStation() != null) {
+                // MultimodalStopPlace
+                AgencyAndId multimodalStopId = new AgencyAndId(stopId.getAgencyId(),
+                    stop.getMultiModalStation()
+                );
+                allAlerts.addAll(index.getAlertsForStopId(multimodalStopId));
+                allAlerts.addAll(index.getAlertsForStopAndTrip(multimodalStopId, tripId));
+                allAlerts.addAll(index.getAlertsForStopAndRoute(multimodalStopId, routeId));
+            }
         }
 
         // Trip
@@ -4597,6 +4616,7 @@ public class TransmodelIndexGraphQLSchema {
             Long startTimeSeconds,
             int timeRage,
             boolean omitNonBoarding,
+            boolean includeCancelledTrips,
             int numberOfDepartures,
             Integer departuresPerLineAndDestinationDisplay,
             Set<String> authorityIdsWhiteListed,
@@ -4611,7 +4631,7 @@ public class TransmodelIndexGraphQLSchema {
         int departuresPerTripPattern = limitOnDestinationDisplay ? departuresPerLineAndDestinationDisplay : numberOfDepartures;
 
         List<StopTimesInPattern> stopTimesInPatterns = index.stopTimesForStop(
-                stop, startTimeSeconds, timeRage, departuresPerTripPattern, omitNonBoarding
+                stop, startTimeSeconds, timeRage, departuresPerTripPattern, omitNonBoarding, includeCancelledTrips
         );
 
         Stream<TripTimeShort> tripTimesStream = stopTimesInPatterns.stream().flatMap(p -> p.times.stream());

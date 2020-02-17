@@ -2,6 +2,9 @@ env: dev-c2
 
 replicas: 4
 
+journeyPlanner:
+  enabled: true
+
 horizontalPodAutoscaler:
   enabled: true
   maxReplicas: 10
@@ -46,6 +49,7 @@ image:
     name: rutebanken-registry-key
 
 service:
+  enabled: true
   otp:
     externalPort: 8080
     internalPort: 8080
@@ -72,6 +76,21 @@ cronjobRedeployOtp:
   environmentValues:
     otpRedeploySlack: slack-url
     cloudsdkCoreProject: carbon-1287
+    
+cronjobRedeployGraphBuilder:
+  enabled: false
+  image: eu.gcr.io/entur-system-1287/otp
+  imagePullPolicy: Always
+  slack: talk-ror
+  team: ror
+  type: backend
+  app: graph-builder
+  resources:
+    cpuLimit: 3000m
+    memLimit: 22000Mi
+    cpuRequest: 1000m
+    memRequest: 20000Mi
+    xmx: 18g
 
 configuration:
   siriVMUpdater: https://api.dev.entur.io/realtime/v1/services

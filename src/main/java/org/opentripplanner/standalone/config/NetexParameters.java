@@ -12,7 +12,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 */
-package org.opentripplanner.standalone;
+package org.opentripplanner.standalone.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -44,17 +44,6 @@ public class NetexParameters {
      */
 
     public final String netexFeedId;
-
-    /**
-     * This field is used to identify Netex module (zip) files. The format is
-     * a regular expression. The regular expression should match the name
-     * of the file including file extension, but not the file path.
-     * <p>
-     * The pattern <code>'.*-netex-no\.zip'</code> matches <code>'norway-aggregated-netex-no.zip'</code>
-     * <p>
-     * Default value is <code>'.*-netex-no\.zip'</code>
-     */
-    public final Pattern moduleFilePattern;
 
     /**
      * This field is used to exclude matching <em>files</em> in the module file(zip file entries).
@@ -134,7 +123,6 @@ public class NetexParameters {
     public final int defaultMinimumFlexPaddingTimeMins;
 
     NetexParameters(JsonNode config) {
-        moduleFilePattern = pattern("moduleFilePattern", MODULE_FILE_PATTERN, config);
         ignoreFilePattern = pattern("ignoreFilePattern", IGNORE_FILE_PATTERN, config);
         sharedFilePattern = pattern("sharedFilePattern", SHARED_FILE_PATTERN, config);
         sharedGroupFilePattern = pattern("sharedGroupFilePattern", SHARED_GROUP_FILE_PATTERN, config);
@@ -154,9 +142,5 @@ public class NetexParameters {
 
     private static int integer(String path, int defaultValue, JsonNode config) {
         return config == null ? defaultValue : config.path(path).asInt(defaultValue);
-    }
-
-    public boolean moduleFileMatches(String name) {
-        return moduleFilePattern.matcher(name).matches();
     }
 }
