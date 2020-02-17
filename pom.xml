@@ -644,10 +644,27 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>0.13-SNAPSHOT</version>
+            <version>0.12</version>
         </dependency>
 
-        <!-- SIRI -->
+        <dependency>
+            <groupId>org.entur</groupId>
+            <artifactId>siri-protobuf-mapper</artifactId>
+            <version>0.1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.entur</groupId>
+            <artifactId>siri-protobuf</artifactId>
+            <version>0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-pubsub</artifactId>
+            <version>1.100.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-client</artifactId>
@@ -937,6 +954,11 @@
             <artifactId>json-path</artifactId>
             <version>2.3.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-pubsub</artifactId>
+            <version>1.100.0</version>
         </dependency>
     </dependencies>
 
