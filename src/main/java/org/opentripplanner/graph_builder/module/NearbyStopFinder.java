@@ -101,6 +101,8 @@ public class NearbyStopFinder {
             if (!ts1.isStreetLinkable()) continue;
             /* Consider this destination stop as a candidate for every trip pattern passing through it. */
             for (TripPattern pattern : graph.index.patternsForStop.get(ts1.getStop())) {
+                stopAtDistance.fstop = (TransitStopVertex) vertex;
+                stopAtDistance.tripPattern = pattern;
                 closestStopForPattern.putMin(pattern, stopAtDistance);
             }
         }
@@ -168,7 +170,9 @@ public class NearbyStopFinder {
             if (vertex instanceof TransitStopVertex) {
                 stopsFound.add(
                     new StopAtDistance(
+                        null,
                         (TransitStopVertex) vertex,
+                        null,
                         0,
                         Collections.emptyList(),
                         null
@@ -202,7 +206,7 @@ public class NearbyStopFinder {
             if (distance < radiusMeters) {
                 Coordinate coordinates[] = new Coordinate[] {c0, ts1.getCoordinate()};
                 StopAtDistance sd = new StopAtDistance(
-                    ts1, distance,
+                    null, ts1, null, distance,
                     null,
                     geometryFactory.createLineString(coordinates)
                 );
@@ -217,18 +221,24 @@ public class NearbyStopFinder {
      */
     public static class StopAtDistance implements Comparable<StopAtDistance> {
 
+        public TransitStopVertex fstop;
         public final TransitStopVertex tstop;
+        public TripPattern tripPattern;
         public final double distance;
         public final LineString geometry;
         public final List<Edge>  edges;
 
         public StopAtDistance(
+            TransitStopVertex fstop,
             TransitStopVertex tstop,
+            TripPattern tripPattern,
             double distance,
             List<Edge> edges,
             LineString geometry
         ) {
+            this.fstop = fstop;
             this.tstop = tstop;
+            this.tripPattern = tripPattern;
             this.distance = distance;
             this.edges = edges;
             this.geometry = geometry;
@@ -279,7 +289,9 @@ public class NearbyStopFinder {
         }
         return
             new StopAtDistance(
+                null,
                 (TransitStopVertex) state.getVertex(),
+                null,
                 effectiveWalkDistance, edges,
                 geometryFactory.createLineString(
                     new PackedCoordinateSequence.Double(coordinates.toCoordinateArray())));

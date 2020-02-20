@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import org.opentripplanner.graph_builder.DataImportIssueStore;
 import org.opentripplanner.graph_builder.issues.StopNotLinkedForTransfers;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
+import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.routing.edgetype.PathwayEdge;
 import org.opentripplanner.routing.edgetype.SimpleTransfer;
 import org.opentripplanner.routing.graph.Edge;
@@ -68,6 +69,8 @@ public class DirectTransferGenerator implements GraphBuilderModule {
         int nTransfersTotal = 0;
         int nLinkableStops = 0;
 
+        BestStopAtDistancePerPatternCombination combinations = new BestStopAtDistancePerPatternCombination();
+
         // This could be multi-threaded, in which case we'd need to be careful about the lifecycle of NearbyStopFinder instances.
         for (TransitStopVertex ts0 : Iterables.filter(graph.getVertices(), TransitStopVertex.class)) {
 
@@ -78,31 +81,42 @@ public class DirectTransferGenerator implements GraphBuilderModule {
             }
             LOG.debug("Linking stop '{}' {}", ts0.getStop(), ts0);
 
-            /* Determine the set of stops that are already reachable via other pathways or transfers */
-            Set<TransitStopVertex> pathwayDestinations = new HashSet<TransitStopVertex>();
-            for (Edge e : ts0.getOutgoing()) {
-                if (e instanceof PathwayEdge || e instanceof SimpleTransfer) {
-                    if (e.getToVertex() instanceof TransitStopVertex) {
-                        TransitStopVertex to = (TransitStopVertex) e.getToVertex();
-                        pathwayDestinations.add(to);
-                    }
-                }
-            }
-
             /* Make transfers to each nearby stop that is the closest stop on some trip pattern. */
             int n = 0;
             for (NearbyStopFinder.StopAtDistance sd : nearbyStopFinder.findNearbyStopsConsideringPatterns(ts0)) {
-                /* Skip the origin stop, loop transfers are not needed. */
-                if (sd.tstop == ts0 || pathwayDestinations.contains(sd.tstop)) continue;
-                new SimpleTransfer(ts0, sd.tstop, sd.distance, sd.edges);
-                n += 1;
+                if (sd.tstop == ts0) continue;
+                for (TripPattern fromPattern : graph.index.patternsForStop.get(ts0.getStop())) {
+                    combinations.putStopAtDistance(fromPattern, sd);
+                    n++;
+                }
             }
             LOG.debug("Linked stop {} to {} nearby stops on other patterns.", ts0.getStop(), n);
             if (n == 0) {
                 issueStore.add(new StopNotLinkedForTransfers(ts0));
             }
-            nTransfersTotal += n;
+
         }
+
+        for (NearbyStopFinder.StopAtDistance sd : combinations.getBestTransfers().values()) {
+            /* Determine the set of stops that are already reachable via other pathways or transfers */
+            boolean valid = true;
+            for (Edge e : sd.fstop.getOutgoing()) {
+                if (e instanceof PathwayEdge || e instanceof SimpleTransfer) {
+                    if (e.getToVertex() instanceof TransitStopVertex) {
+                        TransitStopVertex to = (TransitStopVertex) e.getToVertex();
+                        if (sd.tstop == to) {
+                            valid = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!valid) continue;
+            new SimpleTransfer(sd.fstop, sd.tstop, sd.distance, sd.edges);
+            nTransfersTotal ++;
+        }
+
+
         LOG.info("Done connecting stops to one another. Created a total of {} transfers from {} stops.", nTransfersTotal, nLinkableStops);
         graph.hasDirectTransfers = true;
     }
