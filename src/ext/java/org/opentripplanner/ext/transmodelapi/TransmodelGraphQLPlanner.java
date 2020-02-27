@@ -2,12 +2,14 @@ package org.opentripplanner.ext.transmodelapi;
 
 import com.google.common.base.Joiner;
 import graphql.schema.DataFetchingEnvironment;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.opentripplanner.api.common.ParameterException;
 import org.opentripplanner.api.model.error.PlannerError;
 import org.opentripplanner.api.parameter.QualifiedModeSet;
 import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.ext.transmodelapi.mapping.TransmodelMappingUtil;
+import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.ext.transmodelapi.model.PlanResponse;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.routing.RoutingResponse;
@@ -245,7 +247,6 @@ public class TransmodelGraphQLPlanner {
             request.modes.setCableCar(cableCar);
         }
 
-        /*
         List<Map<String, ?>> transportSubmodeFilters = environment.getArgument("transportSubmodes");
         if (transportSubmodeFilters != null) {
             request.transportSubmodes = new HashMap<>();
@@ -256,7 +257,7 @@ public class TransmodelGraphQLPlanner {
                     request.transportSubmodes.put(transportMode, new HashSet<>(transportSubmodes));
                 }
             }
-        }*/
+        }
 
         if (request.allowBikeRental && !hasArgument(environment, "bikeSpeed")) {
             //slower bike speed for bike sharing, based on empirical evidence from DC.
