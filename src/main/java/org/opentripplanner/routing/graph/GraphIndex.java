@@ -178,14 +178,20 @@ public class GraphIndex {
 
   /**
    * Returns all the patterns for a specific stop. If includeRealtimeUpdates is set, new patterns
-   * added by realtime updates are added to the collection.
+   * added by realtime updates are added to the collection. Planned patterns will be replaced by
+   * realtime patterns with the same id.
+   *
+   * // TODO OTP2 This should be refactored so that we are able to include cancelled, but not
+   *              replaced trips
    */
-  public Collection<TripPattern> getPatternsForStop(Stop stop, TimetableSnapshot timetableSnapshot) {
-    List<TripPattern> tripPatterns = new ArrayList<>(getPatternsForStop().get(stop));
+  public Set<TripPattern> getPatternsForStop(Stop stop, TimetableSnapshot timetableSnapshot) {
+    Set<TripPattern> tripPatterns = new HashSet<>();
 
     if (timetableSnapshot != null) {
       tripPatterns.addAll(timetableSnapshot.getPatternsForStop(stop));
     }
+
+    tripPatterns.addAll(getPatternsForStop().get(stop));
 
     return tripPatterns;
   }
