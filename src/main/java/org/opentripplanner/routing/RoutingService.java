@@ -20,6 +20,7 @@ import org.opentripplanner.transit.raptor.rangeraptor.configure.RaptorConfig;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This is the entry point of all API requests towards the OTP graph. A new instance of this class
@@ -121,7 +122,7 @@ public class RoutingService {
    * Returns all the patterns for a specific stop. If includeRealtimeUpdates is set, new patterns
    * added by realtime updates are added to the collection.
    */
-  public Collection<TripPattern> getPatternsForStop(Stop stop, boolean includeRealtimeUpdates) {
+  public Set<TripPattern> getPatternsForStop(Stop stop, boolean includeRealtimeUpdates) {
     return graph.index.getPatternsForStop(
         stop,
         includeRealtimeUpdates ? lazyGetTimeTableSnapShot() : null);
