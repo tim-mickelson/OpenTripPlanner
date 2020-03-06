@@ -352,6 +352,7 @@ public class SpeedTest {
                 2,
                 request.getTransitModes(),
                 new HashMap<>(),
+                Collections.emptySet(),
                 request.getWalkSpeedMeterPrSecond()
         );
     }

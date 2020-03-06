@@ -144,6 +144,7 @@ public class RoutingWorker {
                 TRANSIT_SEARCH_RANGE_IN_DAYS,
                 request.modes,
                 request.transportSubmodes,
+                request.rctx.bannedRoutes,
                 request.walkSpeed
         );
         LOG.debug("Filtering tripPatterns took {} ms", System.currentTimeMillis() - startTime);

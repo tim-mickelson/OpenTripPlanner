@@ -56,13 +56,15 @@ class RaptorRoutingRequestTransitDataCreator {
   List<List<TripPatternForDates>> createTripPatternsPerStop(
       int dayRange,
       TraverseModeSet transitModes,
-      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> subModesForMode
+      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> subModesForMode,
+      Set<FeedScopedId> bannedRoutes
   ) {
 
     List<Map<FeedScopedId, TripPatternForDate>> tripPatternForDates = getTripPatternsForDateRange(
         dayRange,
         transitModes,
-        subModesForMode
+        subModesForMode,
+        bannedRoutes
     );
 
     List<TripPatternForDates> tripPatternForDateList = merge(searchStartTime, tripPatternForDates);
@@ -73,7 +75,8 @@ class RaptorRoutingRequestTransitDataCreator {
   private List<Map<FeedScopedId, TripPatternForDate>> getTripPatternsForDateRange(
       int dayRange,
       TraverseModeSet transitModes,
-      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes
+      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes,
+      Set<FeedScopedId> bannedRoutes
   ) {
     List<Map<FeedScopedId, TripPatternForDate>> tripPatternForDates = new ArrayList<>();
 
@@ -85,7 +88,8 @@ class RaptorRoutingRequestTransitDataCreator {
           transitLayer,
           departureDate.plusDays(d),
           transitModes,
-          transportSubmodes
+          transportSubmodes,
+          bannedRoutes
         )
       );
     }
@@ -151,13 +155,15 @@ class RaptorRoutingRequestTransitDataCreator {
       TransitLayer transitLayer,
       LocalDate date,
       TraverseModeSet transitModes,
-      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes
+      HashMap<TraverseMode, Set<TransmodelTransportSubmode>> transportSubmodes,
+      Set<FeedScopedId> bannedRoutes
   ) {
 
     return transitLayer
         .getTripPatternsForDate(date)
         .stream()
-        .filter(p -> modeIsAllowed(p, transitModes, transportSubmodes))
+        .filter(p -> modeIsAllowed(p, transitModes, transportSubmodes)
+            && !bannedRoutes.contains(p.getTripPattern().getOriginalTripPattern().route.getId()))
         .collect(toMap(p -> p.getTripPattern().getId(), p -> p));
   }
 
