@@ -9,6 +9,7 @@ import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPattern;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternForDate;
 import org.opentripplanner.routing.graph.Graph;
+import org.opentripplanner.routing.graph.GraphIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +54,10 @@ public class TransitLayerUpdater {
     this.serviceCodesRunningForDate = serviceCodesRunningForDate;
   }
 
+  /**
+   *  Updates the provided timetables in the TransitLayer. TripPatterns with the same id for the same
+   *  date are replaced. The same mechanism is used in {@link GraphIndex#getPatternsForStop()}
+   */
   public void update(Set<Timetable> updatedTimetables) {
     if (!graph.hasRealtimeTransitLayer()) { return; }
 
@@ -103,6 +108,7 @@ public class TransitLayerUpdater {
             timetable.serviceDate
         );
         if (tripPatternForDate != null) {
+          // Patterns with the same id for the same date are replaced here
           patternsForDateMap.put(timetable.pattern, tripPatternForDate);
         }
       }

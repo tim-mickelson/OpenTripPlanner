@@ -23,15 +23,14 @@ import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.calendar.CalendarService;
 import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
 import org.opentripplanner.routing.vertextype.TransitStopVertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -180,6 +179,9 @@ public class GraphIndex {
    * Returns all the patterns for a specific stop. If includeRealtimeUpdates is set, new patterns
    * added by realtime updates are added to the collection. Planned patterns will be replaced by
    * realtime patterns with the same id.
+   *
+   * The same mechanism for replacing TripPatterns for travel searches is used in
+   * {@link TransitLayerUpdater}
    *
    * // TODO OTP2 This should be refactored so that we are able to include cancelled, but not
    *              replaced trips
