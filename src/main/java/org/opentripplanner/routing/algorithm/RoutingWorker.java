@@ -159,7 +159,7 @@ public class RoutingWorker {
         LOG.debug("Access/egress routing took {} ms",
                 System.currentTimeMillis() - startTimeAccessEgress
         );
-        verifyEgressAccess(request, accessTransfers, egressTransfers);
+        verifyEgressAccess(accessTransfers, egressTransfers);
 
         /* Prepare transit search */
 
@@ -305,7 +305,6 @@ public class RoutingWorker {
     }
 
     private void verifyEgressAccess(
-            RoutingRequest request,
             Map<?,?> access,
             Map<?,?> egress
     ) {
@@ -315,8 +314,8 @@ public class RoutingWorker {
         if(accessExist && egressExist) { return; }
 
         List<String> missingPlaces = new ArrayList<>();
-        if(!accessExist) { missingPlaces.add(request.from.toString()); }
-        if(!egressExist) { missingPlaces.add(request.to.toString()); }
+        if(!accessExist) { missingPlaces.add("from"); }
+        if(!egressExist) { missingPlaces.add("to"); }
 
         throw new VertexNotFoundException(missingPlaces);
     }
