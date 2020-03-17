@@ -350,6 +350,7 @@ public class SpeedTest {
                 request.getDepartureDateWithZone().toInstant(),
                 2,
                 request.getTransitModes(),
+                new HashMap<>(),
                 Collections.emptySet(),
                 request.getWalkSpeedMeterPrSecond()
         );

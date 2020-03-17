@@ -63,7 +63,7 @@ public class TransitLayerUpdater {
     double startTime = System.currentTimeMillis();
 
     // Map TripPatterns for this update to Raptor TripPatterns
-    final Map<org.opentripplanner.model.TripPattern, TripPattern>
+    final Multimap<org.opentripplanner.model.TripPattern, TripPattern>
         newTripPatternForOld = mapOldTripPatternToRaptorTripPattern(
         realtimeTransitLayer.getStopIndex(),
             updatedTimetables.stream().map(t -> t.pattern).collect(Collectors.toSet()
@@ -98,12 +98,14 @@ public class TransitLayerUpdater {
           .collect(Collectors.toMap(t -> t.getTripPattern().getOriginalTripPattern(), t -> t)));
 
       for (Timetable timetable : timetablesForDate) {
-        TripPatternForDate tripPatternForDate = tripPatternForDateMapper.map(
+        Collection<TripPatternForDate> tripPatternsForDate = tripPatternForDateMapper.map(
             timetable,
             timetable.serviceDate
         );
-        if (tripPatternForDate != null) {
-          patternsForDateMap.put(timetable.pattern, tripPatternForDate);
+        if (tripPatternsForDate != null) {
+          for (TripPatternForDate tripPatternForDate : tripPatternsForDate) {
+            patternsForDateMap.put(timetable.pattern, tripPatternForDate);
+          }
         }
       }
 
